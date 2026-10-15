@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Production output
+dist/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Gradle build cache & local configuration (keep android source tree tracked)
+android/.gradle/
+android/build/
+android/app/build/
+android/.idea/
+android/*.iml
+android/app/*.iml
+android/local.properties
+
+# Ensure single_ring.wav is tracked
+!android/app/src/main/res/raw/single_ring.wav
+!public/single_ring.wav

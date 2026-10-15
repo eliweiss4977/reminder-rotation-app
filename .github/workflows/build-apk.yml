@@ -1,0 +1,59 @@
+name: Build Android APK
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Debug APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Setup Java JDK 17 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Generate Chime & Verify Audio Assets
+        run: |
+          node scripts/generate-chime.js
+          if [ ! -f "android/app/src/main/res/raw/single_ring.wav" ]; then
+            echo "Error: single_ring.wav missing in android/app/src/main/res/raw/"
+            exit 1
+          fi
+          echo "Audio chime verified at android/app/src/main/res/raw/single_ring.wav"
+
+      - name: Build Web App & Sync Capacitor
+        run: |
+          npm run build
+          npx cap sync android
+
+      - name: Grant Execute Permission to Gradle
+        run: chmod +x android/gradlew
+
+      - name: Build Android Debug APK
+        working-directory: android
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: satkin-rotation-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 14
