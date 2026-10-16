@@ -6,9 +6,12 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
-    name: Build Debug APK
+    name: Build & Release APK
     runs-on: ubuntu-latest
 
     steps:
@@ -51,9 +54,40 @@ jobs:
         working-directory: android
         run: ./gradlew assembleDebug --stacktrace
 
+      - name: Prepare APK & Ensure Public Visibility
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk ./satkin-pacer.apk
+          gh repo edit --visibility public --accept-visibility-change-consequences || echo "Repository visibility already public or requires manual toggle."
+
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: satkin-rotation-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: ./satkin-pacer.apk
           retention-days: 14
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: "📱 Satkin Pacer APK - Build #${{ github.run_number }}"
+          files: ./satkin-pacer.apk
+          body: |
+            ### 📱 Satkin Rotation & Habit Pacer APK
+            
+            **Direct Download Link:**
+            [Download Satkin Pacer APK](https://github.com/${{ github.repository }}/releases/latest/download/satkin-pacer.apk)
+            
+            ### 📷 Scan with Phone Camera to Install:
+            ![Scan to Install](https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=https://github.com/${{ github.repository }}/releases/latest/download/satkin-pacer.apk)
+
+      - name: Display QR Code in Job Summary
+        run: |
+          echo "### 📱 Download Satkin Pacer APK (Build #${{ github.run_number }})" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🔗 **Direct Link:** [Download satkin-pacer.apk](https://github.com/${{ github.repository }}/releases/latest/download/satkin-pacer.apk)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📷 Scan with Phone Camera to Install:" >> $GITHUB_STEP_SUMMARY
+          echo "![Scan to Install](https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=https://github.com/${{ github.repository }}/releases/latest/download/satkin-pacer.apk)" >> $GITHUB_STEP_SUMMARY
