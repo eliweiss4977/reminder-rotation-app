@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>Satkin Multi-Profile Reminder & Habit Engine</title>
+  <title>Satkin Multi-Profile Reminder, Weight & Habit Engine</title>
   <meta name="theme-color" content="#090d16" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -17,7 +17,6 @@
     <div class="max-w-md mx-auto flex items-center justify-between">
       <div class="flex items-center space-x-2.5">
         <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-700 flex items-center justify-center shadow-md shadow-indigo-950/50">
-          <!-- Ear Acupressure / Meditation Icon -->
           <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M6 8.5a6.5 6.5 0 1 1 13 0c0 6-6 6-6 10a2.5 2.5 0 0 1-5 0"></path>
             <path d="M12 8.5a2.5 2.5 0 0 1 2.5 2.5c0 1.5-1.5 2-1.5 3"></path>
@@ -27,13 +26,12 @@
         <div>
           <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-1.5">
             Satkin Pacer
-            <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-semibold border border-indigo-500/30">Multi-Profile</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-semibold border border-indigo-500/30">Pro Engine</span>
           </h1>
           <p class="text-[11px] text-slate-400 leading-none" id="header-today-date">Loading schedule...</p>
         </div>
       </div>
 
-      <!-- Quick Action / 528Hz Audio Bell Trigger -->
       <div class="flex items-center gap-2">
         <button id="header-test-chime" title="Test 528Hz Crystal Bell Chime" class="active-press flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-xs text-amber-300 border border-amber-500/20 shadow-sm transition">
           <svg class="w-3.5 h-3.5 animate-pulse text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -56,7 +54,7 @@
       <div class="flex items-center justify-between text-xs px-1">
         <span class="font-bold text-slate-300 flex items-center gap-1.5">
           <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
-          Active Profiles Today
+          Active Routines Today
         </span>
         <button id="today-manage-profiles-btn" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1 active-press">
           Manage Profiles →
@@ -64,13 +62,10 @@
       </div>
 
       <!-- Chips row -->
-      <div id="today-active-chips" class="flex flex-wrap gap-1.5">
-        <!-- Dynamically filled with active profile pills -->
-      </div>
+      <div id="today-active-chips" class="flex flex-wrap gap-1.5"></div>
 
       <!-- HERO COUNTDOWN CARD -->
       <div class="relative overflow-hidden rounded-2xl glass-card p-5 border border-slate-700/60 shadow-xl shadow-black/40">
-        <!-- Ambient background glows -->
         <div class="absolute -right-8 -top-8 w-36 h-36 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
         <div class="absolute -left-8 -bottom-8 w-36 h-36 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
 
@@ -103,7 +98,6 @@
 
         <!-- Hero Actions -->
         <div class="grid grid-cols-2 gap-2.5 pt-2">
-          <!-- Primary Action Button (Dynamic: 40x Pacer, +1 Glass, or Complete) -->
           <button id="hero-action-btn" class="active-press col-span-2 py-3.5 px-4 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold text-sm shadow-lg shadow-indigo-950/60 flex items-center justify-center gap-2 transition">
             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <polygon points="5 3 19 12 5 21 5 3"></polygon>
@@ -147,9 +141,7 @@
           </button>
         </div>
 
-        <div id="timeline-slots-container" class="space-y-2">
-          <!-- Dynamically populated multi-profile timeline slots -->
-        </div>
+        <div id="timeline-slots-container" class="space-y-2"></div>
       </div>
     </section>
 
@@ -169,76 +161,133 @@
         </button>
       </div>
 
-      <!-- Profiles List Container -->
-      <div id="profiles-list-container" class="space-y-3">
-        <!-- Dynamically rendered profile cards -->
-      </div>
+      <div id="profiles-list-container" class="space-y-3"></div>
     </section>
 
-    <!-- TAB 3: WATER & STATS -->
+    <!-- TAB 3: WEIGHT & CUSTOM GOALS -->
     <section id="tab-content-stats" class="space-y-4 hidden">
-      <!-- Water Hydration Card -->
-      <div class="rounded-2xl glass-card p-5 border border-slate-700/60 shadow-lg space-y-4">
+
+      <!-- WEIGHT PROGRESS HERO CARD -->
+      <div class="rounded-2xl glass-card p-5 border border-slate-700/60 shadow-xl space-y-4">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
-              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+            <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 3v18"></path>
+                <path d="M6 7l6-4 6 4"></path>
+                <path d="M4 14l4-7 4 7H4z"></path>
+                <path d="M16 14l4-7 4 7h-8z"></path>
               </svg>
             </div>
             <div>
-              <h3 class="text-sm font-bold text-white">Daily Hydration</h3>
-              <p class="text-[11px] text-slate-400">Supports ear acupressure circulation</p>
+              <h3 class="text-sm font-bold text-white">Weight Journey</h3>
+              <p class="text-[11px] text-slate-400">Acupressure & health progress</p>
             </div>
           </div>
-          <span id="water-intake-badge" class="px-2.5 py-1 text-xs font-bold rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-            0 / 8 Glasses
-          </span>
+
+          <!-- Unit Switcher & Quick Log -->
+          <div class="flex items-center gap-1.5">
+            <button id="weight-unit-toggle" class="active-press px-2 py-1 rounded-lg bg-slate-800 text-xs font-bold text-amber-300 border border-slate-700 hover:bg-slate-700 transition">
+              <span id="weight-unit-label">lbs</span> ⇄
+            </button>
+            <button id="open-log-weight-btn" class="active-press px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold shadow transition flex items-center gap-1">
+              <span>+ Log</span>
+            </button>
+          </div>
         </div>
 
-        <!-- Progress bar -->
+        <!-- 3-Column Milestone Progress (Start -> Current -> Goal) -->
+        <div class="grid grid-cols-3 gap-2 bg-slate-900/80 p-3 rounded-xl border border-slate-800 text-center">
+          <div>
+            <div class="text-[10px] text-slate-400 uppercase font-semibold">Start</div>
+            <div id="stat-weight-start" class="text-base font-bold text-slate-200">--</div>
+          </div>
+          <div class="border-x border-slate-800 px-1">
+            <div class="text-[10px] text-amber-400 uppercase font-bold">Current</div>
+            <div id="stat-weight-current" class="text-xl font-extrabold text-white">--</div>
+          </div>
+          <div>
+            <div class="text-[10px] text-emerald-400 uppercase font-semibold">Target Goal</div>
+            <div id="stat-weight-goal" class="text-base font-bold text-emerald-300">--</div>
+          </div>
+        </div>
+
+        <!-- Progress bar and delta statistics -->
         <div>
+          <div class="flex items-center justify-between text-xs mb-1.5 font-semibold">
+            <span id="stat-weight-total-lost" class="text-emerald-400">Total: -- lbs</span>
+            <span id="stat-weight-remaining" class="text-slate-400">-- lbs to goal</span>
+          </div>
           <div class="h-2.5 w-full bg-slate-800 rounded-full overflow-hidden">
-            <div id="water-progress-fill" class="h-full bg-gradient-to-r from-cyan-500 to-teal-400 transition-all duration-300" style="width: 0%"></div>
-          </div>
-          <div class="flex justify-between text-[11px] text-slate-400 mt-1">
-            <span id="water-volume-text">0.0 Liters</span>
-            <span>Target: 2.0 Liters</span>
+            <div id="weight-progress-fill" class="h-full bg-gradient-to-r from-amber-500 via-amber-400 to-emerald-400 transition-all duration-500" style="width: 0%"></div>
           </div>
         </div>
 
-        <!-- 8 Glass Grid -->
-        <div id="water-glasses-grid" class="grid grid-cols-4 gap-2.5 pt-1">
-          <!-- Dynamically rendered glasses -->
+        <!-- VISUAL SVG TREND LINE CHART -->
+        <div class="pt-2 border-t border-slate-800/80">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-bold text-slate-300">Trend Line</span>
+            <div class="flex gap-1 text-[10px]">
+              <button id="chart-range-7d" class="chart-range-btn px-2 py-0.5 rounded font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">7D</button>
+              <button id="chart-range-30d" class="chart-range-btn px-2 py-0.5 rounded text-slate-400 hover:text-white">30D</button>
+              <button id="chart-range-all" class="chart-range-btn px-2 py-0.5 rounded text-slate-400 hover:text-white">All</button>
+            </div>
+          </div>
+
+          <!-- Responsive SVG Chart Container -->
+          <div id="weight-chart-container" class="w-full h-36 bg-slate-950/60 rounded-xl p-2 border border-slate-800/60 flex items-center justify-center overflow-hidden">
+            <!-- Dynamically generated SVG rendered here -->
+          </div>
+        </div>
+
+        <!-- RECENT WEIGH-INS HISTORY -->
+        <div class="pt-2 border-t border-slate-800/80 space-y-2">
+          <span class="text-xs font-bold text-slate-300">Recent Weigh-Ins</span>
+          <div id="weight-history-list" class="space-y-1.5 max-h-40 overflow-y-auto no-scrollbar">
+            <!-- Dynamic entries -->
+          </div>
         </div>
       </div>
 
-      <!-- Daily Adherence Stats Card -->
-      <div class="rounded-2xl glass-card p-5 border border-slate-700/60 shadow-lg space-y-3">
-        <h3 class="text-sm font-bold text-white flex items-center gap-2">
-          <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-            <polyline points="22 4 12 14.01 9 11.01"></polyline>
-          </svg>
-          Active Routine Adherence
-        </h3>
+      <!-- CUSTOM DAILY GOALS TRACKER SECTION -->
+      <div class="rounded-2xl glass-card p-5 border border-slate-700/60 shadow-xl space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <circle cx="12" cy="12" r="6"></circle>
+                <circle cx="12" cy="12" r="2"></circle>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-white">Daily Custom Goals</h3>
+              <p class="text-[11px] text-slate-400">Automatic daily reset with streak tracking</p>
+            </div>
+          </div>
 
-        <div id="stats-profiles-breakdown" class="space-y-2.5 pt-1">
-          <!-- Breakdown per active profile -->
+          <button id="open-add-goal-btn" class="active-press px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow flex items-center gap-1 transition">
+            <span>+ Goal</span>
+          </button>
+        </div>
+
+        <!-- Custom Goals List -->
+        <div id="custom-goals-container" class="space-y-2.5 pt-1">
+          <!-- Dynamically populated custom goals -->
         </div>
       </div>
 
-      <!-- Native Notifications & Maintenance Card -->
+      <!-- Notifications & Maintenance Card -->
       <div class="rounded-2xl glass-card p-5 border border-slate-700/60 shadow-lg space-y-3">
         <h3 class="text-sm font-bold text-white flex items-center gap-2">
           <svg class="w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="3"></circle>
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
           </svg>
-          Native Notifications & Actions
+          System & Notifications
         </h3>
         <p class="text-[11px] text-slate-400">
-          Combines all active profiles into a safe 5-day schedule (&lt; 64 iOS ceiling) with custom 528Hz crystal bell chime.
+          Combines active profiles into a safe 5-day schedule (&lt; 64 iOS ceiling) with 528Hz crystal bell chime.
         </p>
 
         <div class="grid grid-cols-2 gap-2 pt-1">
@@ -254,6 +303,7 @@
           Reset Today's Completions
         </button>
       </div>
+
     </section>
 
   </main>
@@ -284,12 +334,14 @@
         <span class="text-[11px] font-medium">Profiles</span>
       </button>
 
-      <!-- Tab 3: Water & Stats -->
+      <!-- Tab 3: Goals & Weight -->
       <button id="nav-btn-stats" class="nav-btn flex flex-col items-center justify-center text-slate-400 active-press hover:text-white">
         <svg class="w-5 h-5 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+          <circle cx="12" cy="12" r="10"></circle>
+          <circle cx="12" cy="12" r="6"></circle>
+          <circle cx="12" cy="12" r="2"></circle>
         </svg>
-        <span class="text-[11px] font-medium">Water & Stats</span>
+        <span class="text-[11px] font-medium">Goals & Weight</span>
       </button>
 
     </div>
@@ -299,7 +351,6 @@
   <div id="pacer-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex-col justify-end sm:justify-center items-center p-0 sm:p-4 transition-all">
     <div class="w-full max-w-md bg-gradient-to-b from-[#111827] to-[#090d16] rounded-t-3xl sm:rounded-3xl border border-slate-700/80 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
       
-      <!-- Modal Top Bar -->
       <div class="px-5 pt-4 pb-3 flex items-center justify-between border-b border-slate-800">
         <div>
           <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-400">Satkin Protocol</span>
@@ -321,7 +372,7 @@
         </div>
       </div>
 
-      <!-- PROMINENT SITTING BANNER (CRITICAL REQUIREMENT) -->
+      <!-- PROMINENT SITTING BANNER -->
       <div class="bg-amber-500/15 border-b border-amber-500/30 px-4 py-2.5 flex items-center gap-3">
         <div class="w-8 h-8 rounded-full bg-amber-500/20 text-amber-300 flex items-center justify-center shrink-0">
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -341,7 +392,6 @@
         </div>
       </div>
 
-      <!-- Mode Switcher -->
       <div class="px-5 pt-3">
         <div class="grid grid-cols-2 gap-1.5 bg-slate-900/90 p-1 rounded-xl border border-slate-800">
           <button id="pacer-mode-auto" class="py-2 text-xs font-semibold rounded-lg text-white bg-indigo-600 shadow transition active-press">
@@ -353,12 +403,9 @@
         </div>
       </div>
 
-      <!-- Circular Progress Ring & Tap Target Area -->
       <div class="flex-1 py-4 flex flex-col items-center justify-center px-4">
         <div id="pacer-tap-target" class="relative cursor-pointer transition-transform duration-100 flex items-center justify-center">
-          
           <div class="absolute inset-2 rounded-full bg-indigo-500/10 blur-xl"></div>
-
           <svg class="w-64 h-64 transform -rotate-90" viewBox="0 0 240 240">
             <circle cx="120" cy="120" r="110" stroke="rgba(51, 65, 85, 0.4)" stroke-width="12" fill="none" />
             <circle
@@ -375,17 +422,10 @@
               class="transition-all duration-300 ease-out"
             />
           </svg>
-
           <div class="absolute inset-0 flex flex-col items-center justify-center text-center select-none pointer-events-none">
-            <div id="pacer-count-display" class="text-6xl font-black tracking-tight text-white font-mono tabular-nums">
-              0
-            </div>
-            <div class="text-xs font-bold uppercase tracking-wider text-indigo-400 mt-1">
-              of 40 Rotations
-            </div>
-            <div id="pacer-status-text" class="text-[11px] text-slate-400 max-w-[150px] mt-2">
-              Tap Start to begin 1.2s Auto-Pace
-            </div>
+            <div id="pacer-count-display" class="text-6xl font-black tracking-tight text-white font-mono tabular-nums">0</div>
+            <div class="text-xs font-bold uppercase tracking-wider text-indigo-400 mt-1">of 40 Rotations</div>
+            <div id="pacer-status-text" class="text-[11px] text-slate-400 max-w-[150px] mt-2">Tap Start to begin 1.2s Auto-Pace</div>
           </div>
         </div>
 
@@ -396,10 +436,153 @@
         </div>
       </div>
 
-      <!-- Action Button Footer -->
       <div class="p-5 pt-1 border-t border-slate-800 space-y-2 pb-safe">
         <button id="pacer-action-btn" class="w-full active-press py-3.5 px-4 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold text-sm shadow-xl shadow-indigo-950/60 flex items-center justify-center gap-2 transition">
           <span id="pacer-action-btn-text">Start Auto-Pacer</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- LOG WEIGHT MODAL -->
+  <div id="weight-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex-col justify-end sm:justify-center items-center p-0 sm:p-4 transition-all">
+    <div class="w-full max-w-md bg-gradient-to-b from-[#111827] to-[#090d16] rounded-t-3xl sm:rounded-3xl border border-slate-700/80 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      
+      <div class="px-5 pt-4 pb-3 flex items-center justify-between border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center">
+            ⚖️
+          </div>
+          <h3 class="text-sm font-bold text-white">Log Today's Weight</h3>
+        </div>
+        <button id="weight-modal-close" class="p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white active-press">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4">
+        <!-- Big Number Display & Steppers -->
+        <div class="text-center py-2 bg-slate-900/80 rounded-2xl border border-slate-800 p-4">
+          <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Weight Value</span>
+          <div class="flex items-center justify-center gap-2 my-1">
+            <input type="number" id="weight-input-value" step="0.1" class="text-5xl font-black text-amber-400 bg-transparent text-center w-48 font-mono focus:outline-none" />
+            <span id="weight-input-unit-label" class="text-lg font-bold text-slate-400">lbs</span>
+          </div>
+
+          <!-- Quick Steppers -->
+          <div class="flex items-center justify-center gap-2 mt-3">
+            <button id="step-minus-1" class="active-press px-2.5 py-1 rounded-lg bg-slate-800 text-xs font-bold text-slate-300 hover:bg-slate-700">-1.0</button>
+            <button id="step-minus-02" class="active-press px-2.5 py-1 rounded-lg bg-slate-800 text-xs font-bold text-slate-300 hover:bg-slate-700">-0.2</button>
+            <button id="step-plus-02" class="active-press px-2.5 py-1 rounded-lg bg-slate-800 text-xs font-bold text-amber-300 hover:bg-slate-700">+0.2</button>
+            <button id="step-plus-1" class="active-press px-2.5 py-1 rounded-lg bg-slate-800 text-xs font-bold text-amber-300 hover:bg-slate-700">+1.0</button>
+          </div>
+        </div>
+
+        <!-- Optional Note -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Note (Optional)</label>
+          <input type="text" id="weight-input-note" placeholder="e.g. Morning weigh-in, post-seated protocol" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500" />
+        </div>
+
+        <!-- Goal Weight Target Edit -->
+        <div class="pt-2 border-t border-slate-800 flex items-center justify-between text-xs">
+          <span class="text-slate-400">Target Goal Weight:</span>
+          <div class="flex items-center gap-1.5">
+            <input type="number" id="weight-input-goal-target" step="0.5" class="w-20 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white text-right focus:outline-none focus:border-emerald-500" />
+            <span id="weight-goal-unit-label" class="text-slate-400">lbs</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 border-t border-slate-800 grid grid-cols-2 gap-2.5 pb-safe">
+        <button type="button" id="weight-modal-cancel" class="py-3 px-4 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold active-press">
+          Cancel
+        </button>
+        <button type="button" id="weight-modal-save" class="py-3 px-4 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold shadow-lg shadow-amber-950/50 active-press">
+          Save Weigh-In
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ADD / EDIT CUSTOM GOAL MODAL -->
+  <div id="goal-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex-col justify-end sm:justify-center items-center p-0 sm:p-4 transition-all">
+    <div class="w-full max-w-md bg-gradient-to-b from-[#111827] to-[#090d16] rounded-t-3xl sm:rounded-3xl border border-slate-700/80 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      
+      <div class="px-5 pt-4 pb-3 flex items-center justify-between border-b border-slate-800">
+        <h3 class="text-sm font-bold text-white">Add Custom Daily Goal</h3>
+        <button id="goal-modal-close" class="p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white active-press">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4 overflow-y-auto no-scrollbar">
+        <!-- Goal Title -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Goal Title</label>
+          <input type="text" id="goal-input-title" placeholder="e.g. Walk 8,000 Steps, Green Tea" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500" />
+        </div>
+
+        <!-- Emoji Picker -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Choose Icon</label>
+          <div id="goal-emoji-row" class="flex flex-wrap gap-2">
+            <button type="button" class="goal-emoji-btn active-press w-9 h-9 rounded-xl bg-slate-900 border border-emerald-500 text-base">💧</button>
+            <button type="button" class="goal-emoji-btn active-press w-9 h-9 rounded-xl bg-slate-900 border border-slate-800 text-base">🪑</button>
+            <button type="button" class="goal-emoji-btn active-press w-9 h-9 rounded-xl bg-slate-900 border border-slate-800 text-base">🚶</button>
+            <button type="button" class="goal-emoji-btn active-press w-9 h-9 rounded-xl bg-slate-900 border border-slate-800 text-base">🥗</button>
+            <button type="button" class="goal-emoji-btn active-press w-9 h-9 rounded-xl bg-slate-900 border border-slate-800 text-base">🍵</button>
+            <button type="button" class="goal-emoji-btn active-press w-9 h-9 rounded-xl bg-slate-900 border border-slate-800 text-base">🏃</button>
+            <button type="button" class="goal-emoji-btn active-press w-9 h-9 rounded-xl bg-slate-900 border border-slate-800 text-base">🧘</button>
+            <button type="button" class="goal-emoji-btn active-press w-9 h-9 rounded-xl bg-slate-900 border border-slate-800 text-base">🍎</button>
+            <button type="button" class="goal-emoji-btn active-press w-9 h-9 rounded-xl bg-slate-900 border border-slate-800 text-base">🎯</button>
+          </div>
+        </div>
+
+        <!-- Goal Type: Counter vs Yes/No -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Goal Type</label>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" id="goal-type-counter-btn" class="active-press py-2 rounded-xl text-xs font-bold bg-emerald-600 text-white border border-emerald-500 shadow">
+              Counter (Target #)
+            </button>
+            <button type="button" id="goal-type-boolean-btn" class="active-press py-2 rounded-xl text-xs font-medium bg-slate-900 text-slate-400 border border-slate-800">
+              Yes / No Checkbox
+            </button>
+          </div>
+        </div>
+
+        <!-- Target & Unit & Step -->
+        <div id="goal-counter-config-row" class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Target #</label>
+            <input type="number" id="goal-input-target" value="8" min="1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-sm text-white focus:outline-none focus:border-emerald-500" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Unit Label</label>
+            <input type="text" id="goal-input-unit" value="glasses" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-sm text-white focus:outline-none focus:border-emerald-500" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Step (+)</label>
+            <input type="number" id="goal-input-step" value="1" min="0.1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-sm text-white focus:outline-none focus:border-emerald-500" />
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 border-t border-slate-800 grid grid-cols-2 gap-2.5 pb-safe">
+        <button type="button" id="goal-modal-cancel" class="py-3 px-4 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold active-press">
+          Cancel
+        </button>
+        <button type="button" id="goal-modal-save" class="py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-950/50 active-press">
+          Save Goal
         </button>
       </div>
 
@@ -423,24 +606,26 @@
       <div class="flex-1 overflow-y-auto px-5 py-4 space-y-4 no-scrollbar">
         <input type="hidden" id="edit-profile-id" value="" />
 
-        <!-- Profile Name -->
         <div>
           <label class="block text-xs font-semibold text-slate-300 mb-1.5">Profile Name</label>
           <input type="text" id="edit-profile-name" placeholder="e.g. Satkin 2h + 2:00 & 7:00" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500" />
         </div>
 
-        <!-- Category Selector -->
+        <!-- Category Selector (Satkin / Weight / Water / Habit) -->
         <div>
           <label class="block text-xs font-semibold text-slate-300 mb-1.5">Routine Category</label>
-          <div class="grid grid-cols-3 gap-2">
-            <button type="button" id="cat-btn-satkin" class="cat-pill active-press py-2 rounded-xl text-xs font-bold border border-indigo-500/50 bg-indigo-500/20 text-indigo-300">
+          <div class="grid grid-cols-4 gap-1.5">
+            <button type="button" id="cat-btn-satkin" class="cat-pill active-press py-2 rounded-xl text-xs font-bold border border-indigo-500/50 bg-indigo-500/20 text-indigo-300 text-center">
               Satkin 40x
             </button>
-            <button type="button" id="cat-btn-water" class="cat-pill active-press py-2 rounded-xl text-xs font-medium border border-slate-800 bg-slate-900 text-slate-400">
+            <button type="button" id="cat-btn-weight" class="cat-pill active-press py-2 rounded-xl text-xs font-medium border border-slate-800 bg-slate-900 text-slate-400 text-center">
+              Weight
+            </button>
+            <button type="button" id="cat-btn-water" class="cat-pill active-press py-2 rounded-xl text-xs font-medium border border-slate-800 bg-slate-900 text-slate-400 text-center">
               Water
             </button>
-            <button type="button" id="cat-btn-habit" class="cat-pill active-press py-2 rounded-xl text-xs font-medium border border-slate-800 bg-slate-900 text-slate-400">
-              Custom Habit
+            <button type="button" id="cat-btn-habit" class="cat-pill active-press py-2 rounded-xl text-xs font-medium border border-slate-800 bg-slate-900 text-slate-400 text-center">
+              Habit
             </button>
           </div>
         </div>
@@ -450,9 +635,17 @@
           <label class="block text-xs font-semibold text-slate-300 mb-1.5">When Triggered Action</label>
           <select id="edit-action-type" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
             <option value="pacer_40">40x Sitting Rotation Pacer</option>
+            <option value="log_weight">Log Today's Weight</option>
+            <option value="custom_goal">Update Custom Goal</option>
             <option value="log_water">Log 1 Glass of Water (+1)</option>
             <option value="check_off">1-Tap Simple Check-off</option>
           </select>
+        </div>
+
+        <!-- Linked Custom Goal Selector (visible if custom_goal selected) -->
+        <div id="linked-goal-row" class="hidden">
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Link to Daily Goal</label>
+          <select id="edit-linked-goal-select" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"></select>
         </div>
 
         <!-- Active Daily Window (Start - End) -->
@@ -515,12 +708,10 @@
               + Add
             </button>
           </div>
-          <div id="edit-fixed-chips-list" class="flex flex-wrap gap-1.5">
-            <!-- Fixed time chips -->
-          </div>
+          <div id="edit-fixed-chips-list" class="flex flex-wrap gap-1.5"></div>
         </div>
 
-        <!-- Run Duration (Always on vs Days vs Hours) -->
+        <!-- Run Duration -->
         <div>
           <label class="block text-xs font-semibold text-slate-300 mb-1.5">Run Duration</label>
           <div class="grid grid-cols-3 gap-1.5 mb-2">
@@ -542,7 +733,6 @@
 
       </div>
 
-      <!-- Footer Buttons -->
       <div class="p-4 border-t border-slate-800 grid grid-cols-2 gap-2.5 pb-safe">
         <button type="button" id="edit-cancel-btn" class="py-3 px-4 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold active-press">
           Cancel

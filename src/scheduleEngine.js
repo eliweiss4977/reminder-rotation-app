@@ -1,9 +1,10 @@
 // Multi-Profile Reminder & Habit Engine
-// Supports independent reminder profiles (Satkin, Water, Habit), custom durations, active windows,
-// smart timeline merging, and native 5-day notifications scheduling.
+// Supports independent reminder profiles (Satkin, Weight, Water, Custom Habits), custom durations,
+// active windows, smart timeline merging, and native 5-day notifications scheduling.
 
 export const PROFILE_CATEGORIES = {
   SATKIN: 'satkin',
+  WEIGHT: 'weight',
   WATER: 'water',
   HABIT: 'habit'
 };
@@ -16,6 +17,14 @@ export const CATEGORY_THEMES = {
     dotClass: 'bg-indigo-400',
     btnClass: 'bg-indigo-600 hover:bg-indigo-500 text-white',
     icon: 'rotate'
+  },
+  weight: {
+    label: 'Weight Track',
+    colorName: 'amber',
+    badgeClass: 'bg-amber-500/20 text-amber-300 border border-amber-500/40',
+    dotClass: 'bg-amber-400',
+    btnClass: 'bg-amber-600 hover:bg-amber-500 text-white',
+    icon: 'scale'
   },
   water: {
     label: 'Hydration',
@@ -119,7 +128,6 @@ export function getProfileRemainingText(profile, now = Date.now()) {
  * Calculates daily slots for a single profile.
  */
 export function calculateProfileDailySlots(profile, targetDate = new Date()) {
-  // If disabled or expired at the target date, produce no slots
   const targetMidnight = new Date(targetDate);
   targetMidnight.setHours(0, 0, 0, 0);
 
@@ -143,8 +151,9 @@ export function calculateProfileDailySlots(profile, targetDate = new Date()) {
         id: slotId,
         profileId: profile.id,
         profileName: profile.name,
-        category: profile.category,
+        category: profile.category || 'habit',
         actionType: profile.actionType || 'check_off',
+        customGoalId: profile.customGoalId || null,
         minutes: curr,
         time24,
         displayTime: formatDisplayTime(curr),
@@ -165,7 +174,6 @@ export function calculateProfileDailySlots(profile, targetDate = new Date()) {
     const slotId = `${profile.id}_${time24.replace(':', '')}`;
 
     if (slotMap.has(m)) {
-      // Landed on exact same minute: merge
       const existing = slotMap.get(m);
       existing.isSpecial = true;
       existing.badgeLabel = 'Interval + Special';
@@ -175,8 +183,9 @@ export function calculateProfileDailySlots(profile, targetDate = new Date()) {
         id: slotId,
         profileId: profile.id,
         profileName: profile.name,
-        category: profile.category,
+        category: profile.category || 'habit',
         actionType: profile.actionType || 'check_off',
+        customGoalId: profile.customGoalId || null,
         minutes: m,
         time24,
         displayTime: formatDisplayTime(m),
@@ -208,8 +217,8 @@ export function calculateMergedMultiProfileSchedule(profiles, completedMap = {},
     }
   }
 
-  // Sort chronologically by minutes; tiebreaker by category (satkin first, then water, then habit)
-  const categoryOrder = { satkin: 1, water: 2, habit: 3 };
+  // Sort chronologically by minutes; tiebreaker by category (satkin -> weight -> water -> habit)
+  const categoryOrder = { satkin: 1, weight: 2, water: 3, habit: 4 };
   allSlots.sort((a, b) => {
     if (a.minutes !== b.minutes) return a.minutes - b.minutes;
     return (categoryOrder[a.category] || 99) - (categoryOrder[b.category] || 99);
@@ -229,7 +238,6 @@ export function calculateMergedMultiProfileSchedule(profiles, completedMap = {},
     };
   });
 
-  // Find next upcoming uncompleted slot
   let nextUpId = null;
   for (const slot of enriched) {
     if (!slot.isCompleted && slot.diffMinutes >= -30) {
@@ -259,7 +267,6 @@ export function calculateMergedMultiProfileSchedule(profiles, completedMap = {},
 
 /**
  * Calculates multi-profile notifications across the next 5 days.
- * Respects each profile's duration expiration and category notification templates.
  */
 export function calculateMultiProfile5DaysNotificationSlots(profiles, startDate = new Date()) {
   const scheduledNotifications = [];
@@ -272,7 +279,6 @@ export function calculateMultiProfile5DaysNotificationSlots(profiles, startDate 
     for (const profile of profiles) {
       if (!profile.enabled) continue;
       const expirationMs = getProfileExpirationTimestamp(profile);
-
       const profileSlots = calculateProfileDailySlots(profile, targetDate);
 
       for (const slot of profileSlots) {
@@ -283,19 +289,22 @@ export function calculateMultiProfile5DaysNotificationSlots(profiles, startDate 
 
         const timestamp = slotDate.getTime();
 
-        // Must be in future, and before the profile's duration expiration
         if (timestamp > now + 15000 && timestamp <= expirationMs) {
-          // Generate a stable 32-bit positive integer notification ID
           const profileHash = Math.abs(hashCode(profile.id)) % 1000;
           const notifId = (dayOffset + 1) * 100000 + profileHash * 100 + (h * 60 + m) % 100;
 
-          // Notification title & body customized per category
           let title = `🔄 ${profile.name}`;
           let body = 'Sit down and rotate ear balls 40 times.';
 
-          if (profile.category === PROFILE_CATEGORIES.WATER) {
+          if (profile.category === PROFILE_CATEGORIES.WEIGHT || profile.actionType === 'log_weight') {
+            title = `⚖️ ${profile.name}`;
+            body = 'Time for your daily morning weigh-in!';
+          } else if (profile.category === PROFILE_CATEGORIES.WATER || profile.actionType === 'log_water') {
             title = `💧 ${profile.name}`;
             body = 'Time to drink a glass of water!';
+          } else if (profile.actionType === 'custom_goal') {
+            title = `🎯 ${profile.name}`;
+            body = `Time to check in on ${profile.name}!`;
           } else if (profile.category === PROFILE_CATEGORIES.HABIT) {
             title = `✨ ${profile.name}`;
             body = 'Time for your scheduled habit check-in.';
@@ -307,6 +316,7 @@ export function calculateMultiProfile5DaysNotificationSlots(profiles, startDate 
             profileId: profile.id,
             category: profile.category,
             actionType: profile.actionType,
+            customGoalId: profile.customGoalId || null,
             at: slotDate,
             timestamp,
             title,
@@ -319,7 +329,6 @@ export function calculateMultiProfile5DaysNotificationSlots(profiles, startDate 
     }
   }
 
-  // Sort chronologically and cap at 55 to stay safely under iOS 64 limit
   scheduledNotifications.sort((a, b) => a.timestamp - b.timestamp);
   return scheduledNotifications.slice(0, 55);
 }

@@ -104,12 +104,13 @@ class NotificationManager {
           allowWhileIdle: true
         },
         smallIcon: 'ic_stat_icon_config_sample',
-        iconColor: slot.category === 'satkin' ? '#6366f1' : slot.category === 'water' ? '#06b6d4' : '#10b981',
+        iconColor: slot.category === 'satkin' ? '#6366f1' : slot.category === 'water' ? '#06b6d4' : slot.category === 'weight' ? '#f59e0b' : '#10b981',
         extra: {
           slotId: slot.slotId,
           profileId: slot.profileId,
           category: slot.category,
           actionType: slot.actionType,
+          customGoalId: slot.customGoalId || null,
           displayTime: slot.displayTime,
           badgeLabel: slot.badgeLabel
         }
