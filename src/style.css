@@ -3,10 +3,9 @@
 @tailwind utilities;
 
 :root {
-  --satkin-primary: #10b981;
-  --satkin-primary-dark: #059669;
-  --satkin-amber: #f59e0b;
-  --satkin-amber-dark: #d97706;
+  --satkin-primary: #6366f1; /* Indigo */
+  --satkin-water: #06b6d4;   /* Cyan */
+  --satkin-habit: #10b981;   /* Emerald */
 }
 
 /* Mobile Safe Areas and Native Look */
@@ -55,7 +54,7 @@ html, body {
 
 /* Glassmorphism */
 .glass-panel {
-  background: rgba(18, 24, 38, 0.85);
+  background: rgba(18, 24, 38, 0.88);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -68,12 +67,52 @@ html, body {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* Pulse Glow */
-.glow-emerald {
-  box-shadow: 0 0 25px -3px rgba(16, 185, 129, 0.4);
+/* Custom iOS style toggle switch */
+.switch-toggle {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
 }
-.glow-amber {
-  box-shadow: 0 0 25px -3px rgba(245, 158, 11, 0.4);
+.switch-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.switch-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #334155;
+  transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 24px;
+}
+.switch-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+}
+input:checked + .switch-slider {
+  background-color: #6366f1;
+}
+input:checked + .switch-slider.cyan {
+  background-color: #06b6d4;
+}
+input:checked + .switch-slider.emerald {
+  background-color: #10b981;
+}
+input:checked + .switch-slider:before {
+  transform: translateX(20px);
 }
 
 /* Circular ring animations */

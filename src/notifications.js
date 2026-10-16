@@ -1,6 +1,6 @@
 // Native Notifications Manager for iOS & Android via @capacitor/local-notifications
 import { LocalNotifications } from '@capacitor/local-notifications';
-import { calculateNext5DaysNotificationSlots } from './scheduleEngine.js';
+import { calculateMultiProfile5DaysNotificationSlots } from './scheduleEngine.js';
 
 export const NOTIFICATION_CHANNEL_ID = 'satkin_single_ring';
 
@@ -16,15 +16,15 @@ class NotificationManager {
     this.onNotificationTapCallback = onNotificationTap;
 
     try {
-      // 1. Create Android High Importance Notification Channel
+      // 1. Setup Android High Importance Notification Channel
       await this.setupChannel();
 
       // 2. Listen for notification action / tap
       await LocalNotifications.addListener('localNotificationActionPerformed', (action) => {
         console.log('User tapped notification action:', action);
         if (this.onNotificationTapCallback) {
-          const slotId = action.notification?.extra?.slotId || null;
-          this.onNotificationTapCallback(slotId);
+          const extra = action.notification?.extra || {};
+          this.onNotificationTapCallback(extra);
         }
       });
 
@@ -37,17 +37,16 @@ class NotificationManager {
 
   async setupChannel() {
     try {
-      // Create high-importance channel with custom sound
       await LocalNotifications.createChannel({
         id: NOTIFICATION_CHANNEL_ID,
         name: 'Satkin Rotation Chimes',
-        description: 'Chimes for 40x sitting acupressure ear rotations',
+        description: 'Chimes for 40x sitting acupressure ear rotations and habits',
         importance: 5, // High importance (heads-up banner and sound)
         visibility: 1, // Public on lockscreen
         sound: 'single_ring.wav',
         vibration: true,
         lights: true,
-        lightColor: '#10b981'
+        lightColor: '#6366f1'
       });
     } catch (e) {
       console.warn('Could not create notification channel:', e);
@@ -74,10 +73,9 @@ class NotificationManager {
   }
 
   /**
-   * Reschedules the next 5 days of notifications based on current protocol config.
-   * Total scheduled count is typically ~45-55, well below the iOS 64 ceiling.
+   * Reschedules the next 5 days of notifications across all active profiles.
    */
-  async rescheduleNext5Days(config) {
+  async rescheduleMultiProfileNext5Days(profiles) {
     try {
       // 1. Cancel all pending notifications
       const pending = await LocalNotifications.getPending();
@@ -87,9 +85,12 @@ class NotificationManager {
         });
       }
 
-      // 2. Calculate next 5 days slots
-      const slots = calculateNext5DaysNotificationSlots(config, new Date());
-      if (slots.length === 0) return 0;
+      // 2. Calculate next 5 days slots across all enabled profiles
+      const slots = calculateMultiProfile5DaysNotificationSlots(profiles, new Date());
+      if (slots.length === 0) {
+        console.log('No upcoming notification slots to schedule.');
+        return 0;
+      }
 
       // 3. Format notifications payload for Capacitor
       const notifications = slots.map(slot => ({
@@ -103,9 +104,12 @@ class NotificationManager {
           allowWhileIdle: true
         },
         smallIcon: 'ic_stat_icon_config_sample',
-        iconColor: '#10b981',
+        iconColor: slot.category === 'satkin' ? '#6366f1' : slot.category === 'water' ? '#06b6d4' : '#10b981',
         extra: {
           slotId: slot.slotId,
+          profileId: slot.profileId,
+          category: slot.category,
+          actionType: slot.actionType,
           displayTime: slot.displayTime,
           badgeLabel: slot.badgeLabel
         }
@@ -113,23 +117,23 @@ class NotificationManager {
 
       // 4. Batch schedule
       await LocalNotifications.schedule({ notifications });
-      console.log(`Scheduled ${notifications.length} Satkin notifications across the next 5 days.`);
+      console.log(`Scheduled ${notifications.length} multi-profile notifications across the next 5 days.`);
       return notifications.length;
     } catch (e) {
-      console.warn('Error rescheduling notifications:', e);
+      console.warn('Error rescheduling multi-profile notifications:', e);
       return 0;
     }
   }
 
   // Quick 5-second test notification
-  async scheduleTestNotification() {
+  async scheduleTestNotification(profileName = 'Satkin Protocol') {
     try {
       await this.requestPermission();
       const testTime = new Date(Date.now() + 5000);
       const testNotif = {
         id: 99999,
-        title: 'Rotate Ear Balls (40x Sitting) [TEST]',
-        body: 'Sit down comfortably and rotate 40 times. Tap to open the 40x Pacer.',
+        title: `🔄 ${profileName} [TEST]`,
+        body: 'Sit down comfortably and rotate ear balls 40 times. Tap to open the 40x Pacer.',
         channelId: NOTIFICATION_CHANNEL_ID,
         sound: 'single_ring.wav',
         schedule: {
@@ -137,9 +141,11 @@ class NotificationManager {
           allowWhileIdle: true
         },
         smallIcon: 'ic_stat_icon_config_sample',
-        iconColor: '#10b981',
+        iconColor: '#6366f1',
         extra: {
           slotId: 'test_slot',
+          actionType: 'pacer_40',
+          category: 'satkin',
           displayTime: 'Now'
         }
       };

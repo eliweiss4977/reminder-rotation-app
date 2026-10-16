@@ -1,28 +1,38 @@
-// The Satkin Protocol Schedule Engine
-// Calculates base intervals, special fixed time overlays, deduplication, and multi-day notification timestamps
+// Multi-Profile Reminder & Habit Engine
+// Supports independent reminder profiles (Satkin, Water, Habit), custom durations, active windows,
+// smart timeline merging, and native 5-day notifications scheduling.
 
-export const INTERVAL_MODES = {
-  TWO_HOURS: '2_HOURS',       // 120 minutes
-  ONE_POINT_FIVE_HOURS: '1_5_HOURS', // 90 minutes
-  CUSTOM: 'CUSTOM_INTERVAL'
+export const PROFILE_CATEGORIES = {
+  SATKIN: 'satkin',
+  WATER: 'water',
+  HABIT: 'habit'
 };
 
-export const SPECIAL_MODES = {
-  PLUS_2_AND_7: 'PLUS_2_AND_7', // 14:00 and 19:00
-  PLUS_4_AND_7: 'PLUS_4_AND_7', // 16:00 and 19:00
-  NONE: 'NONE',                 // Interval only
-  CUSTOM: 'CUSTOM_FIXED'        // User defined array of HH:MM
-};
-
-export const DEFAULT_CONFIG = {
-  startTime: '07:00',
-  cutoffTime: '22:30',
-  intervalMode: INTERVAL_MODES.TWO_HOURS,
-  customIntervalMinutes: 120,
-  specialMode: SPECIAL_MODES.PLUS_2_AND_7,
-  customFixedTimes: ['14:00', '19:00'],
-  pacerTicksGoal: 40,
-  waterGlassesGoal: 8,
+export const CATEGORY_THEMES = {
+  satkin: {
+    label: 'Satkin 40x',
+    colorName: 'indigo',
+    badgeClass: 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40',
+    dotClass: 'bg-indigo-400',
+    btnClass: 'bg-indigo-600 hover:bg-indigo-500 text-white',
+    icon: 'rotate'
+  },
+  water: {
+    label: 'Hydration',
+    colorName: 'cyan',
+    badgeClass: 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40',
+    dotClass: 'bg-cyan-400',
+    btnClass: 'bg-cyan-600 hover:bg-cyan-500 text-white',
+    icon: 'water'
+  },
+  habit: {
+    label: 'Habit',
+    colorName: 'emerald',
+    badgeClass: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40',
+    dotClass: 'bg-emerald-400',
+    btnClass: 'bg-emerald-600 hover:bg-emerald-500 text-white',
+    icon: 'check'
+  }
 };
 
 // Convert "HH:MM" (24h) to total minutes from 00:00
@@ -45,121 +55,168 @@ export function formatDisplayTime(input) {
   let mins = typeof input === 'number' ? input : timeToMinutes(input);
   mins = ((mins % 1440) + 1440) % 1440;
   const h = Math.floor(mins / 60);
-  const m = mins % 60;
+  const m = normMinutes(mins % 60);
   const ampm = h >= 12 ? 'PM' : 'AM';
   const displayH = h % 12 === 0 ? 12 : h % 12;
-  const displayM = String(m).padStart(2, '0');
-  return `${displayH}:${displayM} ${ampm}`;
+  return `${displayH}:${m} ${ampm}`;
 }
 
-// Get the active interval duration in minutes
-export function getIntervalDurationMinutes(config) {
-  if (config.intervalMode === INTERVAL_MODES.TWO_HOURS) return 120;
-  if (config.intervalMode === INTERVAL_MODES.ONE_POINT_FIVE_HOURS) return 90;
-  if (config.intervalMode === INTERVAL_MODES.CUSTOM) {
-    const custom = parseInt(config.customIntervalMinutes, 10);
-    return !isNaN(custom) && custom > 15 ? custom : 120;
-  }
-  return 120;
-}
-
-// Get active special overlay fixed minutes
-export function getSpecialFixedMinutes(config) {
-  if (config.specialMode === SPECIAL_MODES.PLUS_2_AND_7) {
-    // 2:00 PM (14:00 = 840) and 7:00 PM (19:00 = 1140)
-    return [
-      { minutes: 840, label: 'Special (2:00 PM)' },
-      { minutes: 1140, label: 'Special (7:00 PM)' }
-    ];
-  }
-  if (config.specialMode === SPECIAL_MODES.PLUS_4_AND_7) {
-    // 4:00 PM (16:00 = 960) and 7:00 PM (19:00 = 1140)
-    return [
-      { minutes: 960, label: 'Special (4:00 PM)' },
-      { minutes: 1140, label: 'Special (7:00 PM)' }
-    ];
-  }
-  if (config.specialMode === SPECIAL_MODES.CUSTOM) {
-    const list = Array.isArray(config.customFixedTimes) ? config.customFixedTimes : [];
-    return list.map(tStr => {
-      const mins = timeToMinutes(tStr);
-      return { minutes: mins, label: `Special (${formatDisplayTime(mins)})` };
-    });
-  }
-  return [];
+function normMinutes(m) {
+  return String(m).padStart(2, '0');
 }
 
 /**
- * Calculates a single day's merged and deduplicated Satkin schedule.
+ * Calculates expiration timestamp in milliseconds for a profile.
+ * Returns Infinity if indefinite.
  */
-export function calculateDailySchedule(config = DEFAULT_CONFIG) {
-  const startMins = timeToMinutes(config.startTime || '07:00');
-  const cutoffMins = timeToMinutes(config.cutoffTime || '22:30');
-  const intervalMins = getIntervalDurationMinutes(config);
+export function getProfileExpirationTimestamp(profile) {
+  if (!profile || profile.durationType === 'indefinite' || !profile.durationValue) {
+    return Infinity;
+  }
+  const activatedAt = profile.activatedAt || Date.now();
+  if (profile.durationType === 'days') {
+    return activatedAt + (profile.durationValue * 24 * 60 * 60 * 1000);
+  }
+  if (profile.durationType === 'hours') {
+    return activatedAt + (profile.durationValue * 60 * 60 * 1000);
+  }
+  return Infinity;
+}
 
-  const slotMap = new Map(); // minutes -> Slot object
+/**
+ * Checks if a profile has expired based on its duration setting.
+ */
+export function isProfileExpired(profile, now = Date.now()) {
+  if (!profile.enabled) return false;
+  const exp = getProfileExpirationTimestamp(profile);
+  return now >= exp;
+}
 
-  // 1. Generate Base Interval Slots
-  let curr = startMins;
-  while (curr <= cutoffMins) {
-    const time24 = minutesToTime(curr);
-    slotMap.set(curr, {
-      id: `slot_${time24.replace(':', '')}`,
-      minutes: curr,
-      time24,
-      displayTime: formatDisplayTime(curr),
-      isInterval: true,
-      isSpecial: false,
-      badgeLabel: 'Interval',
-      badgeType: 'interval' // 'interval', 'special', 'merged'
-    });
-    curr += intervalMins;
+/**
+ * Friendly badge text for profile duration (e.g., "Active • 5 days left", "Active • 4h 20m left")
+ */
+export function getProfileRemainingText(profile, now = Date.now()) {
+  if (!profile.enabled) return 'Inactive';
+  if (profile.durationType === 'indefinite') return 'Always Active';
+
+  const exp = getProfileExpirationTimestamp(profile);
+  const remainingMs = exp - now;
+
+  if (remainingMs <= 0) return 'Expired';
+
+  const totalHours = Math.floor(remainingMs / (1000 * 60 * 60));
+  if (totalHours >= 24) {
+    const days = Math.ceil(totalHours / 24);
+    return `Active • ${days}d left`;
+  } else {
+    const hours = Math.floor(remainingMs / (1000 * 60 * 60));
+    const mins = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+    return `Active • ${hours}h ${mins}m left`;
+  }
+}
+
+/**
+ * Calculates daily slots for a single profile.
+ */
+export function calculateProfileDailySlots(profile, targetDate = new Date()) {
+  // If disabled or expired at the target date, produce no slots
+  const targetMidnight = new Date(targetDate);
+  targetMidnight.setHours(0, 0, 0, 0);
+
+  if (!profile.enabled) return [];
+  const exp = getProfileExpirationTimestamp(profile);
+  if (targetMidnight.getTime() >= exp) return [];
+
+  const startMins = timeToMinutes(profile.startTime || '07:00');
+  const endMins = timeToMinutes(profile.endTime || '22:30');
+  const intervalMins = parseInt(profile.intervalMinutes, 10) || 0;
+
+  const slotMap = new Map();
+
+  // 1. Base interval generation (if interval > 0)
+  if (intervalMins > 0) {
+    let curr = startMins;
+    while (curr <= endMins) {
+      const time24 = minutesToTime(curr);
+      const slotId = `${profile.id}_${time24.replace(':', '')}`;
+      slotMap.set(curr, {
+        id: slotId,
+        profileId: profile.id,
+        profileName: profile.name,
+        category: profile.category,
+        actionType: profile.actionType || 'check_off',
+        minutes: curr,
+        time24,
+        displayTime: formatDisplayTime(curr),
+        isInterval: true,
+        isSpecial: false,
+        badgeLabel: 'Interval',
+        badgeType: 'interval'
+      });
+      curr += intervalMins;
+    }
   }
 
-  // 2. Generate and Merge Special Fixed Times
-  const specialList = getSpecialFixedMinutes(config);
-  for (const item of specialList) {
-    const m = item.minutes;
-    // Check if slot already exists at this exact minute
+  // 2. Special fixed times overlay
+  const fixedTimes = Array.isArray(profile.specialFixedTimes) ? profile.specialFixedTimes : [];
+  for (const timeStr of fixedTimes) {
+    const m = timeToMinutes(timeStr);
+    const time24 = minutesToTime(m);
+    const slotId = `${profile.id}_${time24.replace(':', '')}`;
+
     if (slotMap.has(m)) {
+      // Landed on exact same minute: merge
       const existing = slotMap.get(m);
       existing.isSpecial = true;
       existing.badgeLabel = 'Interval + Special';
       existing.badgeType = 'merged';
     } else {
-      const time24 = minutesToTime(m);
       slotMap.set(m, {
-        id: `slot_${time24.replace(':', '')}`,
+        id: slotId,
+        profileId: profile.id,
+        profileName: profile.name,
+        category: profile.category,
+        actionType: profile.actionType || 'check_off',
         minutes: m,
         time24,
         displayTime: formatDisplayTime(m),
         isInterval: false,
         isSpecial: true,
-        badgeLabel: item.label,
+        badgeLabel: `Special (${formatDisplayTime(m)})`,
         badgeType: 'special'
       });
     }
   }
 
-  // 3. Sort Chronologically
-  const sorted = Array.from(slotMap.values()).sort((a, b) => a.minutes - b.minutes);
-  return sorted;
+  return Array.from(slotMap.values());
 }
 
 /**
- * Calculates slot statuses for today:
- * - 'completed': user has checked it off / finished 40x
- * - 'next_up': the upcoming or current rotation
- * - 'missed': elapsed by > 35 minutes and not completed
- * - 'upcoming': future slot
+ * Merges all active profiles into a single unified daily schedule with statuses.
  */
-export function computeScheduleWithStatuses(schedule, completedMap = {}, currentDate = new Date()) {
+export function calculateMergedMultiProfileSchedule(profiles, completedMap = {}, currentDate = new Date()) {
   const currentMins = currentDate.getHours() * 60 + currentDate.getMinutes();
   const dateKey = currentDate.toISOString().split('T')[0];
   const dayCompleted = completedMap[dateKey] || {};
 
-  // First pass: assign completion & timing relative to now
-  const enriched = schedule.map(slot => {
+  const allSlots = [];
+
+  for (const profile of profiles) {
+    if (profile.enabled && !isProfileExpired(profile, currentDate.getTime())) {
+      const profileSlots = calculateProfileDailySlots(profile, currentDate);
+      allSlots.push(...profileSlots);
+    }
+  }
+
+  // Sort chronologically by minutes; tiebreaker by category (satkin first, then water, then habit)
+  const categoryOrder = { satkin: 1, water: 2, habit: 3 };
+  allSlots.sort((a, b) => {
+    if (a.minutes !== b.minutes) return a.minutes - b.minutes;
+    return (categoryOrder[a.category] || 99) - (categoryOrder[b.category] || 99);
+  });
+
+  // Assign completed status & calculate next up
+  const enriched = allSlots.map(slot => {
     const isCompleted = !!dayCompleted[slot.id];
     const completedAt = dayCompleted[slot.id]?.completedAt || null;
     const diff = slot.minutes - currentMins;
@@ -168,29 +225,21 @@ export function computeScheduleWithStatuses(schedule, completedMap = {}, current
       ...slot,
       isCompleted,
       completedAt,
-      diffMinutes: diff,
-      isPast: diff < -5
+      diffMinutes: diff
     };
   });
 
-  // Find the single 'next_up' slot:
-  // First uncompleted slot that is not far in the past, or first upcoming
+  // Find next upcoming uncompleted slot
   let nextUpId = null;
   for (const slot of enriched) {
-    if (!slot.isCompleted) {
-      if (slot.diffMinutes >= -30) {
-        nextUpId = slot.id;
-        break;
-      }
+    if (!slot.isCompleted && slot.diffMinutes >= -30) {
+      nextUpId = slot.id;
+      break;
     }
   }
-
-  // If all future ones completed or all past, check first future uncompleted
   if (!nextUpId) {
-    const futureUncompleted = enriched.find(s => !s.isCompleted && s.diffMinutes > 0);
-    if (futureUncompleted) {
-      nextUpId = futureUncompleted.id;
-    }
+    const future = enriched.find(s => !s.isCompleted && s.diffMinutes > 0);
+    if (future) nextUpId = future.id;
   }
 
   return enriched.map(slot => {
@@ -209,47 +258,77 @@ export function computeScheduleWithStatuses(schedule, completedMap = {}, current
 }
 
 /**
- * Calculates notifications for the next 5 days.
- * Keeps count safely between 40-55 notifications (< 64 iOS ceiling).
+ * Calculates multi-profile notifications across the next 5 days.
+ * Respects each profile's duration expiration and category notification templates.
  */
-export function calculateNext5DaysNotificationSlots(config = DEFAULT_CONFIG, startDate = new Date()) {
-  const dailySlots = calculateDailySchedule(config);
+export function calculateMultiProfile5DaysNotificationSlots(profiles, startDate = new Date()) {
   const scheduledNotifications = [];
   const now = startDate.getTime();
 
   for (let dayOffset = 0; dayOffset < 5; dayOffset++) {
     const targetDate = new Date(startDate);
     targetDate.setDate(targetDate.getDate() + dayOffset);
-    targetDate.setSeconds(0, 0);
 
-    for (const slot of dailySlots) {
-      const slotDate = new Date(targetDate);
-      const h = Math.floor(slot.minutes / 60);
-      const m = slot.minutes % 60;
-      slotDate.setHours(h, m, 0, 0);
+    for (const profile of profiles) {
+      if (!profile.enabled) continue;
+      const expirationMs = getProfileExpirationTimestamp(profile);
 
-      const timestamp = slotDate.getTime();
+      const profileSlots = calculateProfileDailySlots(profile, targetDate);
 
-      // Only schedule if at least 15 seconds in the future
-      if (timestamp > now + 15000) {
-        const dateStr = slotDate.toISOString().slice(0, 10).replace(/-/g, '');
-        // Stable integer ID for Capacitor LocalNotifications
-        const notifId = parseInt(`${dayOffset + 1}${String(h).padStart(2, '0')}${String(m).padStart(2, '0')}`, 10);
+      for (const slot of profileSlots) {
+        const slotDate = new Date(targetDate);
+        const h = Math.floor(slot.minutes / 60);
+        const m = slot.minutes % 60;
+        slotDate.setHours(h, m, 0, 0);
 
-        scheduledNotifications.push({
-          id: notifId,
-          slotId: slot.id,
-          at: slotDate,
-          timestamp,
-          time24: slot.time24,
-          displayTime: slot.displayTime,
-          badgeLabel: slot.badgeLabel,
-          title: 'Rotate Ear Balls (40x Sitting)',
-          body: `Sit down comfortably and rotate 40 times. (${slot.displayTime} ${slot.badgeLabel}). Tap to open the 40x Pacer.`
-        });
+        const timestamp = slotDate.getTime();
+
+        // Must be in future, and before the profile's duration expiration
+        if (timestamp > now + 15000 && timestamp <= expirationMs) {
+          // Generate a stable 32-bit positive integer notification ID
+          const profileHash = Math.abs(hashCode(profile.id)) % 1000;
+          const notifId = (dayOffset + 1) * 100000 + profileHash * 100 + (h * 60 + m) % 100;
+
+          // Notification title & body customized per category
+          let title = `🔄 ${profile.name}`;
+          let body = 'Sit down and rotate ear balls 40 times.';
+
+          if (profile.category === PROFILE_CATEGORIES.WATER) {
+            title = `💧 ${profile.name}`;
+            body = 'Time to drink a glass of water!';
+          } else if (profile.category === PROFILE_CATEGORIES.HABIT) {
+            title = `✨ ${profile.name}`;
+            body = 'Time for your scheduled habit check-in.';
+          }
+
+          scheduledNotifications.push({
+            id: notifId,
+            slotId: slot.id,
+            profileId: profile.id,
+            category: profile.category,
+            actionType: profile.actionType,
+            at: slotDate,
+            timestamp,
+            title,
+            body,
+            displayTime: slot.displayTime,
+            badgeLabel: slot.badgeLabel
+          });
+        }
       }
     }
   }
 
-  return scheduledNotifications;
+  // Sort chronologically and cap at 55 to stay safely under iOS 64 limit
+  scheduledNotifications.sort((a, b) => a.timestamp - b.timestamp);
+  return scheduledNotifications.slice(0, 55);
+}
+
+function hashCode(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return hash;
 }

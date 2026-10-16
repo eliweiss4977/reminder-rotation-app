@@ -3,21 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>Satkin Rotation & Habit Pacer</title>
+  <title>Satkin Multi-Profile Reminder & Habit Engine</title>
   <meta name="theme-color" content="#090d16" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2310b981'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z'/></svg>" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236366f1'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z'/></svg>" />
   <link rel="stylesheet" href="/src/style.css" />
 </head>
-<body class="bg-[#090d16] text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-emerald-500 selection:text-white">
+<body class="bg-[#090d16] text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-indigo-500 selection:text-white">
 
   <!-- Top Fixed App Header -->
   <header class="sticky top-0 z-30 pt-safe px-4 pb-3 glass-panel border-b border-slate-800/80">
     <div class="max-w-md mx-auto flex items-center justify-between">
       <div class="flex items-center space-x-2.5">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center shadow-md shadow-emerald-950/50">
-          <!-- Ear Acupressure / Lotus symbol -->
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-700 flex items-center justify-center shadow-md shadow-indigo-950/50">
+          <!-- Ear Acupressure / Meditation Icon -->
           <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M6 8.5a6.5 6.5 0 1 1 13 0c0 6-6 6-6 10a2.5 2.5 0 0 1-5 0"></path>
             <path d="M12 8.5a2.5 2.5 0 0 1 2.5 2.5c0 1.5-1.5 2-1.5 3"></path>
@@ -27,16 +27,16 @@
         <div>
           <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-1.5">
             Satkin Pacer
-            <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-medium border border-emerald-500/30">40x</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-semibold border border-indigo-500/30">Multi-Profile</span>
           </h1>
           <p class="text-[11px] text-slate-400 leading-none" id="header-today-date">Loading schedule...</p>
         </div>
       </div>
 
-      <!-- Quick Action / Audio Bell Trigger -->
+      <!-- Quick Action / 528Hz Audio Bell Trigger -->
       <div class="flex items-center gap-2">
-        <button id="header-test-chime" title="Test 528Hz Bell Chime" class="active-press flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-xs text-amber-400 border border-amber-500/20 shadow-sm transition">
-          <svg class="w-3.5 h-3.5 animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <button id="header-test-chime" title="Test 528Hz Crystal Bell Chime" class="active-press flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-xs text-amber-300 border border-amber-500/20 shadow-sm transition">
+          <svg class="w-3.5 h-3.5 animate-pulse text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
             <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
           </svg>
@@ -49,22 +49,38 @@
   <!-- Main Scrollable App Content Container -->
   <main class="flex-1 max-w-md w-full mx-auto px-4 py-4 pb-safe-nav overflow-y-auto no-scrollbar">
 
-    <!-- TAB 1: SCHEDULE & PROTOCOL (HOME) -->
-    <section id="tab-content-schedule" class="space-y-4">
+    <!-- TAB 1: TODAY (TIMELINE & HERO COUNTDOWN) -->
+    <section id="tab-content-today" class="space-y-4">
+
+      <!-- Active Profiles Filter / Summary Chips -->
+      <div class="flex items-center justify-between text-xs px-1">
+        <span class="font-bold text-slate-300 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+          Active Profiles Today
+        </span>
+        <button id="today-manage-profiles-btn" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1 active-press">
+          Manage Profiles →
+        </button>
+      </div>
+
+      <!-- Chips row -->
+      <div id="today-active-chips" class="flex flex-wrap gap-1.5">
+        <!-- Dynamically filled with active profile pills -->
+      </div>
 
       <!-- HERO COUNTDOWN CARD -->
       <div class="relative overflow-hidden rounded-2xl glass-card p-5 border border-slate-700/60 shadow-xl shadow-black/40">
-        <!-- Background subtle glow -->
-        <div class="absolute -right-8 -top-8 w-36 h-36 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
+        <!-- Ambient background glows -->
+        <div class="absolute -right-8 -top-8 w-36 h-36 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
         <div class="absolute -left-8 -bottom-8 w-36 h-36 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
 
         <div class="flex items-center justify-between mb-3">
           <span class="text-xs font-semibold tracking-wider uppercase text-slate-400 flex items-center gap-1.5">
             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-            Next Satkin Rotation
+            Next Reminder
           </span>
-          <span id="hero-badge" class="px-2.5 py-0.5 text-[11px] font-semibold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-            Interval
+          <span id="hero-badge" class="px-2.5 py-0.5 text-[11px] font-bold rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+            Satkin
           </span>
         </div>
 
@@ -73,8 +89,8 @@
             <div id="hero-target-time" class="text-3xl font-extrabold tracking-tight text-white">
               --:--
             </div>
-            <div id="hero-note" class="text-xs text-slate-400 mt-0.5">
-              40 rotations seated behind ear
+            <div id="hero-profile-name" class="text-xs text-slate-400 mt-0.5 font-medium">
+              Loading active profiles...
             </div>
           </div>
           <div class="text-right">
@@ -87,22 +103,22 @@
 
         <!-- Hero Actions -->
         <div class="grid grid-cols-2 gap-2.5 pt-2">
-          <button id="hero-start-pacer-btn" class="active-press col-span-2 py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-semibold text-sm shadow-lg shadow-emerald-950/60 flex items-center justify-center gap-2 transition">
-            <!-- Sitting Acupressure Icon -->
+          <!-- Primary Action Button (Dynamic: 40x Pacer, +1 Glass, or Complete) -->
+          <button id="hero-action-btn" class="active-press col-span-2 py-3.5 px-4 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold text-sm shadow-lg shadow-indigo-950/60 flex items-center justify-center gap-2 transition">
             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <polygon points="5 3 19 12 5 21 5 3"></polygon>
             </svg>
-            <span>Start 40x Sitting Pacer</span>
+            <span id="hero-action-text">Start 40x Sitting Pacer</span>
           </button>
 
-          <button id="hero-mark-done-btn" class="active-press py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700/80 text-slate-200 text-xs font-medium border border-slate-700 flex items-center justify-center gap-1.5 transition">
+          <button id="hero-mark-done-btn" class="active-press py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700/80 text-slate-200 text-xs font-semibold border border-slate-700 flex items-center justify-center gap-1.5 transition">
             <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
             <span id="hero-mark-done-text">Mark Completed</span>
           </button>
 
-          <button id="hero-test-sound-btn" class="active-press py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700/80 text-amber-300 text-xs font-medium border border-slate-700 flex items-center justify-center gap-1.5 transition">
+          <button id="hero-test-sound-btn" class="active-press py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700/80 text-amber-300 text-xs font-semibold border border-slate-700 flex items-center justify-center gap-1.5 transition">
             <svg class="w-4 h-4 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M11 5L6 9H2v6h4l5 4V5z"></path>
               <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
@@ -113,65 +129,14 @@
         </div>
       </div>
 
-      <!-- ONE-TAP PROTOCOL BAR -->
-      <div class="rounded-2xl glass-panel p-3.5 border border-slate-800/90 space-y-3">
-        <div class="flex items-center justify-between text-xs">
-          <span class="font-semibold text-slate-300 flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
-            Protocol Selector
-          </span>
-          <span id="protocol-summary-badge" class="text-[11px] text-emerald-400 font-medium">
-            2h + 2:00 & 7:00 PM
-          </span>
-        </div>
-
-        <!-- Base Interval Segmented Buttons -->
-        <div>
-          <label class="block text-[11px] text-slate-400 font-medium mb-1.5">Base Interval</label>
-          <div class="grid grid-cols-3 gap-1.5 bg-slate-900/90 p-1 rounded-xl border border-slate-800">
-            <button id="proto-base-2h" class="protocol-btn active-press py-2 text-xs font-semibold rounded-lg text-white bg-emerald-600 shadow-sm transition">
-              2 Hours
-            </button>
-            <button id="proto-base-15h" class="protocol-btn active-press py-2 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition">
-              1.5 Hours
-            </button>
-            <button id="proto-base-custom" class="protocol-btn active-press py-2 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition">
-              Custom
-            </button>
-          </div>
-        </div>
-
-        <!-- Special Fixed Overlays Segmented Buttons -->
-        <div>
-          <label class="block text-[11px] text-slate-400 font-medium mb-1.5">Special Time Overlays</label>
-          <div class="grid grid-cols-4 gap-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-[11px]">
-            <button id="proto-special-2and7" class="special-btn active-press py-1.5 px-1 font-semibold rounded-lg text-amber-300 bg-amber-500/20 border border-amber-500/40 shadow-sm transition truncate text-center">
-              + 2 & 7 PM
-            </button>
-            <button id="proto-special-4and7" class="special-btn active-press py-1.5 px-1 font-semibold rounded-lg text-slate-400 hover:text-white transition truncate text-center">
-              + 4 & 7 PM
-            </button>
-            <button id="proto-special-none" class="special-btn active-press py-1.5 px-1 font-semibold rounded-lg text-slate-400 hover:text-white transition truncate text-center">
-              Interval Only
-            </button>
-            <button id="proto-special-custom" class="special-btn active-press py-1.5 px-1 font-semibold rounded-lg text-slate-400 hover:text-white transition truncate text-center">
-              Custom
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- TODAY'S TIMELINE LIST -->
+      <!-- TODAY'S UNIFIED TIMELINE LIST -->
       <div class="space-y-2.5">
         <div class="flex items-center justify-between px-1">
           <div>
-            <h2 class="text-sm font-bold text-slate-200">Today's Rotation Timeline</h2>
-            <p class="text-[11px] text-slate-400" id="timeline-stats-summary">0 of 10 completed</p>
+            <h2 class="text-sm font-bold text-slate-200">Today's Unified Schedule</h2>
+            <p class="text-[11px] text-slate-400" id="timeline-stats-summary">0 completed</p>
           </div>
-          <button id="timeline-refresh-btn" class="text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1 active-press">
+          <button id="timeline-sync-btn" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1 active-press">
             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 2v6h-6"></path>
               <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
@@ -183,28 +148,50 @@
         </div>
 
         <div id="timeline-slots-container" class="space-y-2">
-          <!-- Dynamically populated timeline slots -->
+          <!-- Dynamically populated multi-profile timeline slots -->
         </div>
       </div>
     </section>
 
-    <!-- TAB 2: WATER & HABITS -->
-    <section id="tab-content-habits" class="space-y-4 hidden">
-      <!-- Water Tracker Card -->
+    <!-- TAB 2: PROFILES MANAGEMENT -->
+    <section id="tab-content-profiles" class="space-y-4 hidden">
+      <div class="flex items-center justify-between px-1">
+        <div>
+          <h2 class="text-sm font-bold text-slate-200">Reminder Profiles</h2>
+          <p class="text-[11px] text-slate-400">Manage independent routines, intervals & durations</p>
+        </div>
+        <button id="profiles-create-btn" class="active-press px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-950/40 flex items-center gap-1.5 transition">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>New Profile</span>
+        </button>
+      </div>
+
+      <!-- Profiles List Container -->
+      <div id="profiles-list-container" class="space-y-3">
+        <!-- Dynamically rendered profile cards -->
+      </div>
+    </section>
+
+    <!-- TAB 3: WATER & STATS -->
+    <section id="tab-content-stats" class="space-y-4 hidden">
+      <!-- Water Hydration Card -->
       <div class="rounded-2xl glass-card p-5 border border-slate-700/60 shadow-lg space-y-4">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center">
+            <div class="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
               <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
               </svg>
             </div>
             <div>
               <h3 class="text-sm font-bold text-white">Daily Hydration</h3>
-              <p class="text-[11px] text-slate-400">Flush acupressure circulation</p>
+              <p class="text-[11px] text-slate-400">Supports ear acupressure circulation</p>
             </div>
           </div>
-          <span id="water-intake-badge" class="px-2.5 py-1 text-xs font-bold rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30">
+          <span id="water-intake-badge" class="px-2.5 py-1 text-xs font-bold rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
             0 / 8 Glasses
           </span>
         </div>
@@ -212,7 +199,7 @@
         <!-- Progress bar -->
         <div>
           <div class="h-2.5 w-full bg-slate-800 rounded-full overflow-hidden">
-            <div id="water-progress-fill" class="h-full bg-gradient-to-r from-sky-500 to-teal-400 transition-all duration-300" style="width: 0%"></div>
+            <div id="water-progress-fill" class="h-full bg-gradient-to-r from-cyan-500 to-teal-400 transition-all duration-300" style="width: 0%"></div>
           </div>
           <div class="flex justify-between text-[11px] text-slate-400 mt-1">
             <span id="water-volume-text">0.0 Liters</span>
@@ -222,161 +209,89 @@
 
         <!-- 8 Glass Grid -->
         <div id="water-glasses-grid" class="grid grid-cols-4 gap-2.5 pt-1">
-          <!-- Dynamically rendered 8 glasses -->
-        </div>
-
-        <p class="text-[11px] text-slate-400 text-center italic">
-          Tip: Drink a glass of room-temperature water after every 2 rotations.
-        </p>
-      </div>
-
-      <!-- Future Satkin Habits Preview Cards -->
-      <div class="space-y-3">
-        <h3 class="text-sm font-bold text-slate-300 px-1">Complementary Habits (Satkin Protocol)</h3>
-
-        <!-- Habit 1: Posture Check -->
-        <div class="p-3.5 rounded-xl glass-panel border border-slate-800/80 flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
-              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="5" r="3"></circle>
-                <path d="M12 8v8"></path>
-                <path d="M8 12h8"></path>
-                <path d="M9 20l3-4 3 4"></path>
-              </svg>
-            </div>
-            <div>
-              <div class="text-xs font-bold text-white">Upright Seated Alignment</div>
-              <div class="text-[11px] text-slate-400">Keep spine neutral during ear rotations</div>
-            </div>
-          </div>
-          <span class="text-[10px] font-semibold text-emerald-400 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">Active</span>
-        </div>
-
-        <!-- Habit 2: Acupressure Ear Massage -->
-        <div class="p-3.5 rounded-xl glass-panel border border-slate-800/80 flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center">
-              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M6 8.5a6.5 6.5 0 1 1 13 0c0 6-6 6-6 10a2.5 2.5 0 0 1-5 0"></path>
-                <circle cx="12" cy="18" r="1.5"></circle>
-              </svg>
-            </div>
-            <div>
-              <div class="text-xs font-bold text-white">Evening Ear Acupressure Rest</div>
-              <div class="text-[11px] text-slate-400">Gentle pressure release before sleep (22:30)</div>
-            </div>
-          </div>
-          <span class="text-[10px] font-semibold text-slate-400 px-2 py-0.5 rounded bg-slate-800">Evening</span>
+          <!-- Dynamically rendered glasses -->
         </div>
       </div>
-    </section>
 
-    <!-- TAB 3: SCHEDULE CONFIGURATION & SETTINGS -->
-    <section id="tab-content-settings" class="space-y-4 hidden">
-      <div class="rounded-2xl glass-card p-5 border border-slate-700/60 shadow-lg space-y-4">
+      <!-- Daily Adherence Stats Card -->
+      <div class="rounded-2xl glass-card p-5 border border-slate-700/60 shadow-lg space-y-3">
         <h3 class="text-sm font-bold text-white flex items-center gap-2">
           <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+          Active Routine Adherence
+        </h3>
+
+        <div id="stats-profiles-breakdown" class="space-y-2.5 pt-1">
+          <!-- Breakdown per active profile -->
+        </div>
+      </div>
+
+      <!-- Native Notifications & Maintenance Card -->
+      <div class="rounded-2xl glass-card p-5 border border-slate-700/60 shadow-lg space-y-3">
+        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+          <svg class="w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="3"></circle>
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
           </svg>
-          Schedule Engine Settings
+          Native Notifications & Actions
         </h3>
+        <p class="text-[11px] text-slate-400">
+          Combines all active profiles into a safe 5-day schedule (&lt; 64 iOS ceiling) with custom 528Hz crystal bell chime.
+        </p>
 
-        <!-- Start & Cutoff Times -->
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Wake-up / Start</label>
-            <input type="time" id="settings-start-time" value="07:00" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500" />
-            <span class="text-[10px] text-slate-500">Default: 07:00</span>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Sleep / Cutoff</label>
-            <input type="time" id="settings-cutoff-time" value="22:30" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500" />
-            <span class="text-[10px] text-slate-500">Default: 22:30</span>
-          </div>
-        </div>
-
-        <!-- Custom Interval Minutes -->
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Custom Interval (Minutes)</label>
-          <div class="flex gap-2">
-            <input type="number" id="settings-custom-interval" min="30" max="360" step="5" value="120" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500" />
-            <button id="settings-apply-interval-btn" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-xs font-semibold text-white active-press">
-              Apply
-            </button>
-          </div>
-        </div>
-
-        <!-- Custom Fixed Times Manager -->
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Custom Fixed Times Overlay</label>
-          <div class="flex gap-2 mb-2">
-            <input type="time" id="settings-new-fixed-time" value="14:00" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500" />
-            <button id="settings-add-fixed-btn" class="px-3 py-2 bg-amber-600 hover:bg-amber-500 rounded-xl text-xs font-semibold text-white active-press">
-              + Add
-            </button>
-          </div>
-          <div id="settings-fixed-times-list" class="flex flex-wrap gap-1.5">
-            <!-- Custom tags -->
-          </div>
-        </div>
-
-        <!-- Notification & Reschedule Actions -->
-        <div class="pt-2 border-t border-slate-800 space-y-2">
-          <div class="text-xs font-semibold text-slate-300">Native Notifications (5-Day Chime)</div>
-          <p class="text-[11px] text-slate-400">
-            Schedules ~45–55 notifications with the custom 528Hz single ring chime safely below iOS limits.
-          </p>
-
-          <div class="grid grid-cols-2 gap-2 pt-1">
-            <button id="settings-reschedule-btn" class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-emerald-400 border border-emerald-500/30 active-press">
-              Sync 5-Day Chimes
-            </button>
-            <button id="settings-test-notif-btn" class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-amber-300 border border-amber-500/30 active-press">
-              Test Alert in 5s
-            </button>
-          </div>
-        </div>
-
-        <!-- Clear / Reset Today -->
-        <div class="pt-2 border-t border-slate-800">
-          <button id="settings-reset-today-btn" class="w-full py-2.5 rounded-xl bg-rose-950/40 hover:bg-rose-900/40 text-rose-300 text-xs font-semibold border border-rose-800/40 active-press">
-            Reset Today's Completions
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button id="stats-sync-notifs-btn" class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-indigo-300 border border-indigo-500/30 active-press">
+            Sync 5-Day Alerts
+          </button>
+          <button id="stats-test-notif-btn" class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-amber-300 border border-amber-500/30 active-press">
+            Test Alert in 5s
           </button>
         </div>
+
+        <button id="stats-reset-today-btn" class="w-full mt-2 py-2.5 rounded-xl bg-rose-950/30 hover:bg-rose-900/30 text-rose-300 text-xs font-semibold border border-rose-800/40 active-press">
+          Reset Today's Completions
+        </button>
       </div>
     </section>
 
   </main>
 
-  <!-- BOTTOM FIXED NAVIGATION BAR -->
+  <!-- BOTTOM FIXED NAVIGATION BAR (3 TABS) -->
   <nav class="fixed bottom-0 left-0 right-0 z-30 pb-safe glass-panel border-t border-slate-800/90 shadow-2xl">
     <div class="max-w-md mx-auto grid grid-cols-3 h-16">
-      <button id="nav-btn-schedule" class="nav-btn flex flex-col items-center justify-center text-emerald-400 active-press">
+      
+      <!-- Tab 1: Today -->
+      <button id="nav-btn-today" class="nav-btn flex flex-col items-center justify-center text-indigo-400 active-press">
         <svg class="w-5 h-5 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
           <line x1="16" y1="2" x2="16" y2="6"></line>
           <line x1="8" y1="2" x2="8" y2="6"></line>
           <line x1="3" y1="10" x2="21" y2="10"></line>
         </svg>
-        <span class="text-[11px] font-semibold">Schedule</span>
+        <span class="text-[11px] font-semibold">Today</span>
       </button>
 
-      <button id="nav-btn-habits" class="nav-btn flex flex-col items-center justify-center text-slate-400 active-press hover:text-white">
+      <!-- Tab 2: Profiles -->
+      <button id="nav-btn-profiles" class="nav-btn flex flex-col items-center justify-center text-slate-400 active-press hover:text-white">
+        <svg class="w-5 h-5 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+        <span class="text-[11px] font-medium">Profiles</span>
+      </button>
+
+      <!-- Tab 3: Water & Stats -->
+      <button id="nav-btn-stats" class="nav-btn flex flex-col items-center justify-center text-slate-400 active-press hover:text-white">
         <svg class="w-5 h-5 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
         </svg>
-        <span class="text-[11px] font-medium">Water & Habits</span>
+        <span class="text-[11px] font-medium">Water & Stats</span>
       </button>
 
-      <button id="nav-btn-settings" class="nav-btn flex flex-col items-center justify-center text-slate-400 active-press hover:text-white">
-        <svg class="w-5 h-5 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="3"></circle>
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-        </svg>
-        <span class="text-[11px] font-medium">Settings</span>
-      </button>
     </div>
   </nav>
 
@@ -387,7 +302,7 @@
       <!-- Modal Top Bar -->
       <div class="px-5 pt-4 pb-3 flex items-center justify-between border-b border-slate-800">
         <div>
-          <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Satkin Protocol</span>
+          <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-400">Satkin Protocol</span>
           <h3 id="pacer-slot-title" class="text-sm font-bold text-white">40x Rotation Session</h3>
         </div>
         <div class="flex items-center gap-1.5">
@@ -429,7 +344,7 @@
       <!-- Mode Switcher -->
       <div class="px-5 pt-3">
         <div class="grid grid-cols-2 gap-1.5 bg-slate-900/90 p-1 rounded-xl border border-slate-800">
-          <button id="pacer-mode-auto" class="py-2 text-xs font-semibold rounded-lg text-white bg-emerald-600 shadow transition active-press">
+          <button id="pacer-mode-auto" class="py-2 text-xs font-semibold rounded-lg text-white bg-indigo-600 shadow transition active-press">
             Auto-Pace (1.2s)
           </button>
           <button id="pacer-mode-tap" class="py-2 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition active-press">
@@ -438,24 +353,20 @@
         </div>
       </div>
 
-      <!-- Circular Progress & Tap Target Area -->
+      <!-- Circular Progress Ring & Tap Target Area -->
       <div class="flex-1 py-4 flex flex-col items-center justify-center px-4">
         <div id="pacer-tap-target" class="relative cursor-pointer transition-transform duration-100 flex items-center justify-center">
           
-          <!-- Outer Pulsing Glow -->
-          <div class="absolute inset-2 rounded-full bg-emerald-500/10 blur-xl"></div>
+          <div class="absolute inset-2 rounded-full bg-indigo-500/10 blur-xl"></div>
 
-          <!-- SVG Circular Progress Ring -->
           <svg class="w-64 h-64 transform -rotate-90" viewBox="0 0 240 240">
-            <!-- Background track -->
             <circle cx="120" cy="120" r="110" stroke="rgba(51, 65, 85, 0.4)" stroke-width="12" fill="none" />
-            <!-- Progress stroke -->
             <circle
               id="pacer-progress-circle"
               cx="120"
               cy="120"
               r="110"
-              stroke="#10b981"
+              stroke="#6366f1"
               stroke-width="12"
               stroke-linecap="round"
               fill="rgba(15, 23, 42, 0.7)"
@@ -465,12 +376,11 @@
             />
           </svg>
 
-          <!-- Inside Ring Content -->
           <div class="absolute inset-0 flex flex-col items-center justify-center text-center select-none pointer-events-none">
             <div id="pacer-count-display" class="text-6xl font-black tracking-tight text-white font-mono tabular-nums">
               0
             </div>
-            <div class="text-xs font-bold uppercase tracking-wider text-emerald-400 mt-1">
+            <div class="text-xs font-bold uppercase tracking-wider text-indigo-400 mt-1">
               of 40 Rotations
             </div>
             <div id="pacer-status-text" class="text-[11px] text-slate-400 max-w-[150px] mt-2">
@@ -479,7 +389,6 @@
           </div>
         </div>
 
-        <!-- Completion Celebration Callout -->
         <div id="pacer-celebration" class="hidden mt-3 p-2.5 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-center animate-bounce">
           <span class="text-xs font-bold text-emerald-300 flex items-center justify-center gap-1.5">
             🎉 40 Rotations Completed! Time slot marked done.
@@ -487,10 +396,159 @@
         </div>
       </div>
 
-      <!-- Action Buttons Footer -->
+      <!-- Action Button Footer -->
       <div class="p-5 pt-1 border-t border-slate-800 space-y-2 pb-safe">
-        <button id="pacer-action-btn" class="w-full active-press py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-sm shadow-xl shadow-emerald-950/60 flex items-center justify-center gap-2 transition">
+        <button id="pacer-action-btn" class="w-full active-press py-3.5 px-4 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold text-sm shadow-xl shadow-indigo-950/60 flex items-center justify-center gap-2 transition">
           <span id="pacer-action-btn-text">Start Auto-Pacer</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PROFILE CREATE / EDIT MODAL -->
+  <div id="profile-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex-col justify-end sm:justify-center items-center p-0 sm:p-4 transition-all">
+    <div class="w-full max-w-md bg-gradient-to-b from-[#111827] to-[#090d16] rounded-t-3xl sm:rounded-3xl border border-slate-700/80 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      
+      <div class="px-5 pt-4 pb-3 flex items-center justify-between border-b border-slate-800">
+        <h3 id="profile-modal-title" class="text-sm font-bold text-white">Create Reminder Profile</h3>
+        <button id="profile-modal-close" class="p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white active-press">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto px-5 py-4 space-y-4 no-scrollbar">
+        <input type="hidden" id="edit-profile-id" value="" />
+
+        <!-- Profile Name -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Profile Name</label>
+          <input type="text" id="edit-profile-name" placeholder="e.g. Satkin 2h + 2:00 & 7:00" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500" />
+        </div>
+
+        <!-- Category Selector -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Routine Category</label>
+          <div class="grid grid-cols-3 gap-2">
+            <button type="button" id="cat-btn-satkin" class="cat-pill active-press py-2 rounded-xl text-xs font-bold border border-indigo-500/50 bg-indigo-500/20 text-indigo-300">
+              Satkin 40x
+            </button>
+            <button type="button" id="cat-btn-water" class="cat-pill active-press py-2 rounded-xl text-xs font-medium border border-slate-800 bg-slate-900 text-slate-400">
+              Water
+            </button>
+            <button type="button" id="cat-btn-habit" class="cat-pill active-press py-2 rounded-xl text-xs font-medium border border-slate-800 bg-slate-900 text-slate-400">
+              Custom Habit
+            </button>
+          </div>
+        </div>
+
+        <!-- Action Type -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">When Triggered Action</label>
+          <select id="edit-action-type" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+            <option value="pacer_40">40x Sitting Rotation Pacer</option>
+            <option value="log_water">Log 1 Glass of Water (+1)</option>
+            <option value="check_off">1-Tap Simple Check-off</option>
+          </select>
+        </div>
+
+        <!-- Active Daily Window (Start - End) -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Start Time</label>
+            <input type="time" id="edit-start-time" value="07:00" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">End / Cutoff</label>
+            <input type="time" id="edit-end-time" value="22:30" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
+          </div>
+        </div>
+
+        <!-- Base Interval Selection -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Base Interval Cadence</label>
+          <div class="grid grid-cols-3 gap-1.5 mb-2">
+            <button type="button" data-interval="60" class="int-pill active-press py-1.5 text-xs font-medium rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
+              Every 1h
+            </button>
+            <button type="button" data-interval="90" class="int-pill active-press py-1.5 text-xs font-medium rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
+              Every 1.5h
+            </button>
+            <button type="button" data-interval="120" class="int-pill active-press py-1.5 text-xs font-bold rounded-lg bg-indigo-600 text-white">
+              Every 2h
+            </button>
+            <button type="button" data-interval="180" class="int-pill active-press py-1.5 text-xs font-medium rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
+              Every 3h
+            </button>
+            <button type="button" data-interval="0" class="int-pill active-press py-1.5 text-xs font-medium rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
+              Fixed Only
+            </button>
+            <button type="button" data-interval="custom" class="int-pill active-press py-1.5 text-xs font-medium rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
+              Custom Mins
+            </button>
+          </div>
+          <div id="custom-interval-input-row" class="hidden">
+            <input type="number" id="edit-custom-interval" min="15" max="360" step="5" value="120" placeholder="Interval in minutes" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
+          </div>
+        </div>
+
+        <!-- Special Fixed Times Overlay -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Special Fixed Times</label>
+          <div class="flex gap-1.5 mb-2">
+            <button type="button" id="fixed-preset-2and7" class="active-press px-2 py-1 text-[11px] font-semibold rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">
+              + 2:00 & 7:00 PM
+            </button>
+            <button type="button" id="fixed-preset-4and7" class="active-press px-2 py-1 text-[11px] font-semibold rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">
+              + 4:00 & 7:00 PM
+            </button>
+            <button type="button" id="fixed-preset-clear" class="active-press px-2 py-1 text-[11px] font-medium rounded bg-slate-800 text-slate-400">
+              Clear All
+            </button>
+          </div>
+          <div class="flex gap-2 mb-2">
+            <input type="time" id="edit-new-fixed-time" value="14:00" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
+            <button type="button" id="edit-add-fixed-btn" class="px-3.5 py-2 bg-amber-600 hover:bg-amber-500 rounded-xl text-xs font-bold text-white active-press">
+              + Add
+            </button>
+          </div>
+          <div id="edit-fixed-chips-list" class="flex flex-wrap gap-1.5">
+            <!-- Fixed time chips -->
+          </div>
+        </div>
+
+        <!-- Run Duration (Always on vs Days vs Hours) -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Run Duration</label>
+          <div class="grid grid-cols-3 gap-1.5 mb-2">
+            <button type="button" id="dur-btn-indefinite" class="dur-pill active-press py-2 text-xs font-medium rounded-xl bg-slate-900 border border-slate-800 text-slate-300">
+              Always On
+            </button>
+            <button type="button" id="dur-btn-days" class="dur-pill active-press py-2 text-xs font-bold rounded-xl bg-indigo-600 text-white">
+              For X Days
+            </button>
+            <button type="button" id="dur-btn-hours" class="dur-pill active-press py-2 text-xs font-medium rounded-xl bg-slate-900 border border-slate-800 text-slate-300">
+              For X Hours
+            </button>
+          </div>
+          <div id="duration-value-row" class="flex items-center gap-2">
+            <input type="number" id="edit-duration-value" min="1" max="365" value="7" class="w-24 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
+            <span id="duration-unit-label" class="text-xs text-slate-400">Days from activation</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer Buttons -->
+      <div class="p-4 border-t border-slate-800 grid grid-cols-2 gap-2.5 pb-safe">
+        <button type="button" id="edit-cancel-btn" class="py-3 px-4 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold active-press">
+          Cancel
+        </button>
+        <button type="button" id="edit-save-btn" class="py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg shadow-indigo-950/50 active-press">
+          Save Profile
         </button>
       </div>
 
