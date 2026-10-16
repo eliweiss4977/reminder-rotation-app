@@ -43,6 +43,9 @@ jobs:
           echo "Audio chime verified at android/app/src/main/res/raw/single_ring.wav"
 
       - name: Build Web App & Sync Capacitor
+        env:
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           npm run build
           npx cap sync android

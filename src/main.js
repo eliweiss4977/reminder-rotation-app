@@ -15,6 +15,7 @@ import {
 import { storage } from './storage.js';
 import { notifications } from './notifications.js';
 import { PacerController } from './pacer.js';
+import { updater } from './updater.js';
 
 class SatkinApp {
   constructor() {
@@ -89,6 +90,7 @@ class SatkinApp {
     this.bindProfileEditorEvents();
     this.bindWeightEvents();
     this.bindCustomGoalEvents();
+    this.bindUpdaterEvents();
 
     // 5. Initial Render
     this.updateHeaderDate();
@@ -1135,6 +1137,103 @@ class SatkinApp {
       });
 
       container.appendChild(card);
+    }
+  }
+
+  // --- IN-APP GITHUB AUTO-UPDATER LOGIC ---
+  bindUpdaterEvents() {
+    // Floating top update banner buttons
+    document.getElementById('top-update-action-btn')?.addEventListener('click', () => {
+      haptics.tap();
+      updater.installUpdate();
+    });
+
+    document.getElementById('top-update-dismiss-btn')?.addEventListener('click', () => {
+      haptics.tick();
+      if (updater.latestRelease?.tagName) {
+        updater.dismissUpdate(updater.latestRelease.tagName);
+      }
+      document.getElementById('top-update-banner')?.classList.add('hidden');
+    });
+
+    // In-app updater card buttons
+    document.getElementById('updater-check-btn')?.addEventListener('click', async () => {
+      haptics.tick();
+      await updater.checkForUpdates(true);
+    });
+
+    document.getElementById('updater-download-btn')?.addEventListener('click', () => {
+      haptics.tap();
+      updater.installUpdate();
+    });
+
+    document.getElementById('updater-save-repo-btn')?.addEventListener('click', async () => {
+      const input = document.getElementById('updater-repo-input');
+      const val = input?.value?.trim();
+      if (val) {
+        haptics.tick();
+        await updater.setRepoSlug(val);
+        alert(`Target repository updated to "${val}" and checked for updates.`);
+      }
+    });
+
+    // Set initial values
+    const installedBadge = document.getElementById('updater-installed-badge');
+    const installedText = document.getElementById('updater-installed-text');
+    const repoInput = document.getElementById('updater-repo-input');
+
+    if (installedBadge) installedBadge.textContent = updater.getCurrentVersion();
+    if (installedText) installedText.textContent = updater.getCurrentVersion();
+    if (repoInput) repoInput.value = updater.getRepoSlug();
+
+    // Listen for updater events
+    updater.addListener((data) => this.handleUpdateEvent(data));
+  }
+
+  handleUpdateEvent(data) {
+    const banner = document.getElementById('top-update-banner');
+    const tagEl = document.getElementById('top-update-tag');
+    const latestText = document.getElementById('updater-latest-text');
+    const statusMsg = document.getElementById('updater-status-message');
+    const spinner = document.getElementById('updater-check-spinner');
+    const checkBtnText = document.getElementById('updater-check-btn-text');
+    const downloadBtn = document.getElementById('updater-download-btn');
+
+    if (data.status === 'checking') {
+      spinner?.classList.remove('hidden');
+      if (checkBtnText) checkBtnText.textContent = 'Checking GitHub...';
+      if (statusMsg) statusMsg.textContent = 'Querying api.github.com for latest releases...';
+      return;
+    }
+
+    spinner?.classList.add('hidden');
+    if (checkBtnText) checkBtnText.textContent = '🔄 Check for Update';
+
+    if (latestText && data.latestVersion) {
+      latestText.textContent = data.latestVersion;
+    }
+
+    if (data.hasUpdate) {
+      // Show top floating banner if not dismissed
+      if (banner && tagEl && !updater.isDismissed(data.latestVersion)) {
+        tagEl.textContent = data.latestVersion;
+        banner.classList.remove('hidden');
+      }
+
+      if (statusMsg) {
+        statusMsg.innerHTML = `<span class="text-emerald-400 font-bold">🚀 New Version Available (${data.latestVersion})!</span><br/><span class="text-[10px] text-slate-400">Tap below to download and install.</span>`;
+      }
+
+      if (downloadBtn) {
+        downloadBtn.classList.remove('hidden');
+        downloadBtn.textContent = `⬇️ Install ${data.latestVersion}`;
+      }
+    } else if (data.status === 'up_to_date') {
+      if (banner) banner.classList.add('hidden');
+      if (statusMsg) statusMsg.textContent = "You're on the latest build!";
+      if (downloadBtn) downloadBtn.classList.add('hidden');
+    } else if (data.status === 'error') {
+      if (statusMsg) statusMsg.textContent = `Check note: ${data.error || 'Network error'}`;
     }
   }
 
