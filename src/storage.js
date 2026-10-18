@@ -1,6 +1,137 @@
 // Persistence engine using @capacitor/preferences with localStorage fallback
 import { Preferences } from '@capacitor/preferences';
 
+export const ALARM_TEMPLATES = [
+  {
+    id: 'template_satkin_2h',
+    name: 'Every 2 Hours (Satkin 40x)',
+    category: 'satkin',
+    actionType: 'pacer_40',
+    startTime: '07:00',
+    endTime: '23:00',
+    intervalMinutes: 120,
+    specialFixedTimes: [],
+    durationType: 'days',
+    durationValue: 7,
+    ringtone: 'ring_classic',
+    badge: 'Popular',
+    icon: '🔄',
+    description: 'Standard 40x acupressure rotation every 2h from 7 AM to 11 PM'
+  },
+  {
+    id: 'template_satkin_2h_2_7',
+    name: 'Every 2h + 2:00 & 7:00 PM (Satkin 40x)',
+    category: 'satkin',
+    actionType: 'pacer_40',
+    startTime: '07:00',
+    endTime: '23:00',
+    intervalMinutes: 120,
+    specialFixedTimes: ['14:00', '19:00'],
+    durationType: 'days',
+    durationValue: 7,
+    ringtone: 'ring_classic',
+    badge: 'Recommended',
+    icon: '⭐',
+    description: '2h schedule + afternoon (2 PM) & evening (7 PM) priority acupressure'
+  },
+  {
+    id: 'template_satkin_2h_3_7',
+    name: 'Every 2h + 3:00 & 7:00 PM (Satkin 40x)',
+    category: 'satkin',
+    actionType: 'pacer_40',
+    startTime: '07:00',
+    endTime: '23:00',
+    intervalMinutes: 120,
+    specialFixedTimes: ['15:00', '19:00'],
+    durationType: 'days',
+    durationValue: 7,
+    ringtone: 'ring_crystal',
+    badge: 'Alternative',
+    icon: '🕒',
+    description: '2h schedule with 3:00 PM & 7:00 PM key acupressure checkpoints'
+  },
+  {
+    id: 'template_satkin_1_5h_4_7',
+    name: 'Every 1.5h + 4:00 & 7:00 PM (Satkin 40x)',
+    category: 'satkin',
+    actionType: 'pacer_40',
+    startTime: '07:00',
+    endTime: '23:00',
+    intervalMinutes: 90,
+    specialFixedTimes: ['16:00', '19:00'],
+    durationType: 'days',
+    durationValue: 7,
+    ringtone: 'ring_crystal',
+    badge: 'Intense',
+    icon: '⚡',
+    description: 'Accelerated 90-min protocol with 4 PM & 7 PM checkpoints'
+  },
+  {
+    id: 'template_drink_water',
+    name: 'Drink 1 Glass of Water',
+    category: 'water',
+    actionType: 'log_water',
+    startTime: '07:00',
+    endTime: '23:00',
+    intervalMinutes: 120,
+    specialFixedTimes: [],
+    durationType: 'indefinite',
+    durationValue: 0,
+    ringtone: 'ring_double',
+    badge: 'Hydration',
+    icon: '💧',
+    description: 'Stay hydrated with a glass of water every 2 hours until 11 PM'
+  },
+  {
+    id: 'template_walk_movement',
+    name: 'Walk / Movement Break',
+    category: 'habit',
+    actionType: 'check_off',
+    startTime: '07:00',
+    endTime: '23:00',
+    intervalMinutes: 180,
+    specialFixedTimes: [],
+    durationType: 'indefinite',
+    durationValue: 0,
+    ringtone: 'ring_marimba',
+    badge: 'Posture',
+    icon: '🚶',
+    description: 'Stand up, stretch and walk for 5 minutes every 3 hours'
+  },
+  {
+    id: 'template_morning_weigh_in',
+    name: 'Morning Weigh-In',
+    category: 'weight',
+    actionType: 'log_weight',
+    startTime: '07:15',
+    endTime: '08:30',
+    intervalMinutes: 0,
+    specialFixedTimes: ['07:15'],
+    durationType: 'indefinite',
+    durationValue: 0,
+    ringtone: 'ring_woodblock',
+    badge: 'Daily',
+    icon: '⚖️',
+    description: 'Consistent morning weigh-in right after waking up'
+  },
+  {
+    id: 'template_custom_alarm',
+    name: 'Custom Alarm / Reminder',
+    category: 'satkin',
+    actionType: 'pacer_40',
+    startTime: '07:00',
+    endTime: '23:00',
+    intervalMinutes: 120,
+    specialFixedTimes: [],
+    durationType: 'indefinite',
+    durationValue: 0,
+    ringtone: 'ring_classic',
+    badge: 'Custom',
+    icon: '🎯',
+    description: 'Build your own custom reminder times, cadence & ringtone'
+  }
+];
+
 export const INITIAL_PROFILES = [
   {
     id: 'prof_morning_weigh_in',
@@ -13,34 +144,37 @@ export const INITIAL_PROFILES = [
     specialFixedTimes: ['07:15'],
     durationType: 'indefinite',
     durationValue: 0,
+    ringtone: 'ring_woodblock',
     activatedAt: Date.now(),
     actionType: 'log_weight'
   },
   {
     id: 'prof_satkin_a',
-    name: 'Satkin Protocol A (2h + 2:00 & 7:00)',
+    name: 'Satkin Protocol (2h + 2:00 & 7:00)',
     category: 'satkin',
     enabled: true,
     startTime: '07:00',
-    endTime: '22:30',
+    endTime: '23:00',
     intervalMinutes: 120,
     specialFixedTimes: ['14:00', '19:00'],
     durationType: 'days',
     durationValue: 7,
+    ringtone: 'ring_classic',
     activatedAt: Date.now(),
     actionType: 'pacer_40'
   },
   {
     id: 'prof_satkin_b',
-    name: 'Satkin Protocol B (1.5h + 4:00 & 7:00)',
+    name: 'Satkin Protocol (1.5h + 4:00 & 7:00)',
     category: 'satkin',
     enabled: false,
     startTime: '07:00',
-    endTime: '22:30',
+    endTime: '23:00',
     intervalMinutes: 90,
     specialFixedTimes: ['16:00', '19:00'],
     durationType: 'days',
     durationValue: 7,
+    ringtone: 'ring_crystal',
     activatedAt: Date.now(),
     actionType: 'pacer_40'
   },
@@ -49,12 +183,13 @@ export const INITIAL_PROFILES = [
     name: 'Drink 1 Glass of Water',
     category: 'water',
     enabled: true,
-    startTime: '07:30',
-    endTime: '21:30',
+    startTime: '07:00',
+    endTime: '23:00',
     intervalMinutes: 120,
     specialFixedTimes: [],
     durationType: 'indefinite',
     durationValue: 0,
+    ringtone: 'ring_double',
     activatedAt: Date.now(),
     actionType: 'log_water'
   },
@@ -64,11 +199,12 @@ export const INITIAL_PROFILES = [
     category: 'habit',
     enabled: false,
     startTime: '07:00',
-    endTime: '22:30',
+    endTime: '23:00',
     intervalMinutes: 0,
     specialFixedTimes: ['21:00'],
     durationType: 'indefinite',
     durationValue: 0,
+    ringtone: 'ring_marimba',
     activatedAt: Date.now(),
     actionType: 'check_off'
   }
@@ -168,9 +304,23 @@ class StorageEngine {
       await this.saveProfiles(INITIAL_PROFILES);
       return INITIAL_PROFILES;
     }
+    let modified = false;
+    profiles.forEach(p => {
+      if (!p.ringtone) {
+        p.ringtone = p.category === 'weight' ? 'ring_woodblock' : p.category === 'water' ? 'ring_double' : 'ring_classic';
+        modified = true;
+      }
+      if (!p.endTime || p.endTime === '22:30') {
+        p.endTime = '23:00';
+        modified = true;
+      }
+    });
     // Ensure pre-seeded Morning Weigh-In exists
     if (!profiles.some(p => p.actionType === 'log_weight' || p.id === 'prof_morning_weigh_in')) {
       profiles.unshift(INITIAL_PROFILES[0]);
+      modified = true;
+    }
+    if (modified) {
       await this.saveProfiles(profiles);
     }
     return profiles;

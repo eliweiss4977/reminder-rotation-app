@@ -1,6 +1,6 @@
 // Main Application Controller for Satkin Multi-Profile Reminder, Weight & Habit Engine
 import './style.css';
-import { audio } from './audio.js';
+import { audio, RINGTONES } from './audio.js';
 import { haptics } from './haptics.js';
 import {
   PROFILE_CATEGORIES,
@@ -10,9 +10,10 @@ import {
   formatDisplayTime,
   getProfileRemainingText,
   isProfileExpired,
+  calculateProfileDailySlots,
   calculateMergedMultiProfileSchedule
 } from './scheduleEngine.js';
-import { storage } from './storage.js';
+import { storage, ALARM_TEMPLATES } from './storage.js';
 import { notifications } from './notifications.js';
 import { PacerController } from './pacer.js';
 import { updater } from './updater.js';
@@ -21,7 +22,7 @@ class SatkinApp {
   constructor() {
     this.profiles = [];
     this.completions = {};
-    this.activeTab = 'today';
+    this.activeTab = 'alarms'; // Default to Alarms Home Screen
     this.currentSchedule = [];
     this.nextSlot = null;
     this.countdownTimer = null;
@@ -40,6 +41,8 @@ class SatkinApp {
     this.editorInterval = 120;
     this.editorFixedTimes = [];
     this.editorDurationType = 'days';
+    this.editorDurationValue = 7;
+    this.editorRingtone = 'ring_classic';
     this.editorLinkedGoalId = null;
 
     // Custom Goal modal state
@@ -127,13 +130,27 @@ class SatkinApp {
     });
 
     // Tab Navigation
+    document.getElementById('nav-btn-alarms')?.addEventListener('click', () => this.switchTab('alarms'));
     document.getElementById('nav-btn-today')?.addEventListener('click', () => this.switchTab('today'));
-    document.getElementById('nav-btn-profiles')?.addEventListener('click', () => this.switchTab('profiles'));
     document.getElementById('nav-btn-stats')?.addEventListener('click', () => this.switchTab('stats'));
 
-    // Manage Profiles Button from Today tab
+    // Manage Alarms Button from Today tab
     document.getElementById('today-manage-profiles-btn')?.addEventListener('click', () => {
-      this.switchTab('profiles');
+      this.switchTab('alarms');
+    });
+
+    // Create Alarm buttons (Header & Floating FAB)
+    document.getElementById('alarms-create-header-btn')?.addEventListener('click', () => {
+      this.openAlarmWizard(null);
+    });
+
+    document.getElementById('alarms-floating-add-btn')?.addEventListener('click', () => {
+      this.openAlarmWizard(null);
+    });
+
+    // Top Summary Quick 40x Pacer Button
+    document.getElementById('alarms-top-pacer-btn')?.addEventListener('click', () => {
+      this.pacer.open(this.nextSlot || null);
     });
 
     // Hero Action Buttons
@@ -152,7 +169,8 @@ class SatkinApp {
     });
 
     document.getElementById('hero-test-sound-btn')?.addEventListener('click', () => {
-      audio.playSingleRing();
+      const ring = this.nextSlot?.ringtone || 'ring_classic';
+      audio.playRingtone(ring);
       haptics.milestone();
     });
 
@@ -174,7 +192,8 @@ class SatkinApp {
     document.getElementById('stats-test-notif-btn')?.addEventListener('click', async () => {
       haptics.tick();
       const activeSatkin = this.profiles.find(p => p.enabled && p.category === 'satkin') || this.profiles[0];
-      const ok = await notifications.scheduleTestNotification(activeSatkin?.name || 'Satkin Protocol');
+      const ring = activeSatkin?.ringtone || 'ring_classic';
+      const ok = await notifications.scheduleTestNotification(activeSatkin?.name || 'Satkin Protocol', ring);
       if (ok) {
         alert('Test alert scheduled in 5 seconds! Background the app to test notification sound.');
       }
@@ -189,18 +208,13 @@ class SatkinApp {
         haptics.tick();
       }
     });
-
-    // Open Profile Creator
-    document.getElementById('profiles-create-btn')?.addEventListener('click', () => {
-      this.openProfileEditor(null);
-    });
   }
 
   switchTab(tab) {
     haptics.tick();
     this.activeTab = tab;
 
-    const tabs = ['today', 'profiles', 'stats'];
+    const tabs = ['alarms', 'today', 'stats'];
     tabs.forEach(t => {
       const content = document.getElementById(`tab-content-${t}`);
       const btn = document.getElementById(`nav-btn-${t}`);
@@ -216,8 +230,13 @@ class SatkinApp {
       }
     });
 
-    if (tab === 'profiles') {
-      this.renderProfilesList();
+    if (tab === 'alarms') {
+      this.renderAlarmsList();
+      this.updateAlarmsTopSummary();
+    } else if (tab === 'today') {
+      this.renderActiveProfileChips();
+      this.renderHeroCard();
+      this.renderTimelineList();
     } else if (tab === 'stats') {
       this.renderWeightSection();
       this.renderCustomGoalsSection();
@@ -233,15 +252,32 @@ class SatkinApp {
                     this.currentSchedule.find(s => !s.isCompleted) ||
                     this.currentSchedule[0];
 
-    // 3. Render Today Tab
+    // 3. Render Alarms Home Screen
+    this.updateAlarmsTopSummary();
+    this.renderAlarmsList();
+
+    // 4. Render Today Tab
     this.renderActiveProfileChips();
     this.renderHeroCard();
     this.renderTimelineList();
 
-    // 4. Render Profiles & Stats
-    this.renderProfilesList();
+    // 5. Render Stats Tab
     this.renderWeightSection();
     this.renderCustomGoalsSection();
+  }
+
+  updateAlarmsTopSummary() {
+    const timeEl = document.getElementById('alarms-top-next-time');
+    const titleEl = document.getElementById('alarms-top-next-title');
+
+    if (!this.nextSlot) {
+      if (timeEl) timeEl.textContent = 'All Done!';
+      if (titleEl) titleEl.textContent = 'All scheduled rings completed for today.';
+      return;
+    }
+
+    if (timeEl) timeEl.textContent = this.nextSlot.displayTime;
+    if (titleEl) titleEl.textContent = `${this.nextSlot.profileName} • ${this.nextSlot.badgeLabel}`;
   }
 
   // --- TODAY TAB RENDERING ---
@@ -338,7 +374,11 @@ class SatkinApp {
 
   updateCountdownDisplay() {
     const countdownEl = document.getElementById('hero-countdown');
-    if (!countdownEl || !this.nextSlot) return;
+    const topCountdownEl = document.getElementById('alarms-top-countdown');
+    if (!this.nextSlot) {
+      if (topCountdownEl) topCountdownEl.textContent = '--:--:--';
+      return;
+    }
 
     const now = new Date();
     const target = new Date();
@@ -349,8 +389,11 @@ class SatkinApp {
     let diffMs = target.getTime() - now.getTime();
 
     if (this.nextSlot.isCompleted) {
-      countdownEl.textContent = 'DONE';
-      countdownEl.className = 'text-2xl font-mono font-bold text-emerald-400 tabular-nums';
+      if (countdownEl) {
+        countdownEl.textContent = 'DONE';
+        countdownEl.className = 'text-2xl font-mono font-bold text-emerald-400 tabular-nums';
+      }
+      if (topCountdownEl) topCountdownEl.textContent = 'DONE';
       return;
     }
 
@@ -358,8 +401,12 @@ class SatkinApp {
       const overdueSecs = Math.abs(Math.floor(diffMs / 1000));
       const mm = String(Math.floor(overdueSecs / 60)).padStart(2, '0');
       const ss = String(overdueSecs % 60).padStart(2, '0');
-      countdownEl.textContent = `+${mm}:${ss}`;
-      countdownEl.className = 'text-2xl font-mono font-bold text-rose-400 tabular-nums animate-pulse';
+      const text = `+${mm}:${ss}`;
+      if (countdownEl) {
+        countdownEl.textContent = text;
+        countdownEl.className = 'text-2xl font-mono font-bold text-rose-400 tabular-nums animate-pulse';
+      }
+      if (topCountdownEl) topCountdownEl.textContent = text;
       return;
     }
 
@@ -367,9 +414,13 @@ class SatkinApp {
     const hrs = String(Math.floor(totalSecs / 3600)).padStart(2, '0');
     const mins = String(Math.floor((totalSecs % 3600) / 60)).padStart(2, '0');
     const secs = String(totalSecs % 60).padStart(2, '0');
+    const clockText = `${hrs}:${mins}:${secs}`;
 
-    countdownEl.textContent = `${hrs}:${mins}:${secs}`;
-    countdownEl.className = 'text-2xl font-mono font-bold text-amber-400 tabular-nums';
+    if (countdownEl) {
+      countdownEl.textContent = clockText;
+      countdownEl.className = 'text-2xl font-mono font-bold text-amber-400 tabular-nums';
+    }
+    if (topCountdownEl) topCountdownEl.textContent = clockText;
   }
 
   startCountdownLoop() {
@@ -541,76 +592,134 @@ class SatkinApp {
     });
   }
 
-  // --- TAB 2: PROFILES MANAGEMENT ---
-  renderProfilesList() {
-    const container = document.getElementById('profiles-list-container');
+  // --- TAB 1: ALARMS & REMINDERS HOME SCREEN ---
+  renderAlarmsList() {
+    const container = document.getElementById('alarms-list-container');
+    const badgeCount = document.getElementById('alarms-active-count-badge');
     if (!container) return;
     container.innerHTML = '';
 
+    const activeCount = this.profiles.filter(p => p.enabled && !isProfileExpired(p)).length;
+    if (badgeCount) {
+      badgeCount.textContent = `${activeCount} Active`;
+    }
+
     if (this.profiles.length === 0) {
       container.innerHTML = `
-        <div class="p-6 rounded-2xl glass-card text-center text-slate-400 border border-slate-800">
-          <p class="text-xs">No reminder profiles configured.</p>
+        <div class="p-8 rounded-2xl glass-card text-center text-slate-400 border border-slate-800 space-y-3">
+          <div class="text-4xl">⏰</div>
+          <h3 class="text-base font-bold text-white">No Alarms Configured</h3>
+          <p class="text-xs text-slate-400 max-w-xs mx-auto">Create your first alarm or pick from 8 pre-made templates like 2h Satkin Rotation.</p>
+          <button id="alarms-empty-add-btn" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg active-press transition">
+            + Choose a Template
+          </button>
         </div>
       `;
+      document.getElementById('alarms-empty-add-btn')?.addEventListener('click', () => this.openAlarmWizard(null));
       return;
     }
+
+    const todayDateKey = this.getTodayKey();
+    const todayCompleted = this.completions[todayDateKey] || {};
 
     this.profiles.forEach(p => {
       const theme = CATEGORY_THEMES[p.category] || CATEGORY_THEMES.satkin;
       const isExpired = isProfileExpired(p);
       const remainingText = getProfileRemainingText(p);
+      const ringKey = p.ringtone || 'ring_classic';
+      const ringMeta = RINGTONES.find(r => r.id === ringKey) || RINGTONES[0];
 
       const card = document.createElement('div');
       card.className = `p-4 rounded-2xl glass-card border border-slate-800/80 space-y-3 transition-all ${
-        p.enabled && !isExpired ? 'ring-1 ring-indigo-500/20' : 'opacity-85'
+        p.enabled && !isExpired ? 'ring-1 ring-indigo-500/20 shadow-lg shadow-black/30' : 'opacity-70 bg-slate-950/40'
       }`;
 
-      let scheduleText = '';
+      let scheduleCadence = '';
       if (p.intervalMinutes > 0) {
-        scheduleText = `Every ${p.intervalMinutes >= 60 ? (p.intervalMinutes / 60) + 'h' : p.intervalMinutes + 'm'} (${p.startTime} - ${p.endTime})`;
+        scheduleCadence = `Every ${p.intervalMinutes >= 60 ? (p.intervalMinutes / 60) + 'h' : p.intervalMinutes + 'm'}`;
       } else {
-        scheduleText = `Fixed times (${p.startTime} - ${p.endTime})`;
+        scheduleCadence = 'Fixed Times Only';
       }
 
-      if (p.specialFixedTimes && p.specialFixedTimes.length > 0) {
-        scheduleText += ` • Fixed: ${p.specialFixedTimes.join(', ')}`;
-      }
+      // Calculate today's exact ring times pills for this profile
+      const dailySlots = calculateProfileDailySlots(p, new Date());
+      let slotsPillsHtml = '';
 
-      let actionLabel = '40x Sitting Pacer';
-      if (p.actionType === 'log_weight') actionLabel = "Log Today's Weight";
-      if (p.actionType === 'log_water') actionLabel = '+1 Glass Water';
-      if (p.actionType === 'custom_goal') {
-        const goal = this.customGoals.find(g => g.id === p.customGoalId);
-        actionLabel = goal ? `Goal: ${goal.title}` : 'Custom Goal';
+      if (dailySlots.length === 0) {
+        slotsPillsHtml = '<span class="text-[11px] text-slate-500 italic">No rings scheduled for today</span>';
+      } else {
+        slotsPillsHtml = dailySlots.map(slot => {
+          const isDone = !!todayCompleted[slot.id];
+          const isSpecial = !!slot.isSpecial;
+          const starIcon = isSpecial ? '⭐ ' : '';
+          const checkIcon = isDone ? '✓ ' : '';
+
+          let pillClasses = 'px-2 py-0.5 rounded text-[11px] font-mono font-medium transition cursor-pointer active-press ';
+          if (isDone) {
+            pillClasses += 'bg-emerald-950/60 text-emerald-300 line-through border border-emerald-800/50';
+          } else if (isSpecial) {
+            pillClasses += 'bg-amber-500/20 text-amber-300 font-bold border border-amber-500/40';
+          } else {
+            pillClasses += 'bg-slate-800/90 text-slate-300 border border-slate-700 hover:border-indigo-500';
+          }
+
+          return `<button type="button" data-slot-id="${slot.id}" class="${pillClasses}">${checkIcon}${starIcon}${slot.displayTime}</button>`;
+        }).join('');
       }
-      if (p.actionType === 'check_off') actionLabel = '1-Tap Check-off';
 
       card.innerHTML = `
         <div class="flex items-start justify-between">
           <div class="space-y-1">
-            <div class="flex items-center gap-2">
-              <span class="text-xs px-2 py-0.5 rounded-full font-bold ${theme.badgeClass}">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${theme.badgeClass}">
                 ${theme.label}
               </span>
-              <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
                 ${remainingText}
               </span>
             </div>
             <h3 class="text-sm font-bold text-white pt-0.5">${p.name}</h3>
-            <p class="text-[11px] text-slate-400 leading-snug">${scheduleText}</p>
-            <p class="text-[11px] text-slate-500">Action: <span class="text-slate-300 font-medium">${actionLabel}</span></p>
+            <div class="flex items-center gap-2 text-[11px] text-slate-400">
+              <span>⏰ ${formatDisplayTime(p.startTime || '07:00')} – ${formatDisplayTime(p.endTime || '23:00')}</span>
+              <span>•</span>
+              <span class="text-slate-300 font-medium">${scheduleCadence}</span>
+            </div>
           </div>
 
-          <label class="switch-toggle shrink-0">
+          <!-- Instant ON/OFF Switch -->
+          <label class="switch-toggle shrink-0 ml-3">
             <input type="checkbox" data-toggle-profile="${p.id}" ${p.enabled && !isExpired ? 'checked' : ''} />
             <span class="switch-slider ${theme.colorName}"></span>
           </label>
         </div>
 
+        <!-- Ringtone Preview Pill -->
+        <div class="flex items-center justify-between bg-slate-900/80 px-3 py-1.5 rounded-xl border border-slate-800 text-xs">
+          <div class="flex items-center gap-2">
+            <span class="text-xs">${ringMeta.icon}</span>
+            <span class="text-slate-300 text-[11px] font-semibold">${ringMeta.name}</span>
+          </div>
+          <button type="button" data-test-ringtone="${ringKey}" class="active-press px-2 py-0.5 rounded-md bg-slate-800 hover:bg-slate-700 text-amber-300 font-semibold text-[11px] border border-amber-500/20 flex items-center gap-1 transition">
+            <span>🔊</span>
+            <span>Test Sound</span>
+          </button>
+        </div>
+
+        <!-- Today's exact ring times expandable / horizontal flow -->
+        <div class="space-y-1 pt-1 border-t border-slate-800/60">
+          <div class="flex items-center justify-between text-[11px] text-slate-400">
+            <span class="font-semibold text-slate-300">Today's Ring Times (${dailySlots.length}):</span>
+            <span class="text-[10px] text-slate-500">Tap time to action</span>
+          </div>
+          <div class="flex flex-wrap gap-1.5 pt-0.5">
+            ${slotsPillsHtml}
+          </div>
+        </div>
+
+        <!-- Card Footer -->
         <div class="flex items-center justify-between pt-2 border-t border-slate-800/70 text-xs">
           <span class="text-[11px] text-slate-500">
-            Duration: <span class="text-slate-300">${p.durationType === 'indefinite' ? 'Indefinite' : p.durationValue + ' ' + p.durationType}</span>
+            Duration: <span class="text-slate-300 font-medium">${p.durationType === 'indefinite' ? 'Always On' : p.durationValue + ' ' + p.durationType}</span>
           </span>
 
           <div class="flex items-center gap-2">
@@ -624,6 +733,7 @@ class SatkinApp {
         </div>
       `;
 
+      // Toggle profile enabled switch
       card.querySelector('[data-toggle-profile]')?.addEventListener('change', async () => {
         haptics.tick();
         this.profiles = await storage.toggleProfileEnabled(p.id);
@@ -631,17 +741,39 @@ class SatkinApp {
         this.refreshAll();
       });
 
-      card.querySelector('[data-edit-profile]')?.addEventListener('click', () => {
-        this.openProfileEditor(p);
+      // Test sound preview
+      card.querySelector('[data-test-ringtone]')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const rKey = e.currentTarget.getAttribute('data-test-ringtone') || 'ring_classic';
+        audio.playRingtone(rKey);
+        haptics.milestone();
       });
 
+      // Edit profile
+      card.querySelector('[data-edit-profile]')?.addEventListener('click', () => {
+        this.openAlarmWizard(p);
+      });
+
+      // Delete profile
       card.querySelector('[data-delete-profile]')?.addEventListener('click', async () => {
-        if (confirm(`Delete profile "${p.name}"?`)) {
+        if (confirm(`Delete alarm "${p.name}"?`)) {
           haptics.tick();
           this.profiles = await storage.deleteProfile(p.id);
           await notifications.rescheduleMultiProfileNext5Days(this.profiles);
           this.refreshAll();
         }
+      });
+
+      // Today's slot pills click (open Pacer or toggle done)
+      card.querySelectorAll('[data-slot-id]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const sId = e.currentTarget.getAttribute('data-slot-id');
+          const matchedSlot = dailySlots.find(s => s.id === sId);
+          if (matchedSlot) {
+            this.triggerSlotAction(matchedSlot);
+          }
+        });
       });
 
       container.appendChild(card);
@@ -1237,17 +1369,23 @@ class SatkinApp {
     }
   }
 
-  // --- PROFILE CREATE / EDIT MODAL LOGIC ---
+  // --- ALARM WIZARD & PROFILE EDITOR LOGIC ---
   bindProfileEditorEvents() {
     const modal = document.getElementById('profile-modal');
-    document.getElementById('profile-modal-close')?.addEventListener('click', () => {
+    const closeWizard = () => {
       modal?.classList.add('hidden');
       modal?.classList.remove('flex');
-    });
+    };
 
-    document.getElementById('edit-cancel-btn')?.addEventListener('click', () => {
-      modal?.classList.add('hidden');
-      modal?.classList.remove('flex');
+    document.getElementById('wizard-templates-close')?.addEventListener('click', closeWizard);
+    document.getElementById('profile-modal-close')?.addEventListener('click', closeWizard);
+    document.getElementById('edit-cancel-btn')?.addEventListener('click', closeWizard);
+
+    // Back button from Step B to Step A
+    document.getElementById('wizard-back-to-templates')?.addEventListener('click', () => {
+      haptics.tick();
+      document.getElementById('wizard-step-templates')?.classList.remove('hidden');
+      document.getElementById('wizard-step-customize')?.classList.add('hidden');
     });
 
     // Category pills (Satkin / Weight / Water / Habit)
@@ -1266,14 +1404,25 @@ class SatkinApp {
       } else {
         linkedRow?.classList.add('hidden');
       }
+      this.updateWizardLivePreview();
     });
+
+    // Time window inputs change
+    document.getElementById('edit-start-time')?.addEventListener('input', () => this.updateWizardLivePreview());
+    document.getElementById('edit-end-time')?.addEventListener('input', () => this.updateWizardLivePreview());
 
     // Interval pills
     document.querySelectorAll('.int-pill').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const val = e.currentTarget.getAttribute('data-interval');
         this.setEditorInterval(val);
+        this.updateWizardLivePreview();
       });
+    });
+
+    document.getElementById('edit-custom-interval')?.addEventListener('input', () => {
+      this.editorInterval = parseInt(document.getElementById('edit-custom-interval')?.value, 10) || 120;
+      this.updateWizardLivePreview();
     });
 
     // Duration pills
@@ -1281,20 +1430,31 @@ class SatkinApp {
     document.getElementById('dur-btn-days')?.addEventListener('click', () => this.setEditorDurationType('days'));
     document.getElementById('dur-btn-hours')?.addEventListener('click', () => this.setEditorDurationType('hours'));
 
-    // Special fixed time presets
-    document.getElementById('fixed-preset-2and7')?.addEventListener('click', () => {
-      this.editorFixedTimes = ['14:00', '19:00'];
-      this.renderEditorFixedChips();
+    // Special fixed quick toggle chips (2 PM, 3 PM, 4 PM, 7 PM)
+    document.querySelectorAll('.special-chip').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        haptics.tick();
+        const timeVal = e.currentTarget.getAttribute('data-special');
+        if (!timeVal) return;
+        if (this.editorFixedTimes.includes(timeVal)) {
+          this.editorFixedTimes = this.editorFixedTimes.filter(t => t !== timeVal);
+        } else {
+          this.editorFixedTimes.push(timeVal);
+          this.editorFixedTimes.sort();
+        }
+        this.updateSpecialChipsUI();
+        this.renderEditorFixedChips();
+        this.updateWizardLivePreview();
+      });
     });
 
-    document.getElementById('fixed-preset-4and7')?.addEventListener('click', () => {
-      this.editorFixedTimes = ['16:00', '19:00'];
-      this.renderEditorFixedChips();
-    });
-
+    // Special fixed clear button
     document.getElementById('fixed-preset-clear')?.addEventListener('click', () => {
+      haptics.tick();
       this.editorFixedTimes = [];
+      this.updateSpecialChipsUI();
       this.renderEditorFixedChips();
+      this.updateWizardLivePreview();
     });
 
     // Add custom fixed time
@@ -1302,9 +1462,12 @@ class SatkinApp {
       const input = document.getElementById('edit-new-fixed-time');
       const val = input?.value;
       if (val && !this.editorFixedTimes.includes(val)) {
+        haptics.tick();
         this.editorFixedTimes.push(val);
         this.editorFixedTimes.sort();
+        this.updateSpecialChipsUI();
         this.renderEditorFixedChips();
+        this.updateWizardLivePreview();
       }
     });
 
@@ -1327,8 +1490,10 @@ class SatkinApp {
     });
   }
 
-  openProfileEditor(profile = null) {
+  openAlarmWizard(profile = null) {
     const modal = document.getElementById('profile-modal');
+    const stepTemplates = document.getElementById('wizard-step-templates');
+    const stepCustomize = document.getElementById('wizard-step-customize');
     const modalTitle = document.getElementById('profile-modal-title');
     const nameInput = document.getElementById('edit-profile-name');
     const actionSelect = document.getElementById('edit-action-type');
@@ -1338,18 +1503,24 @@ class SatkinApp {
     const linkedRow = document.getElementById('linked-goal-row');
 
     if (profile) {
+      // Direct Edit Mode (Step B)
       this.editingProfileId = profile.id;
-      if (modalTitle) modalTitle.textContent = 'Edit Reminder Profile';
+      if (stepTemplates) stepTemplates.classList.add('hidden');
+      if (stepCustomize) stepCustomize.classList.remove('hidden');
+      if (modalTitle) modalTitle.textContent = 'Edit Alarm / Reminder';
+
       if (nameInput) nameInput.value = profile.name;
       if (actionSelect) actionSelect.value = profile.actionType || 'pacer_40';
       if (startInput) startInput.value = profile.startTime || '07:00';
-      if (endInput) endInput.value = profile.endTime || '22:30';
+      if (endInput) endInput.value = profile.endTime || '23:00';
       if (durValueInput) durValueInput.value = profile.durationValue || 7;
 
       this.editorCategory = profile.category || PROFILE_CATEGORIES.SATKIN;
       this.editorInterval = profile.intervalMinutes !== undefined ? profile.intervalMinutes : 120;
       this.editorFixedTimes = [...(profile.specialFixedTimes || [])];
       this.editorDurationType = profile.durationType || 'days';
+      this.editorDurationValue = profile.durationValue || 7;
+      this.editorRingtone = profile.ringtone || 'ring_classic';
       this.editorLinkedGoalId = profile.customGoalId || null;
 
       if (profile.actionType === 'custom_goal') {
@@ -1358,31 +1529,229 @@ class SatkinApp {
       } else {
         linkedRow?.classList.add('hidden');
       }
-    } else {
-      this.editingProfileId = null;
-      if (modalTitle) modalTitle.textContent = 'Create Reminder Profile';
-      if (nameInput) nameInput.value = '';
-      if (actionSelect) actionSelect.value = 'pacer_40';
-      if (startInput) startInput.value = '07:00';
-      if (endInput) endInput.value = '22:30';
-      if (durValueInput) durValueInput.value = 7;
-      linkedRow?.classList.add('hidden');
 
-      this.editorCategory = PROFILE_CATEGORIES.SATKIN;
-      this.editorInterval = 120;
-      this.editorFixedTimes = ['14:00', '19:00'];
-      this.editorDurationType = 'days';
-      this.editorLinkedGoalId = null;
+      this.setEditorCategory(this.editorCategory);
+      this.setEditorInterval(this.editorInterval);
+      this.setEditorDurationType(this.editorDurationType);
+      this.updateSpecialChipsUI();
+      this.renderEditorFixedChips();
+      this.renderRingtonePicker();
+      this.updateWizardLivePreview();
+    } else {
+      // Create Mode (Step A: Template Picker)
+      this.editingProfileId = null;
+      if (stepTemplates) stepTemplates.classList.remove('hidden');
+      if (stepCustomize) stepCustomize.classList.add('hidden');
+      this.renderWizardTemplates();
+    }
+
+    modal?.classList.remove('hidden');
+    modal?.classList.add('flex');
+    haptics.tick();
+  }
+
+  renderWizardTemplates() {
+    const grid = document.getElementById('wizard-templates-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    ALARM_TEMPLATES.forEach(tpl => {
+      const theme = CATEGORY_THEMES[tpl.category] || CATEGORY_THEMES.satkin;
+      const card = document.createElement('div');
+      card.className = 'active-press p-3.5 rounded-2xl bg-slate-900/90 hover:bg-slate-800/80 border border-slate-800 hover:border-indigo-500/50 cursor-pointer transition shadow-md flex items-start justify-between gap-3';
+
+      let timeSummary = `⏰ ${formatDisplayTime(tpl.startTime)} – ${formatDisplayTime(tpl.endTime)}`;
+      if (tpl.intervalMinutes > 0) {
+        timeSummary += ` • Every ${tpl.intervalMinutes >= 60 ? (tpl.intervalMinutes / 60) + 'h' : tpl.intervalMinutes + 'm'}`;
+      } else {
+        timeSummary += ' • Fixed Time';
+      }
+
+      if (tpl.specialFixedTimes && tpl.specialFixedTimes.length > 0) {
+        timeSummary += ` • ⭐ ${tpl.specialFixedTimes.map(formatDisplayTime).join(', ')}`;
+      }
+
+      const ringMeta = RINGTONES.find(r => r.id === tpl.ringtone) || RINGTONES[0];
+
+      card.innerHTML = `
+        <div class="space-y-1 flex-1">
+          <div class="flex items-center gap-2">
+            <span class="text-base">${tpl.icon || '⏰'}</span>
+            <span class="text-xs font-bold text-white">${tpl.name}</span>
+            <span class="text-[10px] px-2 py-0.2 rounded-full font-bold ${theme.badgeClass}">${tpl.badge}</span>
+          </div>
+          <p class="text-[11px] text-slate-400 leading-snug">${tpl.description}</p>
+          <div class="flex items-center gap-2 text-[10px] text-slate-400 pt-1">
+            <span class="text-slate-300 font-mono">${timeSummary}</span>
+            <span>•</span>
+            <span class="text-amber-300">${ringMeta.icon} ${ringMeta.name}</span>
+          </div>
+        </div>
+        <div class="shrink-0 self-center">
+          <span class="w-7 h-7 rounded-full bg-indigo-600/30 text-indigo-400 border border-indigo-500/40 flex items-center justify-center text-xs font-bold">
+            →
+          </span>
+        </div>
+      `;
+
+      card.addEventListener('click', () => {
+        haptics.tap();
+        this.applyTemplateToEditor(tpl);
+      });
+
+      grid.appendChild(card);
+    });
+  }
+
+  applyTemplateToEditor(tpl) {
+    this.editingProfileId = null;
+    const stepTemplates = document.getElementById('wizard-step-templates');
+    const stepCustomize = document.getElementById('wizard-step-customize');
+    const modalTitle = document.getElementById('profile-modal-title');
+    const nameInput = document.getElementById('edit-profile-name');
+    const actionSelect = document.getElementById('edit-action-type');
+    const startInput = document.getElementById('edit-start-time');
+    const endInput = document.getElementById('edit-end-time');
+    const durValueInput = document.getElementById('edit-duration-value');
+    const linkedRow = document.getElementById('linked-goal-row');
+
+    if (modalTitle) modalTitle.textContent = `Customize: ${tpl.name}`;
+    if (nameInput) nameInput.value = tpl.name;
+    if (actionSelect) actionSelect.value = tpl.actionType || 'pacer_40';
+    if (startInput) startInput.value = tpl.startTime || '07:00';
+    if (endInput) endInput.value = tpl.endTime || '23:00';
+    if (durValueInput) durValueInput.value = tpl.durationValue || 7;
+
+    this.editorCategory = tpl.category || PROFILE_CATEGORIES.SATKIN;
+    this.editorInterval = tpl.intervalMinutes !== undefined ? tpl.intervalMinutes : 120;
+    this.editorFixedTimes = [...(tpl.specialFixedTimes || [])];
+    this.editorDurationType = tpl.durationType || 'days';
+    this.editorDurationValue = tpl.durationValue || 7;
+    this.editorRingtone = tpl.ringtone || 'ring_classic';
+    this.editorLinkedGoalId = null;
+
+    if (tpl.actionType === 'custom_goal') {
+      linkedRow?.classList.remove('hidden');
+      this.populateLinkedGoalSelect();
+    } else {
+      linkedRow?.classList.add('hidden');
     }
 
     this.setEditorCategory(this.editorCategory);
     this.setEditorInterval(this.editorInterval);
     this.setEditorDurationType(this.editorDurationType);
+    this.updateSpecialChipsUI();
     this.renderEditorFixedChips();
+    this.renderRingtonePicker();
+    this.updateWizardLivePreview();
 
-    modal?.classList.remove('hidden');
-    modal?.classList.add('flex');
-    haptics.tick();
+    // Transition to Step B
+    stepTemplates?.classList.add('hidden');
+    stepCustomize?.classList.remove('hidden');
+  }
+
+  renderRingtonePicker() {
+    const container = document.getElementById('ringtone-picker-list');
+    if (!container) return;
+    container.innerHTML = '';
+
+    RINGTONES.forEach(ring => {
+      const isSelected = this.editorRingtone === ring.id;
+      const item = document.createElement('div');
+      item.className = `flex items-center justify-between p-2.5 rounded-xl border transition cursor-pointer active-press ${
+        isSelected
+          ? 'bg-indigo-600/15 border-indigo-500/60 ring-1 ring-indigo-500/40 text-white'
+          : 'bg-slate-900 border-slate-800 text-slate-300 hover:border-slate-700'
+      }`;
+
+      item.innerHTML = `
+        <div class="flex items-center gap-2.5">
+          <div class="w-4 h-4 rounded-full border flex items-center justify-center ${isSelected ? 'border-indigo-400 bg-indigo-500' : 'border-slate-600'}">
+            ${isSelected ? '<div class="w-1.5 h-1.5 rounded-full bg-white"></div>' : ''}
+          </div>
+          <div>
+            <div class="text-xs font-bold flex items-center gap-1.5">
+              <span>${ring.icon}</span>
+              <span>${ring.name}</span>
+            </div>
+            <div class="text-[10px] text-slate-400">${ring.desc}</div>
+          </div>
+        </div>
+
+        <button type="button" data-preview-sound="${ring.id}" class="active-press px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 text-[11px] font-semibold border border-amber-500/20 flex items-center gap-1 transition">
+          <span>🔊</span>
+          <span>Test Sound</span>
+        </button>
+      `;
+
+      item.addEventListener('click', (e) => {
+        if (e.target.closest('[data-preview-sound]')) return;
+        this.editorRingtone = ring.id;
+        haptics.tick();
+        this.renderRingtonePicker();
+      });
+
+      item.querySelector('[data-preview-sound]')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        haptics.milestone();
+        audio.playRingtone(ring.id);
+      });
+
+      container.appendChild(item);
+    });
+  }
+
+  updateSpecialChipsUI() {
+    document.querySelectorAll('.special-chip').forEach(btn => {
+      const timeVal = btn.getAttribute('data-special');
+      if (this.editorFixedTimes.includes(timeVal)) {
+        btn.className = 'special-chip active-press px-2.5 py-1 text-xs font-bold rounded-lg bg-amber-500/25 text-amber-300 border border-amber-500/60 shadow-sm';
+      } else {
+        btn.className = 'special-chip active-press px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-800 text-slate-400 border border-slate-700 hover:border-slate-600';
+      }
+    });
+  }
+
+  updateWizardLivePreview() {
+    const chipsContainer = document.getElementById('wizard-preview-chips');
+    const countBadge = document.getElementById('wizard-preview-count');
+    if (!chipsContainer) return;
+
+    const startInput = document.getElementById('edit-start-time');
+    const endInput = document.getElementById('edit-end-time');
+
+    const tempProfile = {
+      id: 'preview_temp',
+      name: 'Preview',
+      category: this.editorCategory,
+      enabled: true,
+      startTime: startInput?.value || '07:00',
+      endTime: endInput?.value || '23:00',
+      intervalMinutes: this.editorInterval,
+      specialFixedTimes: this.editorFixedTimes,
+      durationType: 'indefinite',
+      durationValue: 0
+    };
+
+    const slots = calculateProfileDailySlots(tempProfile, new Date());
+
+    if (countBadge) {
+      countBadge.textContent = `${slots.length} Rings Today`;
+    }
+
+    if (slots.length === 0) {
+      chipsContainer.innerHTML = '<span class="text-xs text-slate-500 italic">No ring times generated with current settings. Check start/cutoff times or interval.</span>';
+      return;
+    }
+
+    chipsContainer.innerHTML = slots.map(slot => {
+      const isSpecial = !!slot.isSpecial;
+      const star = isSpecial ? '⭐ ' : '';
+      const classes = isSpecial
+        ? 'px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/50'
+        : 'px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-slate-800 text-slate-300 border border-slate-700';
+      return `<span class="${classes}">${star}${slot.displayTime}</span>`;
+    }).join('');
   }
 
   setEditorCategory(cat) {
@@ -1414,6 +1783,8 @@ class SatkinApp {
       btnHabit?.classList.add('bg-emerald-500/20', 'border-emerald-500/50', 'text-emerald-300');
       if (actionSelect) actionSelect.value = 'check_off';
     }
+
+    this.updateWizardLivePreview();
   }
 
   setEditorInterval(val) {
@@ -1480,13 +1851,15 @@ class SatkinApp {
       const chip = document.createElement('span');
       chip.className = 'inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-slate-800 text-xs text-amber-300 border border-slate-700';
       chip.innerHTML = `
-        <span>${formatDisplayTime(tStr)}</span>
+        <span>⭐ ${formatDisplayTime(tStr)}</span>
         <button type="button" data-remove-time="${tStr}" class="text-slate-400 hover:text-rose-400 ml-0.5 font-bold">×</button>
       `;
       chip.querySelector('[data-remove-time]')?.addEventListener('click', (e) => {
         const timeToRemove = e.currentTarget.getAttribute('data-remove-time');
         this.editorFixedTimes = this.editorFixedTimes.filter(t => t !== timeToRemove);
+        this.updateSpecialChipsUI();
         this.renderEditorFixedChips();
+        this.updateWizardLivePreview();
       });
       container.appendChild(chip);
     });
@@ -1502,7 +1875,7 @@ class SatkinApp {
 
     const name = nameInput?.value?.trim();
     if (!name) {
-      alert('Please enter a profile name.');
+      alert('Please enter an alarm / reminder name.');
       return;
     }
 
@@ -1516,11 +1889,12 @@ class SatkinApp {
       category: this.editorCategory,
       enabled: true,
       startTime: startInput?.value || '07:00',
-      endTime: endInput?.value || '22:30',
+      endTime: endInput?.value || '23:00', // Default 11:00 PM cutoff
       intervalMinutes: this.editorInterval,
       specialFixedTimes: this.editorFixedTimes,
       durationType: this.editorDurationType,
       durationValue: durationVal,
+      ringtone: this.editorRingtone || 'ring_classic',
       activatedAt: Date.now(),
       actionType,
       customGoalId

@@ -2,7 +2,15 @@
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { calculateMultiProfile5DaysNotificationSlots } from './scheduleEngine.js';
 
-export const NOTIFICATION_CHANNEL_ID = 'satkin_single_ring';
+export const NOTIFICATION_CHANNELS = {
+  ring_classic: { id: 'channel_ring_classic', name: 'Classic Single Ring', sound: 'ring_classic.wav' },
+  ring_crystal: { id: 'channel_ring_crystal', name: 'Crystal Desk Bell', sound: 'ring_crystal.wav' },
+  ring_double: { id: 'channel_ring_double', name: 'Soft Double Chime', sound: 'ring_double.wav' },
+  ring_woodblock: { id: 'channel_ring_woodblock', name: 'Zen Woodblock', sound: 'ring_woodblock.wav' },
+  ring_marimba: { id: 'channel_ring_marimba', name: 'Warm Marimba', sound: 'ring_marimba.wav' }
+};
+
+export const DEFAULT_CHANNEL_ID = 'channel_ring_classic';
 
 class NotificationManager {
   constructor() {
@@ -16,8 +24,8 @@ class NotificationManager {
     this.onNotificationTapCallback = onNotificationTap;
 
     try {
-      // 1. Setup Android High Importance Notification Channel
-      await this.setupChannel();
+      // 1. Setup Android High Importance Notification Channels for all 5 ringtones
+      await this.setupChannels();
 
       // 2. Listen for notification action / tap
       await LocalNotifications.addListener('localNotificationActionPerformed', (action) => {
@@ -35,21 +43,37 @@ class NotificationManager {
     }
   }
 
-  async setupChannel() {
+  async setupChannels() {
     try {
+      // Create all 5 distinct ringtone channels
+      for (const [key, conf] of Object.entries(NOTIFICATION_CHANNELS)) {
+        await LocalNotifications.createChannel({
+          id: conf.id,
+          name: `Satkin: ${conf.name}`,
+          description: `Chimes using ${conf.name} for acupressure rotations and habits`,
+          importance: 5, // High importance (heads-up banner and sound)
+          visibility: 1, // Public on lockscreen
+          sound: conf.sound,
+          vibration: true,
+          lights: true,
+          lightColor: '#6366f1'
+        });
+      }
+
+      // Legacy fallback channel
       await LocalNotifications.createChannel({
-        id: NOTIFICATION_CHANNEL_ID,
+        id: 'satkin_single_ring',
         name: 'Satkin Rotation Chimes',
-        description: 'Chimes for 40x sitting acupressure ear rotations and habits',
-        importance: 5, // High importance (heads-up banner and sound)
-        visibility: 1, // Public on lockscreen
+        description: 'Legacy channel for 40x acupressure ear rotations',
+        importance: 5,
+        visibility: 1,
         sound: 'single_ring.wav',
         vibration: true,
         lights: true,
         lightColor: '#6366f1'
       });
     } catch (e) {
-      console.warn('Could not create notification channel:', e);
+      console.warn('Could not create notification channels:', e);
     }
   }
 
@@ -93,28 +117,34 @@ class NotificationManager {
       }
 
       // 3. Format notifications payload for Capacitor
-      const notifications = slots.map(slot => ({
-        id: slot.id,
-        title: slot.title,
-        body: slot.body,
-        channelId: NOTIFICATION_CHANNEL_ID,
-        sound: 'single_ring.wav',
-        schedule: {
-          at: slot.at,
-          allowWhileIdle: true
-        },
-        smallIcon: 'ic_stat_icon_config_sample',
-        iconColor: slot.category === 'satkin' ? '#6366f1' : slot.category === 'water' ? '#06b6d4' : slot.category === 'weight' ? '#f59e0b' : '#10b981',
-        extra: {
-          slotId: slot.slotId,
-          profileId: slot.profileId,
-          category: slot.category,
-          actionType: slot.actionType,
-          customGoalId: slot.customGoalId || null,
-          displayTime: slot.displayTime,
-          badgeLabel: slot.badgeLabel
-        }
-      }));
+      const notifications = slots.map(slot => {
+        const ringKey = slot.ringtone || 'ring_classic';
+        const channelConf = NOTIFICATION_CHANNELS[ringKey] || NOTIFICATION_CHANNELS.ring_classic;
+
+        return {
+          id: slot.id,
+          title: slot.title,
+          body: slot.body,
+          channelId: channelConf.id,
+          sound: channelConf.sound,
+          schedule: {
+            at: slot.at,
+            allowWhileIdle: true
+          },
+          smallIcon: 'ic_stat_icon_config_sample',
+          iconColor: slot.category === 'satkin' ? '#6366f1' : slot.category === 'water' ? '#06b6d4' : slot.category === 'weight' ? '#f59e0b' : '#10b981',
+          extra: {
+            slotId: slot.slotId,
+            profileId: slot.profileId,
+            category: slot.category,
+            actionType: slot.actionType,
+            customGoalId: slot.customGoalId || null,
+            displayTime: slot.displayTime,
+            badgeLabel: slot.badgeLabel,
+            ringtone: ringKey
+          }
+        };
+      });
 
       // 4. Batch schedule
       await LocalNotifications.schedule({ notifications });
@@ -127,16 +157,19 @@ class NotificationManager {
   }
 
   // Quick 5-second test notification
-  async scheduleTestNotification(profileName = 'Satkin Protocol') {
+  async scheduleTestNotification(profileName = 'Satkin Protocol', ringtoneId = 'ring_classic') {
     try {
       await this.requestPermission();
       const testTime = new Date(Date.now() + 5000);
+      const ringKey = ringtoneId || 'ring_classic';
+      const channelConf = NOTIFICATION_CHANNELS[ringKey] || NOTIFICATION_CHANNELS.ring_classic;
+
       const testNotif = {
         id: 99999,
         title: `🔄 ${profileName} [TEST]`,
         body: 'Sit down comfortably and rotate ear balls 40 times. Tap to open the 40x Pacer.',
-        channelId: NOTIFICATION_CHANNEL_ID,
-        sound: 'single_ring.wav',
+        channelId: channelConf.id,
+        sound: channelConf.sound,
         schedule: {
           at: testTime,
           allowWhileIdle: true
@@ -147,7 +180,8 @@ class NotificationManager {
           slotId: 'test_slot',
           actionType: 'pacer_40',
           category: 'satkin',
-          displayTime: 'Now'
+          displayTime: 'Now',
+          ringtone: ringKey
         }
       };
 

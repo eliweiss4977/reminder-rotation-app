@@ -136,8 +136,9 @@ export function calculateProfileDailySlots(profile, targetDate = new Date()) {
   if (targetMidnight.getTime() >= exp) return [];
 
   const startMins = timeToMinutes(profile.startTime || '07:00');
-  const endMins = timeToMinutes(profile.endTime || '22:30');
+  const endMins = timeToMinutes(profile.endTime || '23:00');
   const intervalMins = parseInt(profile.intervalMinutes, 10) || 0;
+  const ringtone = profile.ringtone || 'ring_classic';
 
   const slotMap = new Map();
 
@@ -154,6 +155,7 @@ export function calculateProfileDailySlots(profile, targetDate = new Date()) {
         category: profile.category || 'habit',
         actionType: profile.actionType || 'check_off',
         customGoalId: profile.customGoalId || null,
+        ringtone,
         minutes: curr,
         time24,
         displayTime: formatDisplayTime(curr),
@@ -186,6 +188,7 @@ export function calculateProfileDailySlots(profile, targetDate = new Date()) {
         category: profile.category || 'habit',
         actionType: profile.actionType || 'check_off',
         customGoalId: profile.customGoalId || null,
+        ringtone,
         minutes: m,
         time24,
         displayTime: formatDisplayTime(m),
@@ -317,6 +320,7 @@ export function calculateMultiProfile5DaysNotificationSlots(profiles, startDate 
             category: profile.category,
             actionType: profile.actionType,
             customGoalId: profile.customGoalId || null,
+            ringtone: profile.ringtone || 'ring_classic',
             at: slotDate,
             timestamp,
             title,
