@@ -11,8 +11,8 @@ This document details the exact visual assets required by Google Play Console, t
 | Asset Type | Dimensions | Format | Max File Size | File Location in Repo |
 | :--- | :--- | :--- | :--- | :--- |
 | **App Icon** | 512 x 512 px | 32-bit PNG (with alpha) | 1,024 KB | [`public/icon-512.png`](file:///c:/Users/User/Downloads/Reminder-rotation-app/public/icon-512.png) or [`assets/icon-only.png`](file:///c:/Users/User/Downloads/Reminder-rotation-app/assets/icon-only.png) |
-| **Feature Graphic** | 1024 x 500 px | 24-bit PNG or JPEG (no alpha) | 15 MB | [`assets/play-store-feature-graphic.png`](file:///c:/Users/User/Downloads/Reminder-rotation-app/assets/play-store-feature-graphic.png) |
-| **Phone Screenshots** | 1080 x 2400 px (or 1080 x 1920) | PNG or 24-bit JPEG | 8 MB each | Min 2, Max 8 screenshots (see Capture Guide below) |
+| **Feature Graphic** | 1024 x 500 px | 24-bit PNG or JPEG (no alpha) | 15 MB | [`assets/play-store-feature-graphic.png`](file:///c:/Users/User/Downloads/Reminder-rotation-app/assets/play-store-feature-graphic.png) or [`public/feature-graphic.png`](file:///c:/Users/User/Downloads/Reminder-rotation-app/public/feature-graphic.png) |
+| **Phone Screenshots** | 1080 x 1920 px (9:16) | 24-bit PNG | 8 MB each | [`assets/screenshots/`](file:///c:/Users/User/Downloads/Reminder-rotation-app/assets/screenshots/) or [`public/screenshots/`](file:///c:/Users/User/Downloads/Reminder-rotation-app/public/screenshots/) (4 pre-rendered screenshots ready to upload) |
 
 ---
 

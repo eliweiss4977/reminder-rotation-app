@@ -5,10 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/generate-chime.js && node scripts/generate-source-assets.js && vite build",
+    "build": "node scripts/generate-chime.js && node scripts/generate-source-assets.js && node scripts/generate-screenshots.js && vite build",
     "preview": "vite preview",
     "generate-chime": "node scripts/generate-chime.js",
-    "generate-icons": "node scripts/generate-source-assets.js"
+    "generate-icons": "node scripts/generate-source-assets.js",
+    "generate-screenshots": "node scripts/generate-screenshots.js"
   },
   "dependencies": {
     "@capacitor-community/keep-awake": "^8.0.1",
