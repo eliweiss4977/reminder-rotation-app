@@ -232,6 +232,7 @@ export const DEFAULT_WEIGHT_SETTINGS = {
 };
 
 export const DEFAULT_BODY_PROFILE = {
+  name: 'Alex',
   heightUnit: 'ft_in', // 'ft_in' | 'cm'
   heightFeet: 5,
   heightInches: 10,
@@ -512,6 +513,7 @@ class StorageEngine {
       return { ...DEFAULT_BODY_PROFILE };
     }
     return {
+      name: (typeof saved.name === 'string' && saved.name.trim()) ? saved.name.trim() : DEFAULT_BODY_PROFILE.name,
       heightUnit: saved.heightUnit === 'cm' ? 'cm' : 'ft_in',
       heightFeet: parseInt(saved.heightFeet, 10) || DEFAULT_BODY_PROFILE.heightFeet,
       heightInches: parseFloat(saved.heightInches) ?? DEFAULT_BODY_PROFILE.heightInches,
@@ -521,8 +523,21 @@ class StorageEngine {
 
   async saveBodyProfile(bodyProfile) {
     if (!bodyProfile || typeof bodyProfile !== 'object') return { ...DEFAULT_BODY_PROFILE };
-    await this.set(KEYS.BODY_PROFILE, bodyProfile);
-    return bodyProfile;
+    const current = await this.getBodyProfile();
+    const updated = { ...current, ...bodyProfile };
+    await this.set(KEYS.BODY_PROFILE, updated);
+    return updated;
+  }
+
+  async resetAllToDefaults() {
+    await this.set(KEYS.PROFILES, INITIAL_PROFILES);
+    await this.set(KEYS.WEIGHT_SETTINGS, DEFAULT_WEIGHT_SETTINGS);
+    await this.set(KEYS.BODY_PROFILE, DEFAULT_BODY_PROFILE);
+    await this.set(KEYS.WEIGHT_LOGS, INITIAL_WEIGHT_LOGS);
+    await this.set(KEYS.CUSTOM_GOALS, INITIAL_CUSTOM_GOALS);
+    await this.set(KEYS.COMPLETIONS, {});
+    await this.set(KEYS.GOAL_LOGS, {});
+    return true;
   }
 
   // --- Weight Engine Operations ---

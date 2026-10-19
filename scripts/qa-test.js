@@ -243,19 +243,44 @@ async function runTestSuite() {
   assert(fs.existsSync(bgVector), 'Launcher background vector drawable exists');
   assert(fs.existsSync(fgVector), 'Launcher foreground vector drawable exists');
 
-  // Verify Mipmap PNGs
+  // Verify Mipmap PNGs (Standard, Round, and Adaptive Foreground & Background)
   const densities = ['mdpi', 'hdpi', 'xhdpi', 'xxhdpi', 'xxxhdpi'];
   densities.forEach(density => {
     const iconPng = path.join(projectRoot, 'android', 'app', 'src', 'main', 'res', `mipmap-${density}`, 'ic_launcher.png');
     const roundPng = path.join(projectRoot, 'android', 'app', 'src', 'main', 'res', `mipmap-${density}`, 'ic_launcher_round.png');
+    const fgPng = path.join(projectRoot, 'android', 'app', 'src', 'main', 'res', `mipmap-${density}`, 'ic_launcher_foreground.png');
+    const bgPng = path.join(projectRoot, 'android', 'app', 'src', 'main', 'res', `mipmap-${density}`, 'ic_launcher_background.png');
     assert(fs.existsSync(iconPng), `Mipmap ic_launcher.png exists for ${density}`);
     assert(fs.existsSync(roundPng), `Mipmap ic_launcher_round.png exists for ${density}`);
+    assert(fs.existsSync(fgPng), `Adaptive mipmap ic_launcher_foreground.png exists for ${density}`);
+    assert(fs.existsSync(bgPng), `Adaptive mipmap ic_launcher_background.png exists for ${density}`);
   });
+
+  // Verify Master 1024x1024 Assets
+  assert(fs.existsSync(path.join(projectRoot, 'assets', 'icon-foreground.png')), 'High-res assets/icon-foreground.png exists');
+  assert(fs.existsSync(path.join(projectRoot, 'assets', 'icon-background.png')), 'High-res assets/icon-background.png exists');
+  assert(fs.existsSync(path.join(projectRoot, 'assets', 'icon-only.png')), 'High-res assets/icon-only.png exists');
 
   // Verify Web Favicon & PWA Icons
   assert(fs.existsSync(path.join(projectRoot, 'public', 'favicon.svg')), 'Favicon SVG exists in public/');
   assert(fs.existsSync(path.join(projectRoot, 'public', 'icon-192.png')), 'PWA icon-192.png exists in public/');
   assert(fs.existsSync(path.join(projectRoot, 'public', 'icon-512.png')), 'PWA icon-512.png exists in public/');
+
+  // ---------------------------------------------------------------------------
+  // TEST SUITE 5: 3-TAB UX ARCHITECTURE INTEGRITY
+  // ---------------------------------------------------------------------------
+  console.log('\n📱 [Suite 5] 3-Tab Bottom Navigation & Profile Architecture');
+  const indexHtml = fs.readFileSync(path.join(projectRoot, 'index.html'), 'utf8');
+  assert(indexHtml.includes('id="tab-content-alarms"'), 'Tab 1: tab-content-alarms exists in DOM');
+  assert(indexHtml.includes('id="tab-content-goals"'), 'Tab 2: tab-content-goals exists in DOM');
+  assert(indexHtml.includes('id="tab-content-profile"'), 'Tab 3: tab-content-profile exists in DOM');
+  assert(indexHtml.includes('id="nav-btn-alarms"'), 'Nav button for Alarms exists');
+  assert(indexHtml.includes('id="nav-btn-goals"'), 'Nav button for Goals & Weight exists');
+  assert(indexHtml.includes('id="nav-btn-profile"'), 'Nav button for My Profile exists');
+  assert(indexHtml.includes('id="profile-name-input"'), 'Personal Body Profile name input exists');
+  assert(indexHtml.includes('id="save-body-profile-btn"'), 'Save Profile button exists');
+  assert(indexHtml.includes('id="github-token-input"'), 'GitHub read-only token input exists');
+  assert(indexHtml.includes('id="backup-export-btn"'), 'Data Export (JSON) button exists');
 
   console.log('\n====================================================');
   console.log(`📊 TEST RESULTS: ${passedTests}/${totalTests} Passed (${failedTests} Failed)`);

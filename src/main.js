@@ -217,10 +217,14 @@ class RotationReminderApp {
 
     // Tab Navigation
     document.getElementById('nav-btn-alarms')?.addEventListener('click', () => this.switchTab('alarms'));
-    document.getElementById('nav-btn-today')?.addEventListener('click', () => this.switchTab('today'));
-    document.getElementById('nav-btn-stats')?.addEventListener('click', () => this.switchTab('stats'));
+    document.getElementById('nav-btn-goals')?.addEventListener('click', () => this.switchTab('goals'));
+    document.getElementById('nav-btn-profile')?.addEventListener('click', () => this.switchTab('profile'));
 
-    // Manage Alarms Button from Today tab
+    // Backward-compat aliases
+    document.getElementById('nav-btn-today')?.addEventListener('click', () => this.switchTab('alarms'));
+    document.getElementById('nav-btn-stats')?.addEventListener('click', () => this.switchTab('goals'));
+
+    // Manage Alarms Button
     document.getElementById('today-manage-profiles-btn')?.addEventListener('click', () => {
       this.switchTab('alarms');
     });
@@ -239,7 +243,7 @@ class RotationReminderApp {
       this.pacer.open(this.nextSlot || null);
     });
 
-    // Hero Action Buttons
+    // Hero Action Buttons (if present)
     document.getElementById('hero-action-btn')?.addEventListener('click', () => {
       if (!this.nextSlot) return;
       this.triggerSlotAction(this.nextSlot);
@@ -267,40 +271,17 @@ class RotationReminderApp {
       this.refreshAll();
       alert(`Synchronized! ${count} notifications scheduled across the next 5 days.`);
     });
-
-    // Stats tab notification actions
-    document.getElementById('stats-sync-notifs-btn')?.addEventListener('click', async () => {
-      haptics.tick();
-      const count = await notifications.rescheduleMultiProfileNext5Days(this.profiles);
-      alert(`Synced ${count} notifications for active profiles.`);
-    });
-
-    document.getElementById('stats-test-notif-btn')?.addEventListener('click', async () => {
-      haptics.tick();
-      const activeSatkin = this.profiles.find(p => p.enabled && p.category === 'satkin') || this.profiles[0];
-      const ring = activeSatkin?.ringtone || 'ring_classic';
-      const ok = await notifications.scheduleTestNotification(activeSatkin?.name || 'Satkin Protocol', ring);
-      if (ok) {
-        alert('Test alert scheduled in 5 seconds! Background the app to test notification sound.');
-      }
-    });
-
-    document.getElementById('stats-reset-today-btn')?.addEventListener('click', async () => {
-      if (confirm("Reset today's completion checkmarks across all routines?")) {
-        const todayKey = this.getTodayKey();
-        delete this.completions[todayKey];
-        await storage.set('satkin_completions', this.completions);
-        this.refreshAll();
-        haptics.tick();
-      }
-    });
   }
 
-  switchTab(tab) {
+  switchTab(rawTab) {
     haptics.tick();
+    let tab = rawTab;
+    if (tab === 'today') tab = 'alarms';
+    if (tab === 'stats') tab = 'goals';
+    if (tab === 'profiles') tab = 'alarms';
     this.activeTab = tab;
 
-    const tabs = ['alarms', 'today', 'stats'];
+    const tabs = ['alarms', 'goals', 'profile'];
     tabs.forEach(t => {
       const content = document.getElementById(`tab-content-${t}`);
       const btn = document.getElementById(`nav-btn-${t}`);
@@ -319,14 +300,11 @@ class RotationReminderApp {
     if (tab === 'alarms') {
       this.renderAlarmsList();
       this.updateAlarmsTopSummary();
-    } else if (tab === 'today') {
-      this.renderActiveProfileChips();
-      this.renderHeroCard();
-      this.renderTimelineList();
-    } else if (tab === 'stats') {
-      this.renderWeightSection();
-      this.renderBodyProfileAndMilestones();
+    } else if (tab === 'goals') {
       this.renderCustomGoalsSection();
+      this.renderWeightSection();
+    } else if (tab === 'profile') {
+      this.renderBodyProfileAndMilestones();
     }
   }
 
@@ -343,15 +321,12 @@ class RotationReminderApp {
     this.updateAlarmsTopSummary();
     this.renderAlarmsList();
 
-    // 4. Render Today Tab
-    this.renderActiveProfileChips();
-    this.renderHeroCard();
-    this.renderTimelineList();
-
-    // 5. Render Stats Tab
-    this.renderWeightSection();
-    this.renderBodyProfileAndMilestones();
+    // 4. Render Goals & Weight Tab
     this.renderCustomGoalsSection();
+    this.renderWeightSection();
+
+    // 5. Render Profile Tab
+    this.renderBodyProfileAndMilestones();
   }
 
   updateAlarmsTopSummary() {
@@ -2090,9 +2065,9 @@ class RotationReminderApp {
     }
   }
 
-  // --- LOCAL PERSONAL BODY PROFILE & STAGE MILESTONES ---
+  // --- LOCAL PERSONAL BODY PROFILE, SOUND DIAGNOSTICS & UPDATES ---
   bindBodyProfileEvents() {
-    // Height Unit Toggle
+    // 1. Height Unit Toggle
     document.getElementById('body-height-unit-toggle')?.addEventListener('click', () => {
       haptics.tick();
       this.bodyProfile.heightUnit = this.bodyProfile.heightUnit === 'cm' ? 'ft_in' : 'cm';
@@ -2100,12 +2075,32 @@ class RotationReminderApp {
       this.renderBodyProfileAndMilestones();
     });
 
-    // Save Height Button
-    document.getElementById('body-height-save-btn')?.addEventListener('click', async () => {
+    // 2. Weight Unit Toggle in Profile Card
+    document.getElementById('profile-weight-unit-toggle')?.addEventListener('click', async () => {
+      haptics.tick();
+      this.weightSettings.unit = this.weightSettings.unit === 'kg' ? 'lbs' : 'kg';
+      await storage.saveWeightSettings(this.weightSettings);
+      this.renderBodyProfileAndMilestones();
+      this.renderWeightSection();
+    });
+
+    // 3. Save Unified Body Profile & Weight Targets
+    const saveProfileHandler = async () => {
+      const nameEl = document.getElementById('profile-name-input');
       const feetEl = document.getElementById('body-height-feet');
       const inchesEl = document.getElementById('body-height-inches');
       const cmEl = document.getElementById('body-height-cm');
+      const startWeightEl = document.getElementById('profile-start-weight-input');
+      const currentWeightEl = document.getElementById('profile-current-weight-input');
+      const goalWeightEl = document.getElementById('profile-goal-weight-input');
 
+      // Validate & save name
+      const cleanName = nameEl?.value?.trim();
+      if (cleanName) {
+        this.bodyProfile.name = cleanName;
+      }
+
+      // Validate & save height
       if (this.bodyProfile.heightUnit === 'cm') {
         const cm = parseFloat(cmEl?.value);
         if (isNaN(cm) || cm < 50 || cm > 260) {
@@ -2124,19 +2119,166 @@ class RotationReminderApp {
         this.bodyProfile.heightInches = Math.round(inc * 10) / 10;
       }
 
-      await storage.saveBodyProfile(this.bodyProfile);
-      haptics.success();
-      this.renderBodyProfileAndMilestones();
+      // Validate & save weight settings
+      const startW = parseFloat(startWeightEl?.value);
+      const currW = parseFloat(currentWeightEl?.value);
+      const goalW = parseFloat(goalWeightEl?.value);
 
-      const btn = document.getElementById('body-height-save-btn');
+      if (!isNaN(startW) && startW > 0) this.weightSettings.startWeight = Math.round(startW * 10) / 10;
+      if (!isNaN(currW) && currW > 0) {
+        this.weightSettings.currentWeight = Math.round(currW * 10) / 10;
+        // Also log this current weight if latest log is different
+        const latest = this.weightLogs[this.weightLogs.length - 1];
+        if (!latest || Math.abs(latest.weight - this.weightSettings.currentWeight) > 0.05) {
+          const { logs } = await storage.addWeightLog({
+            weight: this.weightSettings.currentWeight,
+            note: 'Updated from Profile'
+          });
+          this.weightLogs = logs;
+        }
+      }
+      if (!isNaN(goalW) && goalW > 0) this.weightSettings.goalWeight = Math.round(goalW * 10) / 10;
+
+      await storage.saveBodyProfile(this.bodyProfile);
+      await storage.saveWeightSettings(this.weightSettings);
+      haptics.success();
+
+      this.renderBodyProfileAndMilestones();
+      this.renderWeightSection();
+      this.updateAlarmsTopSummary();
+
+      const btn = document.getElementById('save-body-profile-btn');
       if (btn) {
-        const origText = btn.textContent;
-        btn.textContent = '✓ Height Updated';
+        const origText = btn.innerHTML;
+        btn.innerHTML = '<span>✅ Profile Saved!</span>';
         btn.classList.add('bg-emerald-600');
         setTimeout(() => {
-          btn.textContent = origText;
+          btn.innerHTML = origText;
           btn.classList.remove('bg-emerald-600');
-        }, 1200);
+        }, 1500);
+      }
+    };
+
+    document.getElementById('save-body-profile-btn')?.addEventListener('click', saveProfileHandler);
+    document.getElementById('body-height-save-btn')?.addEventListener('click', saveProfileHandler);
+
+    // 4. Card 3: Ringtone Audition Buttons
+    document.querySelectorAll('#profile-ringtones-preview-list [data-test-ringtone]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const ringId = e.currentTarget.getAttribute('data-test-ringtone');
+        if (ringId) {
+          audio.playRingtone(ringId);
+          haptics.milestone();
+        }
+      });
+    });
+
+    // Haptics Test Button
+    document.getElementById('profile-test-vibe-btn')?.addEventListener('click', () => {
+      haptics.notification();
+    });
+
+    // 5. Card 3: Notification Sync & Test
+    document.getElementById('profile-sync-notifs-btn')?.addEventListener('click', async () => {
+      haptics.tick();
+      const count = await notifications.rescheduleMultiProfileNext5Days(this.profiles);
+      alert(`Synchronized! ${count} notifications scheduled across the next 5 days.`);
+    });
+
+    document.getElementById('profile-test-notif-btn')?.addEventListener('click', async () => {
+      haptics.tick();
+      const activeAlarm = this.profiles.find(p => p.enabled) || this.profiles[0];
+      const ring = activeAlarm?.ringtone || 'ring_classic';
+      const ok = await notifications.scheduleTestNotification(activeAlarm?.name || 'Rotation Reminder', ring);
+      if (ok) {
+        alert('Test alert scheduled in 5 seconds! Background the app to audition notification sound and locked-screen display.');
+      }
+    });
+
+    // 6. Card 4: GitHub Personal Access Token
+    const tokenInput = document.getElementById('github-token-input');
+    const tokenToggleBtn = document.getElementById('github-token-toggle-btn');
+    const tokenSaveBtn = document.getElementById('github-token-save-btn');
+
+    updater.getGitHubToken().then(token => {
+      if (tokenInput && token) tokenInput.value = token;
+    });
+
+    tokenToggleBtn?.addEventListener('click', () => {
+      if (!tokenInput) return;
+      tokenInput.type = tokenInput.type === 'password' ? 'text' : 'password';
+      tokenToggleBtn.textContent = tokenInput.type === 'password' ? '👁️' : '🔒';
+    });
+
+    tokenSaveBtn?.addEventListener('click', async () => {
+      const val = tokenInput?.value?.trim() || '';
+      haptics.tick();
+      await updater.setGitHubToken(val);
+      haptics.success();
+      alert('GitHub Personal Access Token saved securely in local Preferences.');
+    });
+
+    // 7. Card 4: Data Export (JSON)
+    document.getElementById('backup-export-btn')?.addEventListener('click', () => {
+      haptics.tick();
+      const exportData = {
+        appName: 'Rotation Reminder',
+        version: updater.getCurrentVersion(),
+        exportDate: new Date().toISOString(),
+        bodyProfile: this.bodyProfile,
+        weightSettings: this.weightSettings,
+        weightLogs: this.weightLogs,
+        customGoals: this.customGoals,
+        goalLogs: this.goalLogs,
+        profiles: this.profiles,
+        completions: this.completions
+      };
+
+      try {
+        const jsonStr = JSON.stringify(exportData, null, 2);
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `rotation-reminder-backup-${getLocalDateString()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        haptics.success();
+      } catch (err) {
+        console.warn('Backup export failed:', err);
+        alert('Failed to generate backup JSON.');
+      }
+    });
+
+    // 8. Card 4: Reset Today's Completions
+    document.getElementById('profile-reset-today-btn')?.addEventListener('click', async () => {
+      if (confirm("Reset today's completion checkmarks across all routines?")) {
+        const todayKey = this.getTodayKey();
+        delete this.completions[todayKey];
+        await storage.set('rotation_completions', this.completions);
+        await storage.set('satkin_completions', this.completions);
+        this.refreshAll();
+        haptics.tick();
+      }
+    });
+
+    // 9. Card 4: Reset All Data to Defaults
+    document.getElementById('profile-reset-all-btn')?.addEventListener('click', async () => {
+      const confirmed = confirm("Are you sure you want to reset ALL data (profiles, weight logs, custom goals) back to factory defaults?");
+      if (confirmed) {
+        haptics.milestone();
+        await storage.resetAllToDefaults();
+        // Reload persisted data
+        this.profiles = await storage.getProfiles();
+        this.completions = await storage.getCompletions();
+        this.weightSettings = await storage.getWeightSettings();
+        this.bodyProfile = await storage.getBodyProfile();
+        this.weightLogs = await storage.getWeightLogs();
+        this.customGoals = await storage.getCustomGoals();
+        this.goalLogs = await storage.getGoalLogs();
+        await notifications.rescheduleMultiProfileNext5Days(this.profiles);
+        this.refreshAll();
+        alert('All app settings, profiles, and logs have been reset to initial defaults.');
       }
     });
   }
@@ -2167,6 +2309,13 @@ class RotationReminderApp {
   renderBodyProfileAndMilestones() {
     this.syncBodyProfileHeightUI();
 
+    // Populate Name
+    const nameEl = document.getElementById('profile-name-input');
+    if (nameEl && !nameEl.value) {
+      nameEl.value = this.bodyProfile.name || 'Alex';
+    }
+
+    // Populate Height Badge
     const badgeDisplay = document.getElementById('body-height-display-badge');
     const isCm = this.bodyProfile.heightUnit === 'cm';
     if (badgeDisplay) {
@@ -2175,9 +2324,23 @@ class RotationReminderApp {
         : `${this.bodyProfile.heightFeet || 5} ft ${this.bodyProfile.heightInches || 0} in`;
     }
 
+    // Populate Weights in Card 1
+    const startWeightEl = document.getElementById('profile-start-weight-input');
+    const currentWeightEl = document.getElementById('profile-current-weight-input');
+    const goalWeightEl = document.getElementById('profile-goal-weight-input');
+    const weightUnitLabelEl = document.getElementById('profile-weight-unit-label');
+
     const currentWeight = this.weightSettings.currentWeight || 180.0;
+    const startWeight = this.weightSettings.startWeight || 185.0;
+    const goalWeight = this.weightSettings.goalWeight || 170.0;
     const unit = this.weightSettings.unit || 'lbs';
 
+    if (startWeightEl) startWeightEl.value = startWeight.toFixed(1);
+    if (currentWeightEl) currentWeightEl.value = currentWeight.toFixed(1);
+    if (goalWeightEl) goalWeightEl.value = goalWeight.toFixed(1);
+    if (weightUnitLabelEl) weightUnitLabelEl.textContent = unit;
+
+    // Calculate BMI
     const bmiVal = calculateBMI(currentWeight, unit, this.bodyProfile);
     const bmiCategory = getBMICategory(bmiVal);
 
@@ -2220,9 +2383,9 @@ class RotationReminderApp {
       } else if (!immediateTargetFound) {
         // Immediate Next Milestone
         immediateTargetFound = true;
-        const startWeight = this.weightSettings.startWeight || (currentWeight + 5);
-        const totalSpan = Math.max(1, startWeight - m.targetWeight);
-        const progressSpan = Math.max(0, startWeight - currentWeight);
+        const baseStart = this.weightSettings.startWeight || (currentWeight + 5);
+        const totalSpan = Math.max(1, baseStart - m.targetWeight);
+        const progressSpan = Math.max(0, baseStart - currentWeight);
         const progressPct = Math.min(100, Math.max(0, Math.round((progressSpan / totalSpan) * 100)));
 
         card.className = 'p-3.5 rounded-xl bg-gradient-to-r from-slate-900 via-indigo-950/50 to-slate-900 border border-indigo-500/60 ring-1 ring-indigo-500/30 shadow-lg space-y-2 transition-all';

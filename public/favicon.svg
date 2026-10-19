@@ -1,17 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#312E81"/>
-      <stop offset="50%" stop-color="#3730A3"/>
+      <stop offset="0%" stop-color="#1E1B4B"/>
+      <stop offset="50%" stop-color="#2E1065"/>
       <stop offset="100%" stop-color="#4F46E5"/>
     </linearGradient>
   </defs>
   <rect width="512" height="512" rx="115" fill="url(#bg)"/>
-  <!-- Circular Rotation Arrows -->
-  <path d="M256,128 V80 L196,140 L256,200 V152 C313.6,152 360,198.4 360,256 C360,277.6 353.4,297.6 342.2,314.2 L379.8,351.8 C401.4,324.6 414,291.8 414,256 C414,168.8 343.2,98 256,98 Z" fill="#FFFFFF"/>
-  <path d="M256,384 C198.4,384 152,337.6 152,280 C152,258.4 158.6,238.4 169.8,221.8 L132.2,184.2 C110.6,211.4 98,244.2 98,280 C98,367.2 168.8,438 256,438 V486 L316,426 L256,366 Z" fill="#FFFFFF"/>
-  <!-- Center Chime Bell -->
-  <circle cx="256" cy="256" r="64" fill="#F59E0B"/>
-  <circle cx="256" cy="256" r="50" fill="#10B981"/>
-  <circle cx="256" cy="256" r="18" fill="#FFFFFF"/>
+  <circle cx="256" cy="256" r="140" fill="none" stroke="#34D399" stroke-width="28"/>
+  <circle cx="256" cy="256" r="48" fill="#F59E0B"/>
+  <circle cx="256" cy="256" r="36" fill="#10B981"/>
+  <circle cx="256" cy="256" r="14" fill="#FFFFFF"/>
 </svg>

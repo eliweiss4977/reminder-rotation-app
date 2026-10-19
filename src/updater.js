@@ -50,6 +50,16 @@ class AppUpdater {
     return await this.checkForUpdates(true);
   }
 
+  async getGitHubToken() {
+    return await storage.get('rotation_github_token', '');
+  }
+
+  async setGitHubToken(token) {
+    const clean = typeof token === 'string' ? token.trim() : '';
+    await storage.set('rotation_github_token', clean);
+    return clean;
+  }
+
   getRepoSlug() {
     return this.repoSlug;
   }
@@ -74,11 +84,14 @@ class AppUpdater {
 
     try {
       const url = `https://api.github.com/repos/${this.repoSlug}/releases/latest?t=${Date.now()}`;
-      const response = await fetch(url, {
-        headers: {
-          'Accept': 'application/vnd.github+json'
-        }
-      });
+      const token = await this.getGitHubToken();
+      const headers = {
+        'Accept': 'application/vnd.github+json'
+      };
+      if (token && typeof token === 'string' && token.trim()) {
+        headers['Authorization'] = `Bearer ${token.trim()}`;
+      }
+      const response = await fetch(url, { headers });
 
       if (!response.ok) {
         throw new Error(`GitHub API returned status ${response.status}`);
