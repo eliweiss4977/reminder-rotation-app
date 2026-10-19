@@ -1,5 +1,6 @@
 // Persistence engine using @capacitor/preferences with localStorage fallback
 import { Preferences } from '@capacitor/preferences';
+import { safeJsonParse, getLocalDateString } from './utils.js';
 
 export const ALARM_TEMPLATES = [
   {
@@ -277,24 +278,30 @@ export const INITIAL_CUSTOM_GOALS = [
 function getPastDateStr(daysAgo) {
   const d = new Date();
   d.setDate(d.getDate() - daysAgo);
-  return d.toISOString().split('T')[0];
+  return getLocalDateString(d);
 }
 
 // BMI & Milestone Helper Functions
 export function calculateTotalHeightInches(bodyProfile) {
   if (!bodyProfile) return 70;
   if (bodyProfile.heightUnit === 'cm') {
-    return (parseFloat(bodyProfile.heightCm) || 178) / 2.54;
+    const cm = parseFloat(bodyProfile.heightCm);
+    return cm > 0 ? cm / 2.54 : 0;
   }
-  return (parseInt(bodyProfile.heightFeet, 10) || 5) * 12 + (parseFloat(bodyProfile.heightInches) || 0);
+  const feet = parseInt(bodyProfile.heightFeet, 10);
+  const inches = parseFloat(bodyProfile.heightInches);
+  const totalInches = (isNaN(feet) ? 0 : feet * 12) + (isNaN(inches) ? 0 : inches);
+  return totalInches > 0 ? totalInches : 0;
 }
 
 export function calculateTotalHeightMeters(bodyProfile) {
   if (!bodyProfile) return 1.78;
   if (bodyProfile.heightUnit === 'cm') {
-    return (parseFloat(bodyProfile.heightCm) || 178) / 100;
+    const cm = parseFloat(bodyProfile.heightCm);
+    return cm > 0 ? cm / 100 : 0;
   }
-  return calculateTotalHeightInches(bodyProfile) * 0.0254;
+  const totalInches = calculateTotalHeightInches(bodyProfile);
+  return totalInches > 0 ? totalInches * 0.0254 : 0;
 }
 
 export function calculateBMI(weightValue, weightUnit, bodyProfile) {
@@ -307,7 +314,7 @@ export function calculateBMI(weightValue, weightUnit, bodyProfile) {
 }
 
 export function getBMICategory(bmi) {
-  if (!bmi) return { label: 'Unknown', color: 'slate', badgeClass: 'bg-slate-800 text-slate-300 border border-slate-700' };
+  if (!bmi || bmi <= 0) return { label: 'Unknown', color: 'slate', badgeClass: 'bg-slate-800 text-slate-300 border border-slate-700' };
   if (bmi < 18.5) {
     return { label: 'Underweight', color: 'blue', badgeClass: 'bg-blue-500/20 text-blue-300 border border-blue-500/40' };
   }
@@ -328,7 +335,7 @@ export function getBMICategory(bmi) {
 
 export function calculateMilestoneLadder(currentWeight, weightUnit, bodyProfile) {
   const hMeters = calculateTotalHeightMeters(bodyProfile);
-  if (!hMeters || !currentWeight) return [];
+  if (!hMeters || hMeters <= 0 || !currentWeight || currentWeight <= 0) return [];
 
   const milestones = [
     { id: 'exit_class_3', name: 'Exit Obesity Class III', targetBMI: 39.9, badge: '< 40.0 BMI' },
@@ -374,14 +381,23 @@ class StorageEngine {
     try {
       const { value } = await Preferences.get({ key });
       if (value !== null && value !== undefined) {
-        return JSON.parse(value);
+        const parsed = safeJsonParse(value, null);
+        if (parsed !== null) return parsed;
       }
     } catch (e) {
-      try {
-        const item = localStorage.getItem(key);
-        if (item !== null) return JSON.parse(item);
-      } catch (err) {}
+      console.warn(`Preferences.get failed for key "${key}":`, e?.message);
     }
+
+    try {
+      const item = localStorage.getItem(key);
+      if (item !== null && item !== undefined) {
+        const parsed = safeJsonParse(item, null);
+        if (parsed !== null) return parsed;
+      }
+    } catch (err) {
+      console.warn(`localStorage.getItem failed for key "${key}":`, err?.message);
+    }
+
     return defaultValue;
   }
 
@@ -410,46 +426,54 @@ class StorageEngine {
     }
 
     let modified = false;
+    const sanitized = [];
+
     profiles.forEach(p => {
-      if (p.category === 'satkin') {
-        p.category = 'rotation';
+      if (!p || typeof p !== 'object') return;
+      const clean = { ...p };
+
+      if (clean.category === 'satkin') {
+        clean.category = 'rotation';
         modified = true;
       }
-      if (!p.alertMode) {
-        p.alertMode = 'sound_vibrate';
+      if (!clean.alertMode) {
+        clean.alertMode = 'sound_vibrate';
         modified = true;
       }
-      if (p.name && p.name.includes('Satkin')) {
-        p.name = p.name.replace(/Satkin/g, 'Rotation');
+      if (clean.name && clean.name.includes('Satkin')) {
+        clean.name = clean.name.replace(/Satkin/g, 'Rotation');
         modified = true;
       }
-      if (!p.ringtone) {
-        p.ringtone = p.category === 'weight' ? 'ring_woodblock' : p.category === 'water' ? 'ring_double' : 'ring_classic';
+      if (!clean.ringtone) {
+        clean.ringtone = clean.category === 'weight' ? 'ring_woodblock' : clean.category === 'water' ? 'ring_double' : 'ring_classic';
         modified = true;
       }
-      if (!p.endTime || p.endTime === '22:30') {
-        p.endTime = '23:00';
+      if (!clean.endTime || clean.endTime === '22:30') {
+        clean.endTime = '23:00';
         modified = true;
       }
+      sanitized.push(clean);
     });
 
     // Ensure pre-seeded Morning Weigh-In exists
-    if (!profiles.some(p => p.actionType === 'log_weight' || p.id === 'prof_morning_weigh_in')) {
-      profiles.unshift(INITIAL_PROFILES[0]);
+    if (!sanitized.some(p => p.actionType === 'log_weight' || p.id === 'prof_morning_weigh_in')) {
+      sanitized.unshift(INITIAL_PROFILES[0]);
       modified = true;
     }
     if (modified) {
-      await this.saveProfiles(profiles);
+      await this.saveProfiles(sanitized);
     }
-    return profiles;
+    return sanitized.length > 0 ? sanitized : INITIAL_PROFILES;
   }
 
   async saveProfiles(profiles) {
+    if (!Array.isArray(profiles)) return [];
     await this.set(KEYS.PROFILES, profiles);
     return profiles;
   }
 
   async saveProfile(profile) {
+    if (!profile || !profile.id) return await this.getProfiles();
     const profiles = await this.getProfiles();
     const index = profiles.findIndex(p => p.id === profile.id);
     if (index >= 0) {
@@ -483,11 +507,20 @@ class StorageEngine {
 
   // --- Body Profile Operations ---
   async getBodyProfile() {
-    const saved = await this.get(KEYS.BODY_PROFILE, null);
-    return saved ? { ...DEFAULT_BODY_PROFILE, ...saved } : { ...DEFAULT_BODY_PROFILE };
+    let saved = await this.get(KEYS.BODY_PROFILE, null);
+    if (!saved || typeof saved !== 'object') {
+      return { ...DEFAULT_BODY_PROFILE };
+    }
+    return {
+      heightUnit: saved.heightUnit === 'cm' ? 'cm' : 'ft_in',
+      heightFeet: parseInt(saved.heightFeet, 10) || DEFAULT_BODY_PROFILE.heightFeet,
+      heightInches: parseFloat(saved.heightInches) ?? DEFAULT_BODY_PROFILE.heightInches,
+      heightCm: parseFloat(saved.heightCm) || DEFAULT_BODY_PROFILE.heightCm
+    };
   }
 
   async saveBodyProfile(bodyProfile) {
+    if (!bodyProfile || typeof bodyProfile !== 'object') return { ...DEFAULT_BODY_PROFILE };
     await this.set(KEYS.BODY_PROFILE, bodyProfile);
     return bodyProfile;
   }
@@ -495,10 +528,18 @@ class StorageEngine {
   // --- Weight Engine Operations ---
   async getWeightSettings() {
     let saved = await this.get(KEYS.WEIGHT_SETTINGS, null);
-    if (!saved) {
+    if (!saved || typeof saved !== 'object') {
       saved = await this.get(KEYS.LEGACY_WEIGHT_SETTINGS, null);
     }
-    return saved ? { ...DEFAULT_WEIGHT_SETTINGS, ...saved } : { ...DEFAULT_WEIGHT_SETTINGS };
+    if (!saved || typeof saved !== 'object') {
+      return { ...DEFAULT_WEIGHT_SETTINGS };
+    }
+    return {
+      unit: saved.unit === 'kg' ? 'kg' : 'lbs',
+      startWeight: parseFloat(saved.startWeight) || DEFAULT_WEIGHT_SETTINGS.startWeight,
+      currentWeight: parseFloat(saved.currentWeight) || DEFAULT_WEIGHT_SETTINGS.currentWeight,
+      goalWeight: parseFloat(saved.goalWeight) || DEFAULT_WEIGHT_SETTINGS.goalWeight
+    };
   }
 
   async saveWeightSettings(settings) {
@@ -515,10 +556,10 @@ class StorageEngine {
       await this.set(KEYS.WEIGHT_LOGS, INITIAL_WEIGHT_LOGS);
       return INITIAL_WEIGHT_LOGS;
     }
-    return logs;
+    return logs.filter(l => l && typeof l === 'object' && l.weight !== undefined);
   }
 
-  async addWeightLog({ weight, note = '', date = new Date().toISOString().split('T')[0] }) {
+  async addWeightLog({ weight, note = '', date = getLocalDateString() }) {
     const logs = await this.getWeightLogs();
     const cleanWeight = Math.round(parseFloat(weight) * 10) / 10;
     const newEntry = {
@@ -526,7 +567,7 @@ class StorageEngine {
       date,
       timestamp: Date.now(),
       weight: cleanWeight,
-      note: note.trim()
+      note: String(note || '').trim()
     };
     logs.push(newEntry);
     logs.sort((a, b) => a.timestamp - b.timestamp);
@@ -568,7 +609,7 @@ class StorageEngine {
     // Rename any legacy seated goal title
     let modified = false;
     goals.forEach(g => {
-      if (g.id === 'goal_seated_satkin' || (g.title && g.title.includes('Satkin'))) {
+      if (g && (g.id === 'goal_seated_satkin' || (g.title && g.title.includes('Satkin')))) {
         g.title = g.title.replace(/Satkin/g, 'Rotation');
         modified = true;
       }
@@ -576,10 +617,11 @@ class StorageEngine {
     if (modified) {
       await this.saveCustomGoals(goals);
     }
-    return goals;
+    return goals.filter(g => g && typeof g === 'object');
   }
 
   async saveCustomGoals(goals) {
+    if (!Array.isArray(goals)) return [];
     await this.set(KEYS.CUSTOM_GOALS, goals);
     return goals;
   }
@@ -588,11 +630,11 @@ class StorageEngine {
     const goals = await this.getCustomGoals();
     const newGoal = {
       id: goal.id || `goal_${Date.now()}`,
-      title: goal.title,
+      title: String(goal.title || 'Goal').trim(),
       icon: goal.icon || '🎯',
       goalType: goal.goalType || 'counter',
       targetValue: parseFloat(goal.targetValue) || 1,
-      unit: goal.unit || 'times',
+      unit: String(goal.unit || 'times').trim(),
       stepAmount: parseFloat(goal.stepAmount) || 1
     };
     goals.push(newGoal);
@@ -609,19 +651,19 @@ class StorageEngine {
 
   async getGoalLogs() {
     let logs = await this.get(KEYS.GOAL_LOGS, null);
-    if (!logs) {
+    if (!logs || typeof logs !== 'object' || Array.isArray(logs)) {
       logs = await this.get(KEYS.LEGACY_GOAL_LOGS, {});
     }
-    return logs || {};
+    return (logs && typeof logs === 'object' && !Array.isArray(logs)) ? logs : {};
   }
 
-  async getTodayGoalValue(goalId, dateStr = new Date().toISOString().split('T')[0]) {
+  async getTodayGoalValue(goalId, dateStr = getLocalDateString()) {
     const all = await this.getGoalLogs();
     const day = all[dateStr] || {};
     return day[goalId] !== undefined ? day[goalId] : 0;
   }
 
-  async setGoalValue(goalId, value, dateStr = new Date().toISOString().split('T')[0]) {
+  async setGoalValue(goalId, value, dateStr = getLocalDateString()) {
     const all = await this.getGoalLogs();
     if (!all[dateStr]) all[dateStr] = {};
     all[dateStr][goalId] = Math.max(0, value);
@@ -629,7 +671,7 @@ class StorageEngine {
     return all[dateStr][goalId];
   }
 
-  async incrementGoal(goalId, step = 1, dateStr = new Date().toISOString().split('T')[0]) {
+  async incrementGoal(goalId, step = 1, dateStr = getLocalDateString()) {
     const current = await this.getTodayGoalValue(goalId, dateStr);
     const updated = Math.max(0, Math.round((current + step) * 10) / 10);
     await this.setGoalValue(goalId, updated, dateStr);
@@ -644,7 +686,7 @@ class StorageEngine {
     for (let i = 0; i < 30; i++) {
       const d = new Date(now);
       d.setDate(d.getDate() - i);
-      const key = d.toISOString().split('T')[0];
+      const key = getLocalDateString(d);
       const val = all[key]?.[goalId] || 0;
 
       if (val >= targetValue) {
@@ -662,13 +704,13 @@ class StorageEngine {
   // --- Completion Tracking ---
   async getCompletions() {
     let comps = await this.get(KEYS.COMPLETIONS, null);
-    if (!comps) {
+    if (!comps || typeof comps !== 'object' || Array.isArray(comps)) {
       comps = await this.get(KEYS.LEGACY_COMPLETIONS, {});
     }
-    return comps || {};
+    return (comps && typeof comps === 'object' && !Array.isArray(comps)) ? comps : {};
   }
 
-  async toggleSlotCompletion(slotId, dateStr = new Date().toISOString().split('T')[0]) {
+  async toggleSlotCompletion(slotId, dateStr = getLocalDateString()) {
     const all = await this.getCompletions();
     if (!all[dateStr]) all[dateStr] = {};
     const currentSlot = all[dateStr][slotId];
@@ -685,7 +727,7 @@ class StorageEngine {
     return all;
   }
 
-  async markSlotCompleted(slotId, dateStr = new Date().toISOString().split('T')[0]) {
+  async markSlotCompleted(slotId, dateStr = getLocalDateString()) {
     const all = await this.getCompletions();
     if (!all[dateStr]) all[dateStr] = {};
     all[dateStr][slotId] = {
@@ -698,17 +740,17 @@ class StorageEngine {
   }
 
   // --- Backward-compatible Water Methods ---
-  async getWaterData(dateStr = new Date().toISOString().split('T')[0]) {
+  async getWaterData(dateStr = getLocalDateString()) {
     const count = await this.getTodayGoalValue('goal_water', dateStr);
     return { count, goal: 8 };
   }
 
-  async setWaterGlasses(count, goal = 8, dateStr = new Date().toISOString().split('T')[0]) {
+  async setWaterGlasses(count, goal = 8, dateStr = getLocalDateString()) {
     await this.setGoalValue('goal_water', count, dateStr);
     return { count, goal };
   }
 
-  async incrementWater(dateStr = new Date().toISOString().split('T')[0]) {
+  async incrementWater(dateStr = getLocalDateString()) {
     const count = await this.incrementGoal('goal_water', 1, dateStr);
     return { count, goal: 8 };
   }

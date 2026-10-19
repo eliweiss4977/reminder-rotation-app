@@ -2,6 +2,7 @@
 import './style.css';
 import { audio, RINGTONES } from './audio.js';
 import { haptics } from './haptics.js';
+import { escapeHtml, getLocalDateString } from './utils.js';
 import {
   PROFILE_CATEGORIES,
   CATEGORY_THEMES,
@@ -34,6 +35,7 @@ class RotationReminderApp {
     this.nextSlot = null;
     this.countdownTimer = null;
     this.pacer = null;
+    this.currentDateKey = getLocalDateString();
 
     // Weight, Body Profile & Goals state
     this.weightSettings = { unit: 'lbs', startWeight: 185.0, currentWeight: 181.4, goalWeight: 170.0 };
@@ -137,10 +139,39 @@ class RotationReminderApp {
 
     // 7. Schedule next 5 days of multi-profile notifications
     notifications.rescheduleMultiProfileNext5Days(this.profiles);
+
+    // 8. Check notification and exact alarm permissions
+    this.checkNotificationPermissions();
   }
 
   getTodayKey() {
-    return new Date().toISOString().split('T')[0];
+    return getLocalDateString();
+  }
+
+  async checkNotificationPermissions() {
+    const banner = document.getElementById('permission-warning-banner');
+    if (!banner) return;
+    try {
+      const hasPermission = await notifications.checkPermission();
+      if (!hasPermission) {
+        banner.classList.remove('hidden');
+      } else {
+        banner.classList.add('hidden');
+      }
+    } catch (e) {
+      console.warn('Could not check notification permissions:', e);
+    }
+  }
+
+  checkMidnightDateRollover() {
+    const todayKey = this.getTodayKey();
+    if (todayKey !== this.currentDateKey) {
+      console.log('Midnight rollover detected: changing day from', this.currentDateKey, 'to', todayKey);
+      this.currentDateKey = todayKey;
+      this.updateHeaderDate();
+      this.refreshAll();
+      notifications.rescheduleMultiProfileNext5Days(this.profiles);
+    }
   }
 
   updateHeaderDate() {
@@ -156,6 +187,28 @@ class RotationReminderApp {
   }
 
   bindEvents() {
+    // Top Permission Banner Enable Action
+    document.getElementById('btn-request-notification-perms')?.addEventListener('click', async () => {
+      haptics.tap();
+      const granted = await notifications.requestPermission();
+      const banner = document.getElementById('permission-warning-banner');
+      if (granted) {
+        if (banner) banner.classList.add('hidden');
+        haptics.success();
+        await notifications.rescheduleMultiProfileNext5Days(this.profiles);
+      } else {
+        alert('Notification & alarm permissions are required for rotation reminders to ring while phone is locked.');
+      }
+    });
+
+    // Check permissions and midnight rollover on app visibility resume
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        this.checkNotificationPermissions();
+        this.checkMidnightDateRollover();
+      }
+    });
+
     // Header Test Chime
     document.getElementById('header-test-chime')?.addEventListener('click', () => {
       audio.playSingleRing();
@@ -339,7 +392,7 @@ class RotationReminderApp {
       chip.className = `inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold ${theme.badgeClass}`;
       chip.innerHTML = `
         <span class="w-1.5 h-1.5 rounded-full ${theme.dotClass}"></span>
-        <span>${p.name}</span>
+        <span>${escapeHtml(p.name)}</span>
       `;
       container.appendChild(chip);
     });
@@ -461,6 +514,7 @@ class RotationReminderApp {
   startCountdownLoop() {
     if (this.countdownTimer) clearInterval(this.countdownTimer);
     this.countdownTimer = setInterval(() => {
+      this.checkMidnightDateRollover();
       this.updateCountdownDisplay();
     }, 1000);
   }
@@ -591,22 +645,22 @@ class RotationReminderApp {
           <div>
             <div class="flex items-center gap-2">
               <span class="text-sm font-bold ${slot.isCompleted ? 'text-slate-400 line-through' : 'text-white'}">
-                ${slot.displayTime}
+                ${escapeHtml(slot.displayTime)}
               </span>
               <span class="text-[10px] px-2 py-0.5 font-bold rounded-full ${theme.badgeClass}">
-                ${slot.profileName}
+                ${escapeHtml(slot.profileName)}
               </span>
             </div>
             <div class="flex items-center gap-2 mt-0.5">
-              <span class="text-[10px] text-slate-400">${slot.badgeLabel}</span>
+              <span class="text-[10px] text-slate-400">${escapeHtml(slot.badgeLabel)}</span>
               <span class="text-slate-600">•</span>
               ${statusBadge}
             </div>
           </div>
         </div>
 
-        <button data-slot-action="${slot.id}" class="active-press px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition shadow-sm ${actionBtnClass}">
-          <span>${actionBtnLabel}</span>
+        <button data-slot-action="${slot.id}" class="active-press min-h-[44px] min-w-[70px] px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1 transition shadow-sm ${actionBtnClass}">
+          <span>${escapeHtml(actionBtnLabel)}</span>
         </button>
       `;
 
@@ -753,7 +807,7 @@ class RotationReminderApp {
               </span>
               ${alertModeBadge}
             </div>
-            <h3 class="text-sm font-bold text-white pt-0.5">${p.name}</h3>
+            <h3 class="text-sm font-bold text-white pt-0.5">${escapeHtml(p.name)}</h3>
             <div class="flex items-center gap-2 text-[11px] text-slate-400">
               <span>⏰ ${formatDisplayTime(p.startTime || '07:00')} – ${formatDisplayTime(p.endTime || '23:00')}</span>
               <span>•</span>
@@ -785,14 +839,14 @@ class RotationReminderApp {
         <!-- Card Footer -->
         <div class="flex items-center justify-between pt-2 border-t border-slate-800/70 text-xs">
           <span class="text-[11px] text-slate-500">
-            Duration: <span class="text-slate-300 font-medium">${p.durationType === 'indefinite' ? 'Always On' : p.durationValue + ' ' + p.durationType}</span>
+            Duration: <span class="text-slate-300 font-medium">${p.durationType === 'indefinite' ? 'Always On' : escapeHtml(p.durationValue) + ' ' + escapeHtml(p.durationType)}</span>
           </span>
 
           <div class="flex items-center gap-2">
-            <button data-edit-profile="${p.id}" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold active-press transition">
+            <button data-edit-profile="${p.id}" class="min-h-[44px] px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold active-press transition flex items-center justify-center">
               Edit
             </button>
-            <button data-delete-profile="${p.id}" class="px-2.5 py-1 rounded-lg bg-rose-950/30 hover:bg-rose-900/40 text-rose-300 font-semibold border border-rose-800/30 active-press transition">
+            <button data-delete-profile="${p.id}" class="min-h-[44px] px-3 py-2 rounded-xl bg-rose-950/30 hover:bg-rose-900/40 text-rose-300 font-semibold border border-rose-800/30 active-press transition flex items-center justify-center">
               Delete
             </button>
           </div>
@@ -1133,12 +1187,12 @@ class RotationReminderApp {
       row.className = 'flex items-center justify-between p-2 rounded-lg bg-slate-900/60 border border-slate-800/80 text-xs';
       row.innerHTML = `
         <div class="flex items-center gap-2">
-          <span class="font-bold text-white">${entry.weight.toFixed(1)} ${unit}</span>
+          <span class="font-bold text-white">${entry.weight.toFixed(1)} ${escapeHtml(unit)}</span>
           ${deltaText}
-          <span class="text-[10px] text-slate-500">${entry.date}</span>
-          ${entry.note ? `<span class="text-[10px] text-slate-400 italic">• ${entry.note}</span>` : ''}
+          <span class="text-[10px] text-slate-500">${escapeHtml(entry.date)}</span>
+          ${entry.note ? `<span class="text-[10px] text-slate-400 italic">• ${escapeHtml(entry.note)}</span>` : ''}
         </div>
-        <button data-del-weight="${entry.id}" class="text-slate-500 hover:text-rose-400 px-1 font-bold">×</button>
+        <button data-del-weight="${entry.id}" class="text-slate-500 hover:text-rose-400 px-2 min-h-[44px] min-w-[44px] flex items-center justify-center font-bold text-base">×</button>
       `;
 
       row.querySelector('[data-del-weight]')?.addEventListener('click', async () => {
@@ -1265,7 +1319,7 @@ class RotationReminderApp {
       let actionControl = '';
       if (goal.goalType === 'boolean') {
         actionControl = `
-          <button data-toggle-bool="${goal.id}" class="active-press px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+          <button data-toggle-bool="${goal.id}" class="active-press min-h-[44px] min-w-[90px] px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 ${
             isComplete
               ? 'bg-emerald-500 text-slate-950 shadow-sm shadow-emerald-500/50'
               : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700'
@@ -1275,10 +1329,10 @@ class RotationReminderApp {
         `;
       } else {
         actionControl = `
-          <div class="flex items-center gap-1">
-            <button data-sub-goal="${goal.id}" class="active-press w-7 h-7 rounded-lg bg-slate-800 text-slate-400 hover:text-white font-bold text-sm flex items-center justify-center">-</button>
-            <button data-add-goal="${goal.id}" class="active-press px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1">
-              <span>+${goal.stepAmount}</span>
+          <div class="flex items-center gap-1.5">
+            <button data-sub-goal="${goal.id}" class="active-press min-h-[44px] min-w-[44px] rounded-xl bg-slate-800 text-slate-300 hover:text-white font-bold text-base flex items-center justify-center border border-slate-700">-</button>
+            <button data-add-goal="${goal.id}" class="active-press min-h-[44px] min-w-[54px] px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1 shadow-sm">
+              <span>+${escapeHtml(goal.stepAmount)}</span>
             </button>
           </div>
         `;
@@ -1287,21 +1341,21 @@ class RotationReminderApp {
       card.innerHTML = `
         <div class="flex items-center justify-between mb-2">
           <div class="flex items-center gap-2.5">
-            <span class="text-xl">${goal.icon}</span>
+            <span class="text-xl">${escapeHtml(goal.icon)}</span>
             <div>
               <div class="text-xs font-bold text-white flex items-center gap-1.5">
-                <span>${goal.title}</span>
+                <span>${escapeHtml(goal.title)}</span>
                 ${streak > 0 ? `<span class="text-[10px] px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 font-semibold border border-amber-500/30">🔥 ${streak}d</span>` : ''}
               </div>
               <div class="text-[11px] text-slate-400 font-mono">
-                ${currentVal} / ${goal.targetValue} ${goal.unit}
+                ${currentVal} / ${escapeHtml(goal.targetValue)} ${escapeHtml(goal.unit)}
               </div>
             </div>
           </div>
 
           <div class="flex items-center gap-2">
             ${actionControl}
-            <button data-del-goal="${goal.id}" class="text-slate-600 hover:text-rose-400 text-sm font-bold ml-1">×</button>
+            <button data-del-goal="${goal.id}" class="text-slate-500 hover:text-rose-400 min-h-[44px] min-w-[44px] flex items-center justify-center text-lg font-bold ml-1">×</button>
           </div>
         </div>
 
@@ -1667,15 +1721,15 @@ class RotationReminderApp {
       card.innerHTML = `
         <div class="space-y-1 flex-1">
           <div class="flex items-center gap-2">
-            <span class="text-base">${tpl.icon || '⏰'}</span>
-            <span class="text-xs font-bold text-white">${tpl.name}</span>
-            <span class="text-[10px] px-2 py-0.2 rounded-full font-bold ${theme.badgeClass}">${tpl.badge}</span>
+            <span class="text-base">${escapeHtml(tpl.icon || '⏰')}</span>
+            <span class="text-xs font-bold text-white">${escapeHtml(tpl.name)}</span>
+            <span class="text-[10px] px-2 py-0.2 rounded-full font-bold ${theme.badgeClass}">${escapeHtml(tpl.badge)}</span>
           </div>
-          <p class="text-[11px] text-slate-400 leading-snug">${tpl.description}</p>
+          <p class="text-[11px] text-slate-400 leading-snug">${escapeHtml(tpl.description)}</p>
           <div class="flex items-center gap-2 text-[10px] text-slate-400 pt-1">
-            <span class="text-slate-300 font-mono">${timeSummary}</span>
+            <span class="text-slate-300 font-mono">${escapeHtml(timeSummary)}</span>
             <span>•</span>
-            <span class="text-amber-300">${ringMeta.icon} ${ringMeta.name}</span>
+            <span class="text-amber-300">${escapeHtml(ringMeta.icon)} ${escapeHtml(ringMeta.name)}</span>
           </div>
         </div>
         <div class="shrink-0 self-center">
@@ -1942,10 +1996,10 @@ class RotationReminderApp {
 
     this.editorFixedTimes.forEach(tStr => {
       const chip = document.createElement('span');
-      chip.className = 'inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-slate-800 text-xs text-amber-300 border border-slate-700';
+      chip.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-800 text-xs text-amber-300 border border-slate-700 shadow-sm';
       chip.innerHTML = `
-        <span>⭐ ${formatDisplayTime(tStr)}</span>
-        <button type="button" data-remove-time="${tStr}" class="text-slate-400 hover:text-rose-400 ml-0.5 font-bold">×</button>
+        <span>⭐ ${escapeHtml(formatDisplayTime(tStr))}</span>
+        <button type="button" data-remove-time="${escapeHtml(tStr)}" class="text-slate-400 hover:text-rose-400 p-1 min-h-[36px] min-w-[36px] flex items-center justify-center font-bold text-sm">×</button>
       `;
       chip.querySelector('[data-remove-time]')?.addEventListener('click', (e) => {
         const timeToRemove = e.currentTarget.getAttribute('data-remove-time');
@@ -2157,8 +2211,8 @@ class RotationReminderApp {
           <div class="flex items-center gap-2.5">
             <span class="text-base text-emerald-400">✅</span>
             <div>
-              <div class="text-xs font-bold text-slate-200">${m.name}</div>
-              <div class="text-[10px] text-slate-400">${m.badge} • Target: ${m.targetWeight} ${unit}</div>
+              <div class="text-xs font-bold text-slate-200">${escapeHtml(m.name)}</div>
+              <div class="text-[10px] text-slate-400">${escapeHtml(m.badge)} • Target: ${m.targetWeight} ${escapeHtml(unit)}</div>
             </div>
           </div>
           <span class="text-[10px] font-bold text-emerald-400 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30">Achieved</span>
@@ -2178,14 +2232,14 @@ class RotationReminderApp {
               <span class="text-base animate-pulse">🎯</span>
               <div>
                 <div class="text-xs font-black text-white flex items-center gap-1.5">
-                  <span>${m.name}</span>
+                  <span>${escapeHtml(m.name)}</span>
                   <span class="text-[9px] uppercase px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-extrabold border border-amber-500/30">Next Target</span>
                 </div>
-                <div class="text-[10px] text-indigo-300 font-semibold">${m.badge} • Target: ${m.targetWeight} ${unit}</div>
+                <div class="text-[10px] text-indigo-300 font-semibold">${escapeHtml(m.badge)} • Target: ${m.targetWeight} ${escapeHtml(unit)}</div>
               </div>
             </div>
             <span class="text-xs font-mono font-bold text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded-md border border-amber-500/30">
-              -${m.remainingWeight} ${unit} left
+              -${m.remainingWeight} ${escapeHtml(unit)} left
             </span>
           </div>
 
@@ -2206,11 +2260,11 @@ class RotationReminderApp {
           <div class="flex items-center gap-2.5">
             <span class="text-base text-slate-500">⏳</span>
             <div>
-              <div class="text-xs font-semibold text-slate-300">${m.name}</div>
-              <div class="text-[10px] text-slate-500">${m.badge} • Target: ${m.targetWeight} ${unit}</div>
+              <div class="text-xs font-semibold text-slate-300">${escapeHtml(m.name)}</div>
+              <div class="text-[10px] text-slate-500">${escapeHtml(m.badge)} • Target: ${m.targetWeight} ${escapeHtml(unit)}</div>
             </div>
           </div>
-          <span class="text-[11px] font-mono text-slate-400">-${m.remainingWeight} ${unit}</span>
+          <span class="text-[11px] font-mono text-slate-400">-${m.remainingWeight} ${escapeHtml(unit)}</span>
         `;
       }
 

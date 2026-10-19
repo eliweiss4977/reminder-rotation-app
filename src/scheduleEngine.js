@@ -1,6 +1,7 @@
 // Multi-Profile Reminder & Habit Engine
 // Supports independent reminder profiles (Satkin, Weight, Water, Custom Habits), custom durations,
 // active windows, smart timeline merging, and native 5-day notifications scheduling.
+import { getLocalDateString } from './utils.js';
 
 export const PROFILE_CATEGORIES = {
   ROTATION: 'rotation',
@@ -213,7 +214,9 @@ export function calculateProfileDailySlots(profile, targetDate = new Date()) {
     }
   }
 
-  return Array.from(slotMap.values());
+  const sortedSlots = Array.from(slotMap.values());
+  sortedSlots.sort((a, b) => a.minutes - b.minutes);
+  return sortedSlots;
 }
 
 /**
@@ -221,7 +224,7 @@ export function calculateProfileDailySlots(profile, targetDate = new Date()) {
  */
 export function calculateMergedMultiProfileSchedule(profiles, completedMap = {}, currentDate = new Date()) {
   const currentMins = currentDate.getHours() * 60 + currentDate.getMinutes();
-  const dateKey = currentDate.toISOString().split('T')[0];
+  const dateKey = getLocalDateString(currentDate);
   const dayCompleted = completedMap[dateKey] || {};
 
   const allSlots = [];
@@ -306,8 +309,9 @@ export function calculateMultiProfile5DaysNotificationSlots(profiles, startDate 
         const timestamp = slotDate.getTime();
 
         if (timestamp > now + 15000 && timestamp <= expirationMs) {
-          const profileHash = Math.abs(hashCode(profile.id)) % 1000;
-          const notifId = (dayOffset + 1) * 100000 + profileHash * 100 + (h * 60 + m) % 100;
+          const profileIdx = profiles.findIndex(p => p.id === profile.id);
+          const safeProfileIdx = profileIdx >= 0 ? profileIdx : 0;
+          const notifId = (dayOffset + 1) * 100000 + (safeProfileIdx * 2000) + slot.minutes;
 
           let title = `🔄 ${profile.name}`;
           let body = 'Sit down and rotate ear balls 40 times.';

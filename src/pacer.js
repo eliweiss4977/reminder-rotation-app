@@ -40,8 +40,19 @@ export class PacerController {
   }
 
   bindEvents() {
-    this.closeBtn?.addEventListener('click', () => this.close());
+    this.closeBtn?.addEventListener('click', () => this.requestClose());
     this.resetBtn?.addEventListener('click', () => this.reset());
+
+    // Prevent accidental dismissal when tapping backdrop mid-count
+    this.modalEl?.addEventListener('click', (e) => {
+      if (e.target === this.modalEl) {
+        if (this.count > 0 && this.count < this.targetCount) {
+          // Mid-count: do not dismiss on accidental outside tap
+          return;
+        }
+        this.close();
+      }
+    });
 
     this.autoBtn?.addEventListener('click', () => {
       this.setMode('auto');
@@ -73,11 +84,21 @@ export class PacerController {
     });
   }
 
+  async requestClose() {
+    if (this.count > 0 && this.count < this.targetCount) {
+      const confirmLeave = window.confirm(`Quit 40x Pacer? Your current count (${this.count}/40) will be lost.`);
+      if (!confirmLeave) return false;
+    }
+    await this.close();
+    return true;
+  }
+
   async open(slot = null) {
     this.targetSlot = slot;
     this.count = 0;
     this.isRunning = false;
     clearInterval(this.timerId);
+    this.timerId = null;
 
     const slotLabel = slot ? `${slot.displayTime} (${slot.badgeLabel})` : 'Rotation Session';
     if (this.slotTitleEl) {
@@ -112,6 +133,10 @@ export class PacerController {
 
   async close() {
     this.pauseAutoPacer();
+    if (this.timerId) {
+      clearInterval(this.timerId);
+      this.timerId = null;
+    }
 
     // Release keep awake
     try {

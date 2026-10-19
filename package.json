@@ -8,7 +8,8 @@
     "build": "node scripts/generate-chime.js && node scripts/generate-icons.js && vite build",
     "preview": "vite preview",
     "generate-chime": "node scripts/generate-chime.js",
-    "generate-icons": "node scripts/generate-icons.js"
+    "generate-icons": "node scripts/generate-icons.js",
+    "test": "node scripts/qa-test.js"
   },
   "dependencies": {
     "@capacitor-community/keep-awake": "^8.0.1",

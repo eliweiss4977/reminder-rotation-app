@@ -2,6 +2,7 @@
 // Queries GitHub API for the latest release, compares build numbers, and triggers native APK download.
 
 import { storage } from './storage.js';
+import { sanitizeLogString } from './utils.js';
 
 export const DEFAULT_APP_VERSION = import.meta.env.VITE_APP_VERSION || 'v1.0.0-local';
 export const DEFAULT_GITHUB_REPO = import.meta.env.VITE_GITHUB_REPO || 'eliweiss4977/reminder-rotation-app';
@@ -20,8 +21,11 @@ class AppUpdater {
   }
 
   async init() {
-    // Check if custom repo override exists in storage
-    const customRepo = await storage.get('satkin_custom_github_repo', null);
+    // Check if custom repo override exists in storage (with legacy fallback)
+    let customRepo = await storage.get('rotation_custom_github_repo', null);
+    if (!customRepo) {
+      customRepo = await storage.get('satkin_custom_github_repo', null);
+    }
     if (customRepo) {
       this.repoSlug = customRepo.trim();
     }
@@ -42,7 +46,7 @@ class AppUpdater {
   async setRepoSlug(newSlug) {
     if (!newSlug || typeof newSlug !== 'string') return;
     this.repoSlug = newSlug.trim();
-    await storage.set('satkin_custom_github_repo', this.repoSlug);
+    await storage.set('rotation_custom_github_repo', this.repoSlug);
     return await this.checkForUpdates(true);
   }
 
@@ -126,12 +130,13 @@ class AppUpdater {
       this.notifyListeners(result);
       return result;
     } catch (err) {
-      console.warn('In-app updater check failed:', err);
+      const safeErrorMsg = sanitizeLogString(err?.message || 'Check failed');
+      console.warn('In-app updater check failed:', safeErrorMsg);
       this.isChecking = false;
 
       const result = {
         status: 'error',
-        error: err.message,
+        error: safeErrorMsg,
         isManual,
         currentVersion: this.currentVersion,
         latestVersion: this.latestRelease?.tagName || 'Unknown',

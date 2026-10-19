@@ -12,6 +12,8 @@ class AudioEngine {
     this.fallbackAudio = null;
     this.ringtoneAudios = {};
     this.isMuted = false;
+    this.activeSynthTimeouts = [];
+    this.lastPlayTimestamp = 0;
   }
 
   getAudioContext() {
@@ -27,9 +29,39 @@ class AudioEngine {
     return this.audioCtx;
   }
 
+  stopAllAudio() {
+    // 1. Clear any pending synth timeouts
+    this.activeSynthTimeouts.forEach(t => clearTimeout(t));
+    this.activeSynthTimeouts = [];
+
+    // 2. Pause and reset all ringtone audio elements
+    Object.values(this.ringtoneAudios).forEach(a => {
+      try {
+        a.pause();
+        a.currentTime = 0;
+      } catch (e) {}
+    });
+
+    // 3. Pause fallback audio
+    if (this.fallbackAudio) {
+      try {
+        this.fallbackAudio.pause();
+        this.fallbackAudio.currentTime = 0;
+      } catch (e) {}
+    }
+  }
+
   // Play a specific ringtone by ID ('ring_classic', 'ring_crystal', etc.)
   playRingtone(ringtoneId = 'ring_classic') {
     if (this.isMuted) return;
+
+    // Debounce rapid consecutive taps under 100ms
+    const now = Date.now();
+    if (now - this.lastPlayTimestamp < 100) return;
+    this.lastPlayTimestamp = now;
+
+    // Immediately stop and reset any currently playing Audio instance
+    this.stopAllAudio();
 
     const normalizedId = ringtoneId.startsWith('ring_') ? ringtoneId : `ring_${ringtoneId}`;
 
@@ -38,6 +70,7 @@ class AudioEngine {
         this.ringtoneAudios[normalizedId] = new Audio(`/sounds/${normalizedId}.wav`);
       }
       const audioEl = this.ringtoneAudios[normalizedId];
+      audioEl.pause();
       audioEl.currentTime = 0;
       audioEl.play().catch(e => {
         console.warn('Audio element play failed, falling back to Web Audio synthesis:', e);
@@ -149,7 +182,8 @@ class AudioEngine {
 
   playDoubleChime() {
     this.playTone(528, 0.7, 0);
-    setTimeout(() => this.playTone(660, 0.7, 0), 220);
+    const tid = setTimeout(() => this.playTone(660, 0.7, 0), 220);
+    this.activeSynthTimeouts.push(tid);
   }
 
   playWoodblockTone() {
@@ -175,7 +209,8 @@ class AudioEngine {
   playMarimbaArpeggio() {
     const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
     notes.forEach((freq, idx) => {
-      setTimeout(() => this.playTone(freq, 0.6, 0.8), idx * 180);
+      const tid = setTimeout(() => this.playTone(freq, 0.6, 0.8), idx * 180);
+      this.activeSynthTimeouts.push(tid);
     });
   }
 
