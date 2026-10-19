@@ -65,14 +65,13 @@ jobs:
             echo "Signing secret detected: Decoding release keystore..."
             echo "$KEYSTORE_BASE64" | base64 -d > app/upload-keystore.jks
             export KEYSTORE_PATH="upload-keystore.jks"
-            ./gradlew assembleDebug bundleRelease --stacktrace
-            cp app/build/outputs/bundle/release/app-release.aab ../rotation-reminder-release.aab
           else
-            echo "Building debug AAB bundle..."
-            ./gradlew assembleDebug bundleDebug --stacktrace
-            cp app/build/outputs/bundle/debug/app-debug.aab ../rotation-reminder-release.aab
+            echo "Using repository release keystore (app/release.keystore)..."
+            export KEYSTORE_PATH="release.keystore"
           fi
-          cp app/build/outputs/apk/debug/app-debug.apk ../rotation-reminder.apk
+          ./gradlew assembleRelease bundleRelease --stacktrace
+          cp app/build/outputs/apk/release/app-release.apk ../rotation-reminder.apk
+          cp app/build/outputs/bundle/release/app-release.aab ../rotation-reminder-release.aab
 
       - name: Ensure Repository Public Visibility
         env:
@@ -100,11 +99,18 @@ jobs:
           body: |
             ### 📱 Rotation Reminder v1.0.${{ github.run_number }}
             
-            **Direct APK Download Link (Phones & Android Devices):**
-            [Download Rotation Reminder APK](https://github.com/${{ github.repository }}/releases/latest/download/rotation-reminder.apk)
+            **Direct APK Download Link (Install on Phone / Tablet):**
+            👉 **[Download rotation-reminder.apk](https://github.com/${{ github.repository }}/releases/latest/download/rotation-reminder.apk)**
             
-            **Google Play App Bundle (.aab):**
-            [Download Play Store AAB Bundle](https://github.com/${{ github.repository }}/releases/latest/download/rotation-reminder-release.aab)
+            *(Note: If Android prompts "File might be harmful" or "Unrecognized app", tap **Download anyway** and **Install anyway**.)*
+            
+            ---
+            
+            **Google Play Console Store Bundle (Developers Only):**
+            📦 [Download rotation-reminder-release.aab](https://github.com/${{ github.repository }}/releases/latest/download/rotation-reminder-release.aab)  
+            *(Note: The `.aab` file cannot be opened directly on phones; use the `.apk` file above for direct installation.)*
+            
+            ---
             
             ### 📷 Scan with Phone Camera to Install APK:
             ![Scan to Install](https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=https://github.com/${{ github.repository }}/releases/latest/download/rotation-reminder.apk)

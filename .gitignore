@@ -24,5 +24,6 @@ android/local.properties
 # Keystore & Signing Secrets
 *.jks
 *.keystore
+!android/app/release.keystore
 upload-keystore.jks
 
