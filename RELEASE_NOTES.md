@@ -4,8 +4,9 @@ This file tracks the exact, policy-compliant release notes (under 500 characters
 
 ---
 
-## 🚀 Build #24 (v1.0.24) — Current Play Store Release
+## 🚀 Build #25 (v1.0.25) — Current Play Store Release
 **Target SDK:** Android API Level 36  
+**Version Code:** 25  
 **Status:** Play Store Production & Testing Ready
 
 ### Copy & Paste for Google Play Console:
@@ -21,6 +22,9 @@ Welcome to Rotation Reminder:
 ---
 
 ## 📜 Previous Builds & Changelog
+
+### Build #24 (v1.0.24)
+- Redesigned Screenshot 4 with authentic vector graphics for Biometric Lock and Profile.
 
 ### Build #23 (v1.0.23)
 - Removed in-app APK self-updater and external GitHub query inputs to guarantee 100% compliance with Google Play Device and Network Abuse policies.
