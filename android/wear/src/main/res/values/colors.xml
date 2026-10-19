@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="wear_bg">#0F172A</color>
+    <color name="wear_indigo">#6366F1</color>
+    <color name="wear_indigo_dark">#312E81</color>
+    <color name="wear_emerald">#10B981</color>
+    <color name="wear_emerald_dark">#064E3B</color>
+    <color name="wear_amber">#F59E0B</color>
+    <color name="wear_slate_light">#94A3B8</color>
+    <color name="wear_card_bg">#1E293B</color>
+    <color name="white">#FFFFFF</color>
+</resources>

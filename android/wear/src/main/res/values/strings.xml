@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wear_app_name">Rotation Reminder</string>
+    <string name="tile_name">Next Rotation</string>
+    <string name="tile_description">Shows next rotation countdown and quick 40x wrist pacer.</string>
+    <string name="start_pacer">Start 40x Pacer</string>
+</resources>

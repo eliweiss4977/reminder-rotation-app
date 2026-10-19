@@ -12,9 +12,11 @@ Thumbs.db
 android/.gradle/
 android/build/
 android/app/build/
+android/wear/build/
 android/.idea/
 android/*.iml
 android/app/*.iml
+android/wear/*.iml
 android/local.properties
 
 # Ensure single_ring.wav is tracked
@@ -25,6 +27,7 @@ android/local.properties
 *.jks
 *.keystore
 !android/app/release.keystore
+!android/wear/release.keystore
 upload-keystore.jks
 
 # Local Package Binaries (published via GitHub Actions)

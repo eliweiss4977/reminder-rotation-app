@@ -26,6 +26,10 @@ import { notifications } from './notifications.js';
 import { PacerController } from './pacer.js';
 import { appLock } from './applock.js';
 import { onboardingWizard } from './onboarding.js';
+import { registerPlugin } from '@capacitor/core';
+import { App } from '@capacitor/app';
+
+const RotationWidget = registerPlugin('RotationWidget');
 
 class RotationReminderApp {
   constructor() {
@@ -141,6 +145,25 @@ class RotationReminderApp {
         });
       }
     });
+
+    // 3b. Deep linking & widget routing (rotationreminder://pacer)
+    window.addEventListener('openPacerModal', () => {
+      this.pacer?.open(this.nextSlot || null);
+    });
+
+    try {
+      App.addListener('appUrlOpen', (data) => {
+        if (data?.url && data.url.includes('pacer')) {
+          this.pacer?.open(this.nextSlot || null);
+        }
+      });
+    } catch (e) {}
+
+    RotationWidget.getPendingRoute?.().then((res) => {
+      if (res?.route === 'pacer') {
+        setTimeout(() => this.pacer?.open(this.nextSlot || null), 250);
+      }
+    }).catch(() => {});
 
     // 4. Bind UI event listeners
     this.bindEvents();
@@ -350,6 +373,27 @@ class RotationReminderApp {
 
     // 5. Render Profile Tab
     this.renderBodyProfileAndMilestones();
+
+    // 6. Synchronize Native Android Widget & Wear OS Companion
+    this.syncWidgetState();
+  }
+
+  syncWidgetState() {
+    try {
+      const nextTime = this.nextSlot ? this.nextSlot.displayTime : 'All Done!';
+      const profileName = this.nextSlot ? `(${this.nextSlot.profileName || 'Active Rotation'})` : '(Schedule Complete)';
+      const cadence = this.nextSlot?.badgeLabel || 'Active';
+      const status = this.nextSlot?.isCompleted ? '✓ Completed' : '● Scheduled';
+
+      RotationWidget.updateWidget({
+        nextTime,
+        profileName,
+        cadence,
+        status
+      }).catch(() => {});
+    } catch (e) {
+      // Non-fatal on web or environments where widget plugin is not available
+    }
   }
 
   updateAlarmsTopSummary() {

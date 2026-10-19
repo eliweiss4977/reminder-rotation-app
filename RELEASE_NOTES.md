@@ -4,26 +4,26 @@ This file tracks the exact, policy-compliant release notes (under 500 characters
 
 ---
 
-## 🚀 Build #25 (v1.0.25) — Current Play Store Release
+## 🚀 Build #26 (v1.0.26) — Current Play Store Release
 **Target SDK:** Android API Level 36  
-**Version Code:** 25  
-**Status:** Play Store Production & Testing Ready
+**Version Code:** 26  
+**Status:** Play Store Production, Home Screen Widget & Wear OS Ready
 
 ### Copy & Paste for Google Play Console:
 ```text
-Welcome to Rotation Reminder:
-• Smart Interval Alarms: Repeating interval reminders (every 2h/1.5h) with special checkpoints and an automatic 11:00 PM bedtime cutoff.
-• Seated 40x Rotation Pacer: Smooth 1.2s circular cadence pacer with Screen Awake Lock and audio chimes.
-• Health & Body Goals: 1-tap weight logging, visual BMI classification, and a 7-step milestone celebration ladder.
-• 100% Local Privacy: All data is encrypted on your device with zero cloud tracking.
+What's new in Rotation Reminder:
+• Android Home Screen Widget: Check your next rotation countdown and tap "Start 40x Pacer" directly from your home screen.
+• Google Wear OS Companion Tile: Track intervals on your Google Watch with wrist haptics and a quick 40x pacer.
+• Seamless Sync: Schedules synchronize automatically between phone and watch.
+• 100% Private: Stored securely on-device with zero tracking or ads.
 ```
-*(395 characters / 500 max)*
+*(377 characters / 500 max)*
 
 ---
 
 ## 📜 Previous Builds & Changelog
 
-### Build #24 (v1.0.24)
+### Build #25 (v1.0.25)
 - Redesigned Screenshot 4 with authentic vector graphics for Biometric Lock and Profile.
 
 ### Build #23 (v1.0.23)

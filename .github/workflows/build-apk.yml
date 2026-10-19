@@ -68,9 +68,11 @@ jobs:
           if [ -n "$KEYSTORE_BASE64" ]; then
             echo "Signing secret detected: Decoding release keystore..."
             echo "$KEYSTORE_BASE64" | base64 -d > app/upload-keystore.jks
+            cp app/upload-keystore.jks wear/upload-keystore.jks
             export KEYSTORE_PATH="upload-keystore.jks"
           else
             echo "Using repository release keystore (app/release.keystore)..."
+            cp app/release.keystore wear/release.keystore
             export KEYSTORE_PATH="release.keystore"
           fi
           ./gradlew clean bundleRelease assembleRelease assembleDebug --stacktrace
@@ -79,6 +81,14 @@ jobs:
             cp app/build/outputs/apk/release/app-release.apk ../rotation-reminder.apk
           else
             cp app/build/outputs/apk/debug/app-debug.apk ../rotation-reminder.apk
+          fi
+          if [ -f "wear/build/outputs/bundle/release/wear-release.aab" ]; then
+            cp wear/build/outputs/bundle/release/wear-release.aab ../rotation-reminder-wear-release.aab
+          fi
+          if [ -f "wear/build/outputs/apk/release/wear-release.apk" ]; then
+            cp wear/build/outputs/apk/release/wear-release.apk ../rotation-reminder-wear.apk
+          elif [ -f "wear/build/outputs/apk/debug/wear-debug.apk" ]; then
+            cp wear/build/outputs/apk/debug/wear-debug.apk ../rotation-reminder-wear.apk
           fi
 
       - name: Ensure Repository Public Visibility
@@ -94,6 +104,8 @@ jobs:
           path: |
             ./rotation-reminder.apk
             ./rotation-reminder-release.aab
+            ./rotation-reminder-wear.apk
+            ./rotation-reminder-wear-release.aab
           retention-days: 14
 
       - name: Publish GitHub Release
@@ -104,6 +116,8 @@ jobs:
           files: |
             ./rotation-reminder.apk
             ./rotation-reminder-release.aab
+            ./rotation-reminder-wear.apk
+            ./rotation-reminder-wear-release.aab
           body: |
             ### 📱 Rotation Reminder v1.0.${{ github.run_number }}
             

@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@drawable/widget_bg">
+
+    <!-- Top Header Row: Icon + App Name + Profile Name -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:src="@mipmap/ic_launcher"
+            android:contentDescription="Rotation Reminder" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Rotation Reminder"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/widget_profile_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="(Standard 10-Day Block)"
+                android:textColor="#A5B4FC"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/widget_countdown_chip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#312E81"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="3dp"
+            android:text="Every 2h"
+            android:textColor="#C7D2FE"
+            android:textStyle="bold"
+            android:textSize="10sp" />
+    </LinearLayout>
+
+    <!-- Center Section: Next Rotation Time & Status -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center_vertical"
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="8dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="NEXT ROTATION"
+            android:textColor="#94A3B8"
+            android:textStyle="bold"
+            android:textSize="10sp"
+            android:letterSpacing="0.08" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="bottom">
+
+            <TextView
+                android:id="@+id/widget_next_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="02:00 PM"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:textSize="26sp" />
+
+            <TextView
+                android:id="@+id/widget_status_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginBottom="4dp"
+                android:text="● Scheduled"
+                android:textColor="#34D399"
+                android:textStyle="bold"
+                android:textSize="11sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Bottom Action Button: Start 40x Pacer -->
+    <Button
+        android:id="@+id/widget_start_pacer_btn"
+        android:layout_width="match_parent"
+        android:layout_height="38dp"
+        android:background="@drawable/widget_button_bg"
+        android:text="Start 40x Pacer ▶"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        android:textSize="13sp"
+        android:textAllCaps="false"
+        android:gravity="center" />
+
+</LinearLayout>
