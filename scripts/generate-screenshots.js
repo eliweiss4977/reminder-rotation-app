@@ -9,8 +9,10 @@ const projectRoot = path.resolve(__dirname, '..');
 
 const assetsDir = path.join(projectRoot, 'assets', 'screenshots');
 const publicDir = path.join(projectRoot, 'public', 'screenshots');
+const iosAssetsDir = path.join(assetsDir, 'ios');
+const iosPublicDir = path.join(publicDir, 'ios');
 
-for (const dir of [assetsDir, publicDir]) {
+for (const dir of [assetsDir, publicDir, iosAssetsDir, iosPublicDir]) {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
@@ -18,6 +20,87 @@ for (const dir of [assetsDir, publicDir]) {
 
 function escapeXml(unsafe) {
   return String(unsafe).replace(/&(?!(amp|lt|gt|quot|apos);)/g, '&amp;');
+}
+
+// iPhone 6.7" Super Retina XDR (1290x2796) Mockup Template
+function wrapInIosMockup(tagline, title, subtitle, screenSvgContent, accentColor = '#6366F1') {
+  const safeTag = escapeXml(tagline);
+  const safeTitle = escapeXml(title);
+  const safeSub = escapeXml(subtitle);
+  const safeScreen = escapeXml(screenSvgContent);
+
+  return `
+<svg width="1290" height="2796" viewBox="0 0 1290 2796" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradIos" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#090D16"/>
+      <stop offset="50%" stop-color="#111827"/>
+      <stop offset="100%" stop-color="#0B0F19"/>
+    </linearGradient>
+    <radialGradient id="topGlowIos" cx="50%" cy="12%" r="45%">
+      <stop offset="0%" stop-color="${accentColor}" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="${accentColor}" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="phoneBorderGradIos" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#64748B"/>
+      <stop offset="50%" stop-color="#1E293B"/>
+      <stop offset="100%" stop-color="#475569"/>
+    </linearGradient>
+    <filter id="phoneShadowIos" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="32" stdDeviation="40" flood-color="#000000" flood-opacity="0.85"/>
+    </filter>
+    <clipPath id="screenClipIos">
+      <rect x="90" y="380" width="1110" height="2360" rx="64"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="1290" height="2796" fill="url(#bgGradIos)"/>
+  <rect width="1290" height="2796" fill="url(#topGlowIos)"/>
+
+  <!-- Top Marketing Copy -->
+  <g text-anchor="middle">
+    <!-- Tag Pill -->
+    <rect x="425" y="80" width="440" height="54" rx="27" fill="${accentColor}" fill-opacity="0.2" stroke="${accentColor}" stroke-opacity="0.45" stroke-width="2"/>
+    <text x="645" y="115" fill="#E0E7FF" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="800" letter-spacing="2">${safeTag}</text>
+
+    <!-- Main Headline -->
+    <text x="645" y="195" fill="#FFFFFF" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="56" font-weight="900" letter-spacing="-0.8">${safeTitle}</text>
+
+    <!-- Subtitle -->
+    <text x="645" y="255" fill="#94A3B8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="500">${safeSub}</text>
+  </g>
+
+  <!-- iPhone Outer Titanium Bezel -->
+  <g filter="url(#phoneShadowIos)">
+    <rect x="74" y="364" width="1142" height="2392" rx="76" fill="#0F172A" stroke="url(#phoneBorderGradIos)" stroke-width="10"/>
+  </g>
+
+  <!-- Screen Content Clipped to iPhone Display -->
+  <g clip-path="url(#screenClipIos)">
+    <rect x="90" y="380" width="1110" height="2360" fill="#020617"/>
+
+    <!-- Screen Status Bar -->
+    <text x="170" y="445" fill="#FFFFFF" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="26" font-weight="700">9:41</text>
+    
+    <!-- Dynamic Island -->
+    <rect x="495" y="415" width="300" height="62" rx="31" fill="#000000"/>
+    <circle cx="530" cy="446" r="10" fill="#1E293B"/>
+    <circle cx="750" cy="446" r="8" fill="#064E3B"/>
+
+    <!-- Status Icons -->
+    <text x="1110" y="445" fill="#FFFFFF" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="24" font-weight="600" text-anchor="end">100%</text>
+
+    <!-- Render Inner Screen Graphics scaled to fit 1110px width -->
+    <g transform="translate(100, 500) scale(1.35)">
+      ${safeScreen}
+    </g>
+
+    <!-- Home Indicator Bar -->
+    <rect x="475" y="2710" width="340" height="8" rx="4" fill="#FFFFFF" opacity="0.6"/>
+  </g>
+</svg>
+`;
 }
 
 // Common SVG background template helper
@@ -518,7 +601,27 @@ async function generateScreenshots() {
     console.log(`✓ Generated ${s.name} (1080x1920)`);
   }
 
-  console.log('All 4 phone screenshots generated successfully!');
+  console.log('All 4 Android phone screenshots generated successfully!');
+
+  console.log('Generating 4 Apple App Store 6.7" Super Retina XDR Screenshots (1290x2796)...');
+  for (let i = 0; i < screenshots.length; i++) {
+    const s = screenshots[i];
+    const iosSvg = wrapInIosMockup(s.tagline, s.title, s.subtitle, s.content, s.accent);
+    const iosSvgBuffer = Buffer.from(iosSvg);
+
+    const iosName = `ios-${s.name}`;
+    const iosAssetPath = path.join(iosAssetsDir, iosName);
+    const iosPublicPath = path.join(iosPublicDir, iosName);
+
+    await sharp(iosSvgBuffer)
+      .resize(1290, 2796)
+      .png({ quality: 100 })
+      .toFile(iosAssetPath);
+
+    fs.copyFileSync(iosAssetPath, iosPublicPath);
+    console.log(`✓ Generated ${iosName} (1290x2796)`);
+  }
+  console.log('All 4 iOS App Store screenshots generated successfully!');
 }
 
 generateScreenshots().catch(err => {

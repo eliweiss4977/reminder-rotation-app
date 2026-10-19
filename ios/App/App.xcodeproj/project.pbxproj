@@ -16,6 +16,12 @@
 		504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC3101FED79650016851F /* LaunchScreen.storyboard */; };
 		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
 		9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9582B6822FE993A50072D4E8 /* SceneDelegate.swift */; };
+		B11000012026101900000001 /* ring_classic.wav in Resources */ = {isa = PBXBuildFile; fileRef = A11000012026101900000001 /* ring_classic.wav */; };
+		B11000022026101900000002 /* ring_crystal.wav in Resources */ = {isa = PBXBuildFile; fileRef = A11000022026101900000002 /* ring_crystal.wav */; };
+		B11000032026101900000003 /* ring_double.wav in Resources */ = {isa = PBXBuildFile; fileRef = A11000032026101900000003 /* ring_double.wav */; };
+		B11000042026101900000004 /* ring_marimba.wav in Resources */ = {isa = PBXBuildFile; fileRef = A11000042026101900000004 /* ring_marimba.wav */; };
+		B11000052026101900000005 /* ring_woodblock.wav in Resources */ = {isa = PBXBuildFile; fileRef = A11000052026101900000005 /* ring_woodblock.wav */; };
+		B11000062026101900000006 /* single_ring.wav in Resources */ = {isa = PBXBuildFile; fileRef = A11000062026101900000006 /* single_ring.wav */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +36,12 @@
 		50B271D01FEDC1A000F3C39B /* public */ = {isa = PBXFileReference; lastKnownFileType = folder; path = public; sourceTree = "<group>"; };
 		9582B6822FE993A50072D4E8 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		958DCC722DB07C7200EA8C5F /* debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = debug.xcconfig; path = ../debug.xcconfig; sourceTree = SOURCE_ROOT; };
+		A11000012026101900000001 /* ring_classic.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = ring_classic.wav; sourceTree = "<group>"; };
+		A11000022026101900000002 /* ring_crystal.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = ring_crystal.wav; sourceTree = "<group>"; };
+		A11000032026101900000003 /* ring_double.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = ring_double.wav; sourceTree = "<group>"; };
+		A11000042026101900000004 /* ring_marimba.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = ring_marimba.wav; sourceTree = "<group>"; };
+		A11000052026101900000005 /* ring_woodblock.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = ring_woodblock.wav; sourceTree = "<group>"; };
+		A11000062026101900000006 /* single_ring.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = single_ring.wav; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,6 +85,12 @@
 				504EC3131FED79650016851F /* Info.plist */,
 				2FAD9762203C412B000D30F8 /* config.xml */,
 				50B271D01FEDC1A000F3C39B /* public */,
+				A11000012026101900000001 /* ring_classic.wav */,
+				A11000022026101900000002 /* ring_crystal.wav */,
+				A11000032026101900000003 /* ring_double.wav */,
+				A11000042026101900000004 /* ring_marimba.wav */,
+				A11000052026101900000005 /* ring_woodblock.wav */,
+				A11000062026101900000006 /* single_ring.wav */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -148,6 +166,12 @@
 				50379B232058CBB4000EE86E /* capacitor.config.json in Resources */,
 				504EC30D1FED79650016851F /* Main.storyboard in Resources */,
 				2FAD9763203C412B000D30F8 /* config.xml in Resources */,
+				B11000012026101900000001 /* ring_classic.wav in Resources */,
+				B11000022026101900000002 /* ring_crystal.wav in Resources */,
+				B11000032026101900000003 /* ring_double.wav in Resources */,
+				B11000042026101900000004 /* ring_marimba.wav in Resources */,
+				B11000052026101900000005 /* ring_woodblock.wav in Resources */,
+				B11000062026101900000006 /* single_ring.wav in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -309,7 +333,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				OTHER_SWIFT_FLAGS = "$(inherited) \"-D\" \"COCOAPODS\" \"-DDEBUG\"";
-				PRODUCT_BUNDLE_IDENTIFIER = com.satkin.pacer;
+				PRODUCT_BUNDLE_IDENTIFIER = com.rotationreminder.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_VERSION = 5.0;
@@ -330,7 +354,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.satkin.pacer;
+				PRODUCT_BUNDLE_IDENTIFIER = com.rotationreminder.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";
 				SWIFT_VERSION = 5.0;

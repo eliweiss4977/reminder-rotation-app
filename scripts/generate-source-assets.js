@@ -145,12 +145,24 @@ async function main() {
     .toFile(path.join(assetsDir, 'icon-foreground.png'));
   console.log('✓ Created assets/icon-foreground.png (1024x1024)');
 
-  // Generate assets/icon-only.png
-  await sharp(Buffer.from(fullIconSvg))
+  // Generate assets/icon-only.png & assets/app-store-icon-1024.png (Flattened, RGB, No Alpha Channel for Apple App Store compliance)
+  const flattenedIconBuffer = await sharp(Buffer.from(fullIconSvg))
     .resize(1024, 1024)
+    .flatten({ background: '#0F0D2E' })
+    .removeAlpha()
     .png()
-    .toFile(path.join(assetsDir, 'icon-only.png'));
-  console.log('✓ Created assets/icon-only.png (1024x1024)');
+    .toBuffer();
+
+  await sharp(flattenedIconBuffer).toFile(path.join(assetsDir, 'icon-only.png'));
+  await sharp(flattenedIconBuffer).toFile(path.join(assetsDir, 'app-store-icon-1024.png'));
+  console.log('✓ Created assets/icon-only.png and assets/app-store-icon-1024.png (1024x1024, Flattened RGB, No Alpha)');
+
+  // Generate iOS Assets.xcassets AppIcon
+  const iosIconPath = path.join(projectRoot, 'ios', 'App', 'App', 'Assets.xcassets', 'AppIcon.appiconset', 'AppIcon-512@2x.png');
+  if (fs.existsSync(path.dirname(iosIconPath))) {
+    await sharp(flattenedIconBuffer).toFile(iosIconPath);
+    console.log('✓ Updated ios AppIcon-512@2x.png (1024x1024 Universal iOS Icon, No Alpha)');
+  }
 
   // Generate public PWA icons
   const publicDir = path.join(projectRoot, 'public');
@@ -277,6 +289,19 @@ async function main() {
     .png()
     .toFile(path.join(assetsDir, 'splash-dark.png'));
   console.log('✓ Created assets/splash.png & assets/splash-dark.png');
+  
+  // Also update iOS Splash.imageset
+  const iosSplashDir = path.join(projectRoot, 'ios', 'App', 'App', 'Assets.xcassets', 'Splash.imageset');
+  if (fs.existsSync(iosSplashDir)) {
+    const splashBuf = await sharp(Buffer.from(splashSvg))
+      .resize(2732, 2732)
+      .png()
+      .toBuffer();
+    await sharp(splashBuf).toFile(path.join(iosSplashDir, 'splash-2732x2732.png'));
+    await sharp(splashBuf).toFile(path.join(iosSplashDir, 'splash-2732x2732-1.png'));
+    await sharp(splashBuf).toFile(path.join(iosSplashDir, 'splash-2732x2732-2.png'));
+    console.log('✓ Updated ios Splash.imageset (2732x2732)');
+  }
 
   // Generate 1024x500 Google Play Store Feature Graphic
   const featureGraphicSvg = `
