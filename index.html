@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>Satkin Multi-Profile Reminder, Weight & Habit Engine</title>
+  <title>Rotation Reminder & Habit Engine</title>
   <meta name="theme-color" content="#090d16" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236366f1'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z'/></svg>" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="stylesheet" href="/src/style.css" />
 </head>
 <body class="bg-[#090d16] text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-indigo-500 selection:text-white">
@@ -18,14 +18,12 @@
       <div class="flex items-center space-x-2.5">
         <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-700 flex items-center justify-center shadow-md shadow-indigo-950/50">
           <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M6 8.5a6.5 6.5 0 1 1 13 0c0 6-6 6-6 10a2.5 2.5 0 0 1-5 0"></path>
-            <path d="M12 8.5a2.5 2.5 0 0 1 2.5 2.5c0 1.5-1.5 2-1.5 3"></path>
-            <circle cx="12" cy="18" r="1.5" fill="currentColor"></circle>
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
           </svg>
         </div>
         <div>
           <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-1.5">
-            Satkin Pacer
+            Rotation Reminder
             <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-semibold border border-indigo-500/30">Pro Engine</span>
           </h1>
           <p class="text-[11px] text-slate-400 leading-none" id="header-today-date">Loading schedule...</p>
@@ -168,7 +166,7 @@
             Next Reminder
           </span>
           <span id="hero-badge" class="px-2.5 py-0.5 text-[11px] font-bold rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-            Satkin
+            Rotation
           </span>
         </div>
 
@@ -319,6 +317,89 @@
           <span class="text-xs font-bold text-slate-300">Recent Weigh-Ins</span>
           <div id="weight-history-list" class="space-y-1.5 max-h-40 overflow-y-auto no-scrollbar">
             <!-- Dynamic entries -->
+          </div>
+        </div>
+      </div>
+
+      <!-- LOCAL PERSONAL BODY PROFILE & STAGE MILESTONE ENGINE -->
+      <div class="rounded-2xl glass-card p-5 border border-slate-700/60 shadow-xl space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-base">
+              🧍
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-white">Body Profile & BMI Milestones</h3>
+              <p class="text-[11px] text-slate-400">Height, live BMI & Stage Roadmap</p>
+            </div>
+          </div>
+
+          <!-- Height Unit Toggle -->
+          <div class="flex items-center gap-1.5">
+            <button id="body-height-unit-toggle" class="active-press px-2.5 py-1 rounded-lg bg-slate-800 text-xs font-bold text-indigo-300 border border-slate-700 hover:bg-slate-700 transition">
+              <span id="body-height-unit-label">ft / in</span> ⇄
+            </button>
+          </div>
+        </div>
+
+        <!-- Height Input Row -->
+        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800 space-y-2.5">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-slate-300 font-semibold">Your Height:</span>
+            <span id="body-height-display-badge" class="text-indigo-300 font-mono font-bold text-xs bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">5 ft 10 in</span>
+          </div>
+
+          <!-- Imperial Inputs (Feet & Inches) -->
+          <div id="body-height-imperial-row" class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Feet</label>
+              <input type="number" id="body-height-feet" min="3" max="8" value="5" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-indigo-500" />
+            </div>
+            <div>
+              <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Inches</label>
+              <input type="number" id="body-height-inches" min="0" max="11.9" step="0.5" value="10" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-indigo-500" />
+            </div>
+          </div>
+
+          <!-- Metric Input (Centimeters) -->
+          <div id="body-height-metric-row" class="hidden">
+            <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Centimeters (cm)</label>
+            <input type="number" id="body-height-cm" min="100" max="250" value="178" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-indigo-500" />
+          </div>
+
+          <button id="body-height-save-btn" class="w-full py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-950/40 transition active-press">
+            Update Height
+          </button>
+        </div>
+
+        <!-- Live BMI Hero Display -->
+        <div class="bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 p-4 rounded-xl border border-indigo-500/30 flex items-center justify-between shadow-inner">
+          <div>
+            <div class="text-[10px] text-slate-400 uppercase font-semibold">Live Calculated BMI</div>
+            <div class="flex items-baseline gap-2 mt-0.5">
+              <span id="body-bmi-value" class="text-3xl font-black text-white font-mono">--</span>
+              <span id="body-bmi-badge" class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                Calculating...
+              </span>
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="text-[10px] text-slate-400 uppercase font-semibold">Current Weight</div>
+            <div id="body-current-weight-ref" class="text-sm font-bold text-slate-200 mt-0.5">-- lbs</div>
+          </div>
+        </div>
+
+        <!-- Stage Milestone Ladder -->
+        <div class="space-y-2 pt-1">
+          <div class="flex items-center justify-between text-xs px-0.5">
+            <span class="font-bold text-slate-200 flex items-center gap-1.5">
+              <span>🎯</span> BMI Milestone Ladder
+            </span>
+            <span class="text-[11px] text-slate-400">Target thresholds</span>
+          </div>
+
+          <div id="body-milestone-ladder-list" class="space-y-2">
+            <!-- Dynamically populated milestones with immediate target highlighted -->
           </div>
         </div>
       </div>
@@ -488,7 +569,7 @@
       
       <div class="px-5 pt-4 pb-3 flex items-center justify-between border-b border-slate-800">
         <div>
-          <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-400">Satkin Protocol</span>
+          <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-400">Rotation Protocol</span>
           <h3 id="pacer-slot-title" class="text-sm font-bold text-white">40x Rotation Session</h3>
         </div>
         <div class="flex items-center gap-1.5">
@@ -525,6 +606,12 @@
             Acupressure ear balls stimulate vagal reflex; seated posture prevents dizziness.
           </div>
         </div>
+      </div>
+
+      <!-- SCREEN STAY-AWAKE ACTIVE BADGE -->
+      <div id="pacer-wake-badge" class="hidden mx-4 mt-2.5 py-1 px-3 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[11px] font-semibold flex items-center justify-center gap-1.5 shadow-sm">
+        <span>🔆</span>
+        <span>Screen Stay-Awake Active</span>
       </div>
 
       <div class="px-5 pt-3">
@@ -780,7 +867,7 @@
           <!-- Alarm Name -->
           <div>
             <label class="block text-xs font-semibold text-slate-300 mb-1.5">Alarm / Reminder Title</label>
-            <input type="text" id="edit-profile-name" placeholder="e.g. Satkin Protocol (2h + 2:00 & 7:00)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500" />
+            <input type="text" id="edit-profile-name" placeholder="e.g. Rotation Protocol (2h + 2:00 & 7:00)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500" />
           </div>
 
           <!-- Category Selector -->
@@ -788,7 +875,7 @@
             <label class="block text-xs font-semibold text-slate-300 mb-1.5">Routine Category</label>
             <div class="grid grid-cols-4 gap-1.5">
               <button type="button" id="cat-btn-satkin" class="cat-pill active-press py-2 rounded-xl text-xs font-bold border border-indigo-500/50 bg-indigo-500/20 text-indigo-300 text-center">
-                Satkin 40x
+                Rotation 40x
               </button>
               <button type="button" id="cat-btn-weight" class="cat-pill active-press py-2 rounded-xl text-xs font-medium border border-slate-800 bg-slate-900 text-slate-400 text-center">
                 Weight
@@ -891,8 +978,30 @@
             <div id="edit-fixed-chips-list" class="flex flex-wrap gap-1.5 min-h-[24px]"></div>
           </div>
 
-          <!-- Selectable Ringtones -->
+          <!-- Alert Mode Selector (Sound + Vibrate, Sound Only, Vibrate Only) -->
           <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Alert Mode</label>
+            <div class="grid grid-cols-3 gap-1.5 mb-2">
+              <button type="button" id="alert-mode-sv" class="alert-mode-pill active-press py-2 text-xs font-bold rounded-xl bg-indigo-600 text-white border border-indigo-500 shadow">
+                🔊 Sound & Vibe
+              </button>
+              <button type="button" id="alert-mode-so" class="alert-mode-pill active-press py-2 text-xs font-medium rounded-xl bg-slate-900 border border-slate-800 text-slate-300">
+                🔉 Sound Only
+              </button>
+              <button type="button" id="alert-mode-vo" class="alert-mode-pill active-press py-2 text-xs font-medium rounded-xl bg-slate-900 border border-slate-800 text-slate-300">
+                📳 Vibrate Only
+              </button>
+            </div>
+            <div id="alert-mode-vibrate-test-row" class="hidden flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-xs">
+              <span class="text-slate-400 text-[11px]">Silent alert with triple-pulse vibration</span>
+              <button type="button" id="alert-mode-test-vibe-btn" class="active-press px-2.5 py-1 rounded-lg bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 font-bold border border-indigo-500/40 text-[11px] flex items-center gap-1">
+                <span>📳 Test Vibration</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Selectable Ringtones -->
+          <div id="wizard-ringtone-container">
             <label class="block text-xs font-semibold text-slate-300 mb-1.5">Notification Ringtone (Locked Screen Audio)</label>
             <div id="ringtone-picker-list" class="space-y-1.5">
               <!-- Rendered dynamically with 5 ringtones & sound test buttons -->

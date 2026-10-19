@@ -5,11 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/generate-chime.js && vite build",
+    "build": "node scripts/generate-chime.js && node scripts/generate-icons.js && vite build",
     "preview": "vite preview",
-    "generate-chime": "node scripts/generate-chime.js"
+    "generate-chime": "node scripts/generate-chime.js",
+    "generate-icons": "node scripts/generate-icons.js"
   },
   "dependencies": {
+    "@capacitor-community/keep-awake": "^8.0.1",
     "@capacitor/android": "^8.5.3",
     "@capacitor/cli": "^8.5.3",
     "@capacitor/core": "^8.5.3",

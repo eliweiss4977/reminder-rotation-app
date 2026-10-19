@@ -10,7 +10,39 @@ export const NOTIFICATION_CHANNELS = {
   ring_marimba: { id: 'channel_ring_marimba', name: 'Warm Marimba', sound: 'ring_marimba.wav' }
 };
 
-export const DEFAULT_CHANNEL_ID = 'channel_ring_classic';
+export const DEFAULT_CHANNEL_ID = 'alarm_classic_sv_v3';
+
+/**
+ * Resolves the precise native channel and sound configuration based on ringtone and alert mode.
+ * Matches MainActivity.java channels:
+ * - alarm_${tone}_sv_v3 (Sound & Vibrate)
+ * - alarm_${tone}_so_v3 (Sound Only)
+ * - alarm_vibrate_only_v3 (Vibrate Only / Silent)
+ */
+export function resolveNotificationChannel(ringtone = 'ring_classic', alertMode = 'sound_vibrate') {
+  const toneKey = (ringtone || 'ring_classic').replace('ring_', '');
+  const soundFile = `${ringtone || 'ring_classic'}.wav`;
+
+  if (alertMode === 'vibrate_only') {
+    return {
+      channelId: 'alarm_vibrate_only_v3',
+      sound: undefined
+    };
+  }
+
+  if (alertMode === 'sound_only') {
+    return {
+      channelId: `alarm_${toneKey}_so_v3`,
+      sound: soundFile
+    };
+  }
+
+  // Default: sound_vibrate
+  return {
+    channelId: `alarm_${toneKey}_sv_v3`,
+    sound: soundFile
+  };
+}
 
 class NotificationManager {
   constructor() {
@@ -24,15 +56,34 @@ class NotificationManager {
     this.onNotificationTapCallback = onNotificationTap;
 
     try {
-      // 1. Setup Android High Importance Notification Channels for all 5 ringtones
+      // 1. Setup Android High Importance Notification Channels
       await this.setupChannels();
 
-      // 2. Listen for notification action / tap
-      await LocalNotifications.addListener('localNotificationActionPerformed', (action) => {
-        console.log('User tapped notification action:', action);
+      // 2. Register Interactive Action Types (Rotations & Habits)
+      await this.registerActionTypes();
+
+      // 3. Listen for notification action / tap
+      await LocalNotifications.addListener('localNotificationActionPerformed', async (action) => {
+        console.log('User performed notification action:', action);
+        const actionId = action.actionId;
+        const extra = action.notification?.extra || {};
+
+        if (actionId === 'SNOOZE_2M') {
+          await this.scheduleSnooze(action.notification, 2);
+          return;
+        }
+
+        if (actionId === 'SNOOZE_5M') {
+          await this.scheduleSnooze(action.notification, 5);
+          return;
+        }
+
+        if (actionId === 'DISMISS') {
+          return;
+        }
+
         if (this.onNotificationTapCallback) {
-          const extra = action.notification?.extra || {};
-          this.onNotificationTapCallback(extra);
+          this.onNotificationTapCallback(extra, actionId);
         }
       });
 
@@ -45,35 +96,94 @@ class NotificationManager {
 
   async setupChannels() {
     try {
-      // Create all 5 distinct ringtone channels
-      for (const [key, conf] of Object.entries(NOTIFICATION_CHANNELS)) {
+      const tones = ['classic', 'crystal', 'double', 'woodblock', 'marimba'];
+
+      // Register the alarm stream channels with Capacitor
+      for (const tone of tones) {
+        const soundFile = `ring_${tone}.wav`;
+        const toneLabel = tone.charAt(0).toUpperCase() + tone.slice(1);
+
+        // Sound + Vibrate
         await LocalNotifications.createChannel({
-          id: conf.id,
-          name: `Satkin: ${conf.name}`,
-          description: `Chimes using ${conf.name} for acupressure rotations and habits`,
-          importance: 5, // High importance (heads-up banner and sound)
-          visibility: 1, // Public on lockscreen
-          sound: conf.sound,
+          id: `alarm_${tone}_sv_v3`,
+          name: `Rotation: ${toneLabel} (Sound & Vibrate)`,
+          description: 'Alarm audio stream with double-pulse vibration',
+          importance: 5,
+          visibility: 1,
+          sound: soundFile,
           vibration: true,
           lights: true,
-          lightColor: '#6366f1'
+          lightColor: '#4F46E5'
+        });
+
+        // Sound Only
+        await LocalNotifications.createChannel({
+          id: `alarm_${tone}_so_v3`,
+          name: `Rotation: ${toneLabel} (Sound Only)`,
+          description: 'Alarm audio stream without vibration',
+          importance: 5,
+          visibility: 1,
+          sound: soundFile,
+          vibration: false,
+          lights: true,
+          lightColor: '#4F46E5'
         });
       }
+
+      // Vibrate Only (Silent)
+      await LocalNotifications.createChannel({
+        id: 'alarm_vibrate_only_v3',
+        name: 'Rotation: Vibrate Only (Silent)',
+        description: 'High-priority silent alert with triple-pulse vibration',
+        importance: 5,
+        visibility: 1,
+        vibration: true,
+        lights: true,
+        lightColor: '#4F46E5'
+      });
 
       // Legacy fallback channel
       await LocalNotifications.createChannel({
         id: 'satkin_single_ring',
-        name: 'Satkin Rotation Chimes',
+        name: 'Rotation Chimes (Legacy)',
         description: 'Legacy channel for 40x acupressure ear rotations',
         importance: 5,
         visibility: 1,
         sound: 'single_ring.wav',
         vibration: true,
         lights: true,
-        lightColor: '#6366f1'
+        lightColor: '#4F46E5'
       });
     } catch (e) {
       console.warn('Could not create notification channels:', e);
+    }
+  }
+
+  async registerActionTypes() {
+    try {
+      await LocalNotifications.registerActionTypes({
+        types: [
+          {
+            id: 'ROTATION_ACTIONS',
+            actions: [
+              { id: 'OPEN_PACER', title: '▶️ Count 40x Now' },
+              { id: 'MARK_DONE', title: '✅ Counted (Done)' },
+              { id: 'SNOOZE_2M', title: '💤 Snooze 2m' },
+              { id: 'DISMISS', title: '✕ Dismiss', destructive: true }
+            ]
+          },
+          {
+            id: 'HABIT_ACTIONS',
+            actions: [
+              { id: 'LOG_HABIT', title: '✅ Log +1 Now' },
+              { id: 'SNOOZE_5M', title: '💤 Snooze 5m' },
+              { id: 'DISMISS', title: '✕ Dismiss', destructive: true }
+            ]
+          }
+        ]
+      });
+    } catch (e) {
+      console.warn('Could not register action types:', e);
     }
   }
 
@@ -119,31 +229,40 @@ class NotificationManager {
       // 3. Format notifications payload for Capacitor
       const notifications = slots.map(slot => {
         const ringKey = slot.ringtone || 'ring_classic';
-        const channelConf = NOTIFICATION_CHANNELS[ringKey] || NOTIFICATION_CHANNELS.ring_classic;
+        const alertMode = slot.alertMode || 'sound_vibrate';
+        const { channelId, sound } = resolveNotificationChannel(ringKey, alertMode);
+        const isRotation = slot.category === 'rotation' || slot.category === 'satkin' || slot.actionType === 'pacer_40';
 
-        return {
+        const notif = {
           id: slot.id,
           title: slot.title,
           body: slot.body,
-          channelId: channelConf.id,
-          sound: channelConf.sound,
+          channelId,
+          actionTypeId: isRotation ? 'ROTATION_ACTIONS' : 'HABIT_ACTIONS',
           schedule: {
             at: slot.at,
             allowWhileIdle: true
           },
-          smallIcon: 'ic_stat_icon_config_sample',
-          iconColor: slot.category === 'satkin' ? '#6366f1' : slot.category === 'water' ? '#06b6d4' : slot.category === 'weight' ? '#f59e0b' : '#10b981',
+          smallIcon: 'ic_stat_rotation',
+          iconColor: '#4F46E5',
           extra: {
             slotId: slot.slotId,
             profileId: slot.profileId,
-            category: slot.category,
+            category: slot.category === 'satkin' ? 'rotation' : slot.category,
             actionType: slot.actionType,
             customGoalId: slot.customGoalId || null,
             displayTime: slot.displayTime,
             badgeLabel: slot.badgeLabel,
-            ringtone: ringKey
+            ringtone: ringKey,
+            alertMode
           }
         };
+
+        if (sound) {
+          notif.sound = sound;
+        }
+
+        return notif;
       });
 
       // 4. Batch schedule
@@ -156,34 +275,83 @@ class NotificationManager {
     }
   }
 
+  /**
+   * Schedule a snooze notification (e.g. +2 minutes or +5 minutes).
+   */
+  async scheduleSnooze(originalNotification, minutes = 2) {
+    try {
+      const snoozeTime = new Date(Date.now() + minutes * 60 * 1000);
+      const snoozeId = Math.floor(Date.now() % 100000000);
+      const extra = originalNotification.extra || {};
+      const ringKey = extra.ringtone || 'ring_classic';
+      const alertMode = extra.alertMode || 'sound_vibrate';
+      const { channelId, sound } = resolveNotificationChannel(ringKey, alertMode);
+      const isRotation = extra.category === 'rotation' || extra.actionType === 'pacer_40';
+
+      const snoozeNotif = {
+        id: snoozeId,
+        title: `💤 Snoozed: ${originalNotification.title || 'Reminder'}`,
+        body: originalNotification.body || 'Time for your scheduled rotation / habit.',
+        channelId: channelId || originalNotification.channelId,
+        actionTypeId: isRotation ? 'ROTATION_ACTIONS' : 'HABIT_ACTIONS',
+        schedule: {
+          at: snoozeTime,
+          allowWhileIdle: true
+        },
+        smallIcon: 'ic_stat_rotation',
+        iconColor: '#4F46E5',
+        extra: {
+          ...extra,
+          isSnoozed: true
+        }
+      };
+
+      if (sound) {
+        snoozeNotif.sound = sound;
+      }
+
+      await LocalNotifications.schedule({ notifications: [snoozeNotif] });
+      console.log(`Snooze notification scheduled for ${minutes} minute(s) from now.`);
+      return true;
+    } catch (e) {
+      console.warn('Could not schedule snooze notification:', e);
+      return false;
+    }
+  }
+
   // Quick 5-second test notification
-  async scheduleTestNotification(profileName = 'Satkin Protocol', ringtoneId = 'ring_classic') {
+  async scheduleTestNotification(profileName = 'Rotation Protocol', ringtoneId = 'ring_classic', alertMode = 'sound_vibrate') {
     try {
       await this.requestPermission();
       const testTime = new Date(Date.now() + 5000);
       const ringKey = ringtoneId || 'ring_classic';
-      const channelConf = NOTIFICATION_CHANNELS[ringKey] || NOTIFICATION_CHANNELS.ring_classic;
+      const { channelId, sound } = resolveNotificationChannel(ringKey, alertMode);
 
       const testNotif = {
         id: 99999,
         title: `🔄 ${profileName} [TEST]`,
         body: 'Sit down comfortably and rotate ear balls 40 times. Tap to open the 40x Pacer.',
-        channelId: channelConf.id,
-        sound: channelConf.sound,
+        channelId,
+        actionTypeId: 'ROTATION_ACTIONS',
         schedule: {
           at: testTime,
           allowWhileIdle: true
         },
-        smallIcon: 'ic_stat_icon_config_sample',
-        iconColor: '#6366f1',
+        smallIcon: 'ic_stat_rotation',
+        iconColor: '#4F46E5',
         extra: {
           slotId: 'test_slot',
           actionType: 'pacer_40',
-          category: 'satkin',
+          category: 'rotation',
           displayTime: 'Now',
-          ringtone: ringKey
+          ringtone: ringKey,
+          alertMode
         }
       };
+
+      if (sound) {
+        testNotif.sound = sound;
+      }
 
       await LocalNotifications.schedule({ notifications: [testNotif] });
       return true;
@@ -204,3 +372,4 @@ class NotificationManager {
 }
 
 export const notifications = new NotificationManager();
+

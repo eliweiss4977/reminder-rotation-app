@@ -3,15 +3,24 @@
 // active windows, smart timeline merging, and native 5-day notifications scheduling.
 
 export const PROFILE_CATEGORIES = {
-  SATKIN: 'satkin',
+  ROTATION: 'rotation',
+  SATKIN: 'rotation',
   WEIGHT: 'weight',
   WATER: 'water',
   HABIT: 'habit'
 };
 
 export const CATEGORY_THEMES = {
+  rotation: {
+    label: 'Rotation 40x',
+    colorName: 'indigo',
+    badgeClass: 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40',
+    dotClass: 'bg-indigo-400',
+    btnClass: 'bg-indigo-600 hover:bg-indigo-500 text-white',
+    icon: 'rotate'
+  },
   satkin: {
-    label: 'Satkin 40x',
+    label: 'Rotation 40x',
     colorName: 'indigo',
     badgeClass: 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40',
     dotClass: 'bg-indigo-400',
@@ -139,6 +148,8 @@ export function calculateProfileDailySlots(profile, targetDate = new Date()) {
   const endMins = timeToMinutes(profile.endTime || '23:00');
   const intervalMins = parseInt(profile.intervalMinutes, 10) || 0;
   const ringtone = profile.ringtone || 'ring_classic';
+  const alertMode = profile.alertMode || 'sound_vibrate';
+  const category = (profile.category === 'satkin' ? 'rotation' : profile.category) || 'rotation';
 
   const slotMap = new Map();
 
@@ -152,10 +163,11 @@ export function calculateProfileDailySlots(profile, targetDate = new Date()) {
         id: slotId,
         profileId: profile.id,
         profileName: profile.name,
-        category: profile.category || 'habit',
+        category,
         actionType: profile.actionType || 'check_off',
         customGoalId: profile.customGoalId || null,
         ringtone,
+        alertMode,
         minutes: curr,
         time24,
         displayTime: formatDisplayTime(curr),
@@ -185,10 +197,11 @@ export function calculateProfileDailySlots(profile, targetDate = new Date()) {
         id: slotId,
         profileId: profile.id,
         profileName: profile.name,
-        category: profile.category || 'habit',
+        category,
         actionType: profile.actionType || 'check_off',
         customGoalId: profile.customGoalId || null,
         ringtone,
+        alertMode,
         minutes: m,
         time24,
         displayTime: formatDisplayTime(m),
@@ -220,8 +233,8 @@ export function calculateMergedMultiProfileSchedule(profiles, completedMap = {},
     }
   }
 
-  // Sort chronologically by minutes; tiebreaker by category (satkin -> weight -> water -> habit)
-  const categoryOrder = { satkin: 1, weight: 2, water: 3, habit: 4 };
+  // Sort chronologically by minutes; tiebreaker by category (rotation -> weight -> water -> habit)
+  const categoryOrder = { rotation: 1, satkin: 1, weight: 2, water: 3, habit: 4 };
   allSlots.sort((a, b) => {
     if (a.minutes !== b.minutes) return a.minutes - b.minutes;
     return (categoryOrder[a.category] || 99) - (categoryOrder[b.category] || 99);
@@ -317,10 +330,11 @@ export function calculateMultiProfile5DaysNotificationSlots(profiles, startDate 
             id: notifId,
             slotId: slot.id,
             profileId: profile.id,
-            category: profile.category,
+            category: slot.category,
             actionType: profile.actionType,
             customGoalId: profile.customGoalId || null,
             ringtone: profile.ringtone || 'ring_classic',
+            alertMode: profile.alertMode || 'sound_vibrate',
             at: slotDate,
             timestamp,
             title,

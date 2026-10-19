@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Satkin Pacer</string>
-    <string name="title_activity_main">Satkin Pacer</string>
+    <string name="app_name">Rotation Reminder</string>
+    <string name="title_activity_main">Rotation Reminder</string>
     <string name="package_name">com.satkin.pacer</string>
     <string name="custom_url_scheme">com.satkin.pacer</string>
 </resources>

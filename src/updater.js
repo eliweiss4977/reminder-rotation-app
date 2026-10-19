@@ -66,7 +66,7 @@ class AppUpdater {
     this.isChecking = true;
     this.notifyListeners({ status: 'checking', isManual });
 
-    const fallbackUrl = `https://github.com/${this.repoSlug}/releases/latest/download/satkin-pacer.apk`;
+    const fallbackUrl = `https://github.com/${this.repoSlug}/releases/latest/download/rotation-reminder.apk`;
 
     try {
       const url = `https://api.github.com/repos/${this.repoSlug}/releases/latest?t=${Date.now()}`;
@@ -145,7 +145,7 @@ class AppUpdater {
 
   // Open direct download link in Android native system downloader
   installUpdate(url = null) {
-    const targetUrl = url || this.latestRelease?.downloadUrl || `https://github.com/${this.repoSlug}/releases/latest/download/satkin-pacer.apk`;
+    const targetUrl = url || this.latestRelease?.downloadUrl || `https://github.com/${this.repoSlug}/releases/latest/download/rotation-reminder.apk`;
     console.log('Opening APK download URL:', targetUrl);
 
     try {

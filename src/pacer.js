@@ -1,6 +1,7 @@
 // 40x Sitting Acupressure Ear Ball Rotation Pacer
 import { audio } from './audio.js';
 import { haptics } from './haptics.js';
+import { KeepAwake } from '@capacitor-community/keep-awake';
 import confetti from 'canvas-confetti';
 
 export class PacerController {
@@ -14,6 +15,7 @@ export class PacerController {
     this.timerId = null;
     this.paceIntervalMs = 1200; // 1.2s per rotation as required
     this.onComplete = options.onComplete || (() => {});
+    this.wakeLock = null;
 
     // Elements
     this.counterEl = document.getElementById('pacer-count-display');
@@ -28,6 +30,7 @@ export class PacerController {
     this.closeBtn = document.getElementById('pacer-close-btn');
     this.resetBtn = document.getElementById('pacer-reset-btn');
     this.celebrationEl = document.getElementById('pacer-celebration');
+    this.wakeBadgeEl = document.getElementById('pacer-wake-badge');
 
     this.radius = 110;
     this.circumference = 2 * Math.PI * this.radius;
@@ -70,7 +73,7 @@ export class PacerController {
     });
   }
 
-  open(slot = null) {
+  async open(slot = null) {
     this.targetSlot = slot;
     this.count = 0;
     this.isRunning = false;
@@ -85,6 +88,19 @@ export class PacerController {
       this.celebrationEl.classList.add('hidden');
     }
 
+    // Keep screen awake while pacer modal is active
+    try {
+      await KeepAwake.keepAwake();
+      if (this.wakeBadgeEl) this.wakeBadgeEl.classList.remove('hidden');
+    } catch (e) {
+      if ('wakeLock' in navigator) {
+        try {
+          this.wakeLock = await navigator.wakeLock.request('screen');
+          if (this.wakeBadgeEl) this.wakeBadgeEl.classList.remove('hidden');
+        } catch (err) {}
+      }
+    }
+
     this.updateUI();
     this.modalEl?.classList.remove('hidden');
     this.modalEl?.classList.add('flex');
@@ -94,8 +110,19 @@ export class PacerController {
     haptics.tick();
   }
 
-  close() {
+  async close() {
     this.pauseAutoPacer();
+
+    // Release keep awake
+    try {
+      await KeepAwake.allowSleep();
+    } catch (e) {
+      if (this.wakeLock) {
+        try { await this.wakeLock.release(); } catch (err) {}
+        this.wakeLock = null;
+      }
+    }
+
     this.modalEl?.classList.add('hidden');
     this.modalEl?.classList.remove('flex');
     document.body.classList.remove('overflow-hidden');

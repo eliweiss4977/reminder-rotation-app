@@ -1,0 +1,20 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Rotation Arrows: Crisp White -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M54,32V23l-11,11 11,11v-9c12.15,0 22,9.85 22,22 0,3.71 -0.92,7.23 -2.57,10.27l6.81,6.81C84.31,69.45 86,61.92 86,54c0,-17.67 -14.33,-32 -32,-32zM54,76c-12.15,0 -22,-9.85 -22,-22 0,-3.71 0.92,-7.23 2.57,-10.27l-6.81,-6.81C21.69,38.55 20,46.08 20,54c0,17.67 14.33,32 32,32v9l11,-11 -11,-11v9z"/>
+    <!-- Center Bell: Emerald Core with Gold Rim -->
+    <path
+        android:fillColor="#F59E0B"
+        android:pathData="M54,40a14,14 0 1,0 0,28 14,14 0 1,0 0,-28z"/>
+    <path
+        android:fillColor="#10B981"
+        android:pathData="M54,43a11,11 0 1,0 0,22 11,11 0 1,0 0,-22z"/>
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M54,50a4,4 0 1,0 0,8 4,4 0 1,0 0,-8z"/>
+</vector>

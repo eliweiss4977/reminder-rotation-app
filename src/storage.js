@@ -3,9 +3,9 @@ import { Preferences } from '@capacitor/preferences';
 
 export const ALARM_TEMPLATES = [
   {
-    id: 'template_satkin_2h',
-    name: 'Every 2 Hours (Satkin 40x)',
-    category: 'satkin',
+    id: 'template_rotation_2h',
+    name: 'Every 2 Hours (Rotation 40x)',
+    category: 'rotation',
     actionType: 'pacer_40',
     startTime: '07:00',
     endTime: '23:00',
@@ -14,14 +14,15 @@ export const ALARM_TEMPLATES = [
     durationType: 'days',
     durationValue: 7,
     ringtone: 'ring_classic',
+    alertMode: 'sound_vibrate',
     badge: 'Popular',
     icon: '🔄',
     description: 'Standard 40x acupressure rotation every 2h from 7 AM to 11 PM'
   },
   {
-    id: 'template_satkin_2h_2_7',
-    name: 'Every 2h + 2:00 & 7:00 PM (Satkin 40x)',
-    category: 'satkin',
+    id: 'template_rotation_2h_2_7',
+    name: 'Every 2h + 2:00 & 7:00 PM (Rotation 40x)',
+    category: 'rotation',
     actionType: 'pacer_40',
     startTime: '07:00',
     endTime: '23:00',
@@ -30,14 +31,15 @@ export const ALARM_TEMPLATES = [
     durationType: 'days',
     durationValue: 7,
     ringtone: 'ring_classic',
+    alertMode: 'sound_vibrate',
     badge: 'Recommended',
     icon: '⭐',
     description: '2h schedule + afternoon (2 PM) & evening (7 PM) priority acupressure'
   },
   {
-    id: 'template_satkin_2h_3_7',
-    name: 'Every 2h + 3:00 & 7:00 PM (Satkin 40x)',
-    category: 'satkin',
+    id: 'template_rotation_2h_3_7',
+    name: 'Every 2h + 3:00 & 7:00 PM (Rotation 40x)',
+    category: 'rotation',
     actionType: 'pacer_40',
     startTime: '07:00',
     endTime: '23:00',
@@ -46,14 +48,15 @@ export const ALARM_TEMPLATES = [
     durationType: 'days',
     durationValue: 7,
     ringtone: 'ring_crystal',
+    alertMode: 'sound_vibrate',
     badge: 'Alternative',
     icon: '🕒',
     description: '2h schedule with 3:00 PM & 7:00 PM key acupressure checkpoints'
   },
   {
-    id: 'template_satkin_1_5h_4_7',
-    name: 'Every 1.5h + 4:00 & 7:00 PM (Satkin 40x)',
-    category: 'satkin',
+    id: 'template_rotation_1_5h_4_7',
+    name: 'Every 1.5h + 4:00 & 7:00 PM (Rotation 40x)',
+    category: 'rotation',
     actionType: 'pacer_40',
     startTime: '07:00',
     endTime: '23:00',
@@ -62,6 +65,7 @@ export const ALARM_TEMPLATES = [
     durationType: 'days',
     durationValue: 7,
     ringtone: 'ring_crystal',
+    alertMode: 'sound_vibrate',
     badge: 'Intense',
     icon: '⚡',
     description: 'Accelerated 90-min protocol with 4 PM & 7 PM checkpoints'
@@ -78,6 +82,7 @@ export const ALARM_TEMPLATES = [
     durationType: 'indefinite',
     durationValue: 0,
     ringtone: 'ring_double',
+    alertMode: 'sound_vibrate',
     badge: 'Hydration',
     icon: '💧',
     description: 'Stay hydrated with a glass of water every 2 hours until 11 PM'
@@ -94,6 +99,7 @@ export const ALARM_TEMPLATES = [
     durationType: 'indefinite',
     durationValue: 0,
     ringtone: 'ring_marimba',
+    alertMode: 'sound_vibrate',
     badge: 'Posture',
     icon: '🚶',
     description: 'Stand up, stretch and walk for 5 minutes every 3 hours'
@@ -110,6 +116,7 @@ export const ALARM_TEMPLATES = [
     durationType: 'indefinite',
     durationValue: 0,
     ringtone: 'ring_woodblock',
+    alertMode: 'sound_vibrate',
     badge: 'Daily',
     icon: '⚖️',
     description: 'Consistent morning weigh-in right after waking up'
@@ -117,7 +124,7 @@ export const ALARM_TEMPLATES = [
   {
     id: 'template_custom_alarm',
     name: 'Custom Alarm / Reminder',
-    category: 'satkin',
+    category: 'rotation',
     actionType: 'pacer_40',
     startTime: '07:00',
     endTime: '23:00',
@@ -126,6 +133,7 @@ export const ALARM_TEMPLATES = [
     durationType: 'indefinite',
     durationValue: 0,
     ringtone: 'ring_classic',
+    alertMode: 'sound_vibrate',
     badge: 'Custom',
     icon: '🎯',
     description: 'Build your own custom reminder times, cadence & ringtone'
@@ -145,13 +153,14 @@ export const INITIAL_PROFILES = [
     durationType: 'indefinite',
     durationValue: 0,
     ringtone: 'ring_woodblock',
+    alertMode: 'sound_vibrate',
     activatedAt: Date.now(),
     actionType: 'log_weight'
   },
   {
-    id: 'prof_satkin_a',
-    name: 'Satkin Protocol (2h + 2:00 & 7:00)',
-    category: 'satkin',
+    id: 'prof_rotation_a',
+    name: 'Rotation Protocol (2h + 2:00 & 7:00)',
+    category: 'rotation',
     enabled: true,
     startTime: '07:00',
     endTime: '23:00',
@@ -160,13 +169,14 @@ export const INITIAL_PROFILES = [
     durationType: 'days',
     durationValue: 7,
     ringtone: 'ring_classic',
+    alertMode: 'sound_vibrate',
     activatedAt: Date.now(),
     actionType: 'pacer_40'
   },
   {
-    id: 'prof_satkin_b',
-    name: 'Satkin Protocol (1.5h + 4:00 & 7:00)',
-    category: 'satkin',
+    id: 'prof_rotation_b',
+    name: 'Rotation Protocol (1.5h + 4:00 & 7:00)',
+    category: 'rotation',
     enabled: false,
     startTime: '07:00',
     endTime: '23:00',
@@ -175,6 +185,7 @@ export const INITIAL_PROFILES = [
     durationType: 'days',
     durationValue: 7,
     ringtone: 'ring_crystal',
+    alertMode: 'sound_vibrate',
     activatedAt: Date.now(),
     actionType: 'pacer_40'
   },
@@ -190,6 +201,7 @@ export const INITIAL_PROFILES = [
     durationType: 'indefinite',
     durationValue: 0,
     ringtone: 'ring_double',
+    alertMode: 'sound_vibrate',
     activatedAt: Date.now(),
     actionType: 'log_water'
   },
@@ -205,6 +217,7 @@ export const INITIAL_PROFILES = [
     durationType: 'indefinite',
     durationValue: 0,
     ringtone: 'ring_marimba',
+    alertMode: 'sound_vibrate',
     activatedAt: Date.now(),
     actionType: 'check_off'
   }
@@ -215,6 +228,13 @@ export const DEFAULT_WEIGHT_SETTINGS = {
   startWeight: 185.0,
   currentWeight: 181.4,
   goalWeight: 170.0
+};
+
+export const DEFAULT_BODY_PROFILE = {
+  heightUnit: 'ft_in', // 'ft_in' | 'cm'
+  heightFeet: 5,
+  heightInches: 10,
+  heightCm: 178
 };
 
 export const INITIAL_WEIGHT_LOGS = [
@@ -235,8 +255,8 @@ export const INITIAL_CUSTOM_GOALS = [
     stepAmount: 1
   },
   {
-    id: 'goal_seated_satkin',
-    title: 'All Satkin Rotations Seated',
+    id: 'goal_seated_rotation',
+    title: 'All Rotations Seated',
     icon: '🪑',
     goalType: 'boolean',
     targetValue: 1,
@@ -260,14 +280,93 @@ function getPastDateStr(daysAgo) {
   return d.toISOString().split('T')[0];
 }
 
+// BMI & Milestone Helper Functions
+export function calculateTotalHeightInches(bodyProfile) {
+  if (!bodyProfile) return 70;
+  if (bodyProfile.heightUnit === 'cm') {
+    return (parseFloat(bodyProfile.heightCm) || 178) / 2.54;
+  }
+  return (parseInt(bodyProfile.heightFeet, 10) || 5) * 12 + (parseFloat(bodyProfile.heightInches) || 0);
+}
+
+export function calculateTotalHeightMeters(bodyProfile) {
+  if (!bodyProfile) return 1.78;
+  if (bodyProfile.heightUnit === 'cm') {
+    return (parseFloat(bodyProfile.heightCm) || 178) / 100;
+  }
+  return calculateTotalHeightInches(bodyProfile) * 0.0254;
+}
+
+export function calculateBMI(weightValue, weightUnit, bodyProfile) {
+  if (!weightValue || weightValue <= 0) return null;
+  const hMeters = calculateTotalHeightMeters(bodyProfile);
+  if (!hMeters || hMeters <= 0) return null;
+  const weightKg = weightUnit === 'lbs' ? weightValue * 0.45359237 : weightValue;
+  const bmi = weightKg / (hMeters * hMeters);
+  return Math.round(bmi * 10) / 10;
+}
+
+export function getBMICategory(bmi) {
+  if (!bmi) return { label: 'Unknown', color: 'slate', badgeClass: 'bg-slate-800 text-slate-300 border border-slate-700' };
+  if (bmi < 18.5) {
+    return { label: 'Underweight', color: 'blue', badgeClass: 'bg-blue-500/20 text-blue-300 border border-blue-500/40' };
+  }
+  if (bmi < 25.0) {
+    return { label: 'Healthy Weight', color: 'emerald', badgeClass: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' };
+  }
+  if (bmi < 30.0) {
+    return { label: 'Overweight', color: 'amber', badgeClass: 'bg-amber-500/20 text-amber-300 border border-amber-500/40' };
+  }
+  if (bmi < 35.0) {
+    return { label: 'Obesity Class I', color: 'orange', badgeClass: 'bg-orange-500/20 text-orange-300 border border-orange-500/40' };
+  }
+  if (bmi < 40.0) {
+    return { label: 'Obesity Class II', color: 'rose', badgeClass: 'bg-rose-500/20 text-rose-300 border border-rose-500/40' };
+  }
+  return { label: 'Obesity Class III', color: 'red', badgeClass: 'bg-red-500/20 text-red-300 border border-red-500/40' };
+}
+
+export function calculateMilestoneLadder(currentWeight, weightUnit, bodyProfile) {
+  const hMeters = calculateTotalHeightMeters(bodyProfile);
+  if (!hMeters || !currentWeight) return [];
+
+  const milestones = [
+    { id: 'exit_class_3', name: 'Exit Obesity Class III', targetBMI: 39.9, badge: '< 40.0 BMI' },
+    { id: 'exit_class_2', name: 'Exit Obesity Class II', targetBMI: 34.9, badge: '< 35.0 BMI' },
+    { id: 'exit_class_1', name: 'Exit Class I / Overweight', targetBMI: 29.9, badge: '< 30.0 BMI' },
+    { id: 'reach_healthy', name: 'Enter Healthy Weight', targetBMI: 24.9, badge: '< 25.0 BMI' }
+  ];
+
+  return milestones.map(m => {
+    const targetKg = m.targetBMI * (hMeters * hMeters);
+    const targetWeight = weightUnit === 'lbs' ? Math.round((targetKg / 0.45359237) * 10) / 10 : Math.round(targetKg * 10) / 10;
+    const diff = Math.round((currentWeight - targetWeight) * 10) / 10;
+    const isAchieved = currentWeight <= targetWeight;
+
+    return {
+      ...m,
+      targetWeight,
+      remainingWeight: Math.max(0, diff),
+      isAchieved
+    };
+  });
+}
+
 const KEYS = {
-  PROFILES: 'satkin_profiles',
-  COMPLETIONS: 'satkin_completions',
-  WATER: 'satkin_water',
-  WEIGHT_SETTINGS: 'satkin_weight_settings',
-  WEIGHT_LOGS: 'satkin_weight_logs',
-  CUSTOM_GOALS: 'satkin_custom_goals',
-  GOAL_LOGS: 'satkin_goal_logs'
+  PROFILES: 'rotation_profiles',
+  LEGACY_PROFILES: 'satkin_profiles',
+  COMPLETIONS: 'rotation_completions',
+  LEGACY_COMPLETIONS: 'satkin_completions',
+  WATER: 'rotation_water',
+  WEIGHT_SETTINGS: 'rotation_weight_settings',
+  LEGACY_WEIGHT_SETTINGS: 'satkin_weight_settings',
+  WEIGHT_LOGS: 'rotation_weight_logs',
+  LEGACY_WEIGHT_LOGS: 'satkin_weight_logs',
+  CUSTOM_GOALS: 'rotation_custom_goals',
+  LEGACY_CUSTOM_GOALS: 'satkin_custom_goals',
+  GOAL_LOGS: 'rotation_goal_logs',
+  LEGACY_GOAL_LOGS: 'satkin_goal_logs',
+  BODY_PROFILE: 'rotation_body_profile'
 };
 
 class StorageEngine {
@@ -301,11 +400,29 @@ class StorageEngine {
   async getProfiles() {
     let profiles = await this.get(KEYS.PROFILES, null);
     if (!profiles || !Array.isArray(profiles) || profiles.length === 0) {
+      // Fallback check legacy satkin_profiles
+      profiles = await this.get(KEYS.LEGACY_PROFILES, null);
+    }
+
+    if (!profiles || !Array.isArray(profiles) || profiles.length === 0) {
       await this.saveProfiles(INITIAL_PROFILES);
       return INITIAL_PROFILES;
     }
+
     let modified = false;
     profiles.forEach(p => {
+      if (p.category === 'satkin') {
+        p.category = 'rotation';
+        modified = true;
+      }
+      if (!p.alertMode) {
+        p.alertMode = 'sound_vibrate';
+        modified = true;
+      }
+      if (p.name && p.name.includes('Satkin')) {
+        p.name = p.name.replace(/Satkin/g, 'Rotation');
+        modified = true;
+      }
       if (!p.ringtone) {
         p.ringtone = p.category === 'weight' ? 'ring_woodblock' : p.category === 'water' ? 'ring_double' : 'ring_classic';
         modified = true;
@@ -315,6 +432,7 @@ class StorageEngine {
         modified = true;
       }
     });
+
     // Ensure pre-seeded Morning Weigh-In exists
     if (!profiles.some(p => p.actionType === 'log_weight' || p.id === 'prof_morning_weigh_in')) {
       profiles.unshift(INITIAL_PROFILES[0]);
@@ -363,9 +481,23 @@ class StorageEngine {
     return profiles;
   }
 
+  // --- Body Profile Operations ---
+  async getBodyProfile() {
+    const saved = await this.get(KEYS.BODY_PROFILE, null);
+    return saved ? { ...DEFAULT_BODY_PROFILE, ...saved } : { ...DEFAULT_BODY_PROFILE };
+  }
+
+  async saveBodyProfile(bodyProfile) {
+    await this.set(KEYS.BODY_PROFILE, bodyProfile);
+    return bodyProfile;
+  }
+
   // --- Weight Engine Operations ---
   async getWeightSettings() {
-    const saved = await this.get(KEYS.WEIGHT_SETTINGS, null);
+    let saved = await this.get(KEYS.WEIGHT_SETTINGS, null);
+    if (!saved) {
+      saved = await this.get(KEYS.LEGACY_WEIGHT_SETTINGS, null);
+    }
     return saved ? { ...DEFAULT_WEIGHT_SETTINGS, ...saved } : { ...DEFAULT_WEIGHT_SETTINGS };
   }
 
@@ -375,7 +507,10 @@ class StorageEngine {
   }
 
   async getWeightLogs() {
-    const logs = await this.get(KEYS.WEIGHT_LOGS, null);
+    let logs = await this.get(KEYS.WEIGHT_LOGS, null);
+    if (!logs || !Array.isArray(logs) || logs.length === 0) {
+      logs = await this.get(KEYS.LEGACY_WEIGHT_LOGS, null);
+    }
     if (!logs || !Array.isArray(logs) || logs.length === 0) {
       await this.set(KEYS.WEIGHT_LOGS, INITIAL_WEIGHT_LOGS);
       return INITIAL_WEIGHT_LOGS;
@@ -422,10 +557,24 @@ class StorageEngine {
 
   // --- Custom Goals Engine Operations ---
   async getCustomGoals() {
-    const goals = await this.get(KEYS.CUSTOM_GOALS, null);
+    let goals = await this.get(KEYS.CUSTOM_GOALS, null);
+    if (!goals || !Array.isArray(goals) || goals.length === 0) {
+      goals = await this.get(KEYS.LEGACY_CUSTOM_GOALS, null);
+    }
     if (!goals || !Array.isArray(goals) || goals.length === 0) {
       await this.set(KEYS.CUSTOM_GOALS, INITIAL_CUSTOM_GOALS);
       return INITIAL_CUSTOM_GOALS;
+    }
+    // Rename any legacy seated goal title
+    let modified = false;
+    goals.forEach(g => {
+      if (g.id === 'goal_seated_satkin' || (g.title && g.title.includes('Satkin'))) {
+        g.title = g.title.replace(/Satkin/g, 'Rotation');
+        modified = true;
+      }
+    });
+    if (modified) {
+      await this.saveCustomGoals(goals);
     }
     return goals;
   }
@@ -459,7 +608,11 @@ class StorageEngine {
   }
 
   async getGoalLogs() {
-    return await this.get(KEYS.GOAL_LOGS, {});
+    let logs = await this.get(KEYS.GOAL_LOGS, null);
+    if (!logs) {
+      logs = await this.get(KEYS.LEGACY_GOAL_LOGS, {});
+    }
+    return logs || {};
   }
 
   async getTodayGoalValue(goalId, dateStr = new Date().toISOString().split('T')[0]) {
@@ -508,7 +661,11 @@ class StorageEngine {
 
   // --- Completion Tracking ---
   async getCompletions() {
-    return await this.get(KEYS.COMPLETIONS, {});
+    let comps = await this.get(KEYS.COMPLETIONS, null);
+    if (!comps) {
+      comps = await this.get(KEYS.LEGACY_COMPLETIONS, {});
+    }
+    return comps || {};
   }
 
   async toggleSlotCompletion(slotId, dateStr = new Date().toISOString().split('T')[0]) {

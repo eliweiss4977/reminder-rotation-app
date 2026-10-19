@@ -1,4 +1,4 @@
-// Main Application Controller for Satkin Multi-Profile Reminder, Weight & Habit Engine
+// Main Application Controller for Rotation Reminder & Habit Engine
 import './style.css';
 import { audio, RINGTONES } from './audio.js';
 import { haptics } from './haptics.js';
@@ -13,12 +13,19 @@ import {
   calculateProfileDailySlots,
   calculateMergedMultiProfileSchedule
 } from './scheduleEngine.js';
-import { storage, ALARM_TEMPLATES } from './storage.js';
+import {
+  storage,
+  ALARM_TEMPLATES,
+  DEFAULT_BODY_PROFILE,
+  calculateBMI,
+  getBMICategory,
+  calculateMilestoneLadder
+} from './storage.js';
 import { notifications } from './notifications.js';
 import { PacerController } from './pacer.js';
 import { updater } from './updater.js';
 
-class SatkinApp {
+class RotationReminderApp {
   constructor() {
     this.profiles = [];
     this.completions = {};
@@ -28,8 +35,9 @@ class SatkinApp {
     this.countdownTimer = null;
     this.pacer = null;
 
-    // Weight & Goals state
+    // Weight, Body Profile & Goals state
     this.weightSettings = { unit: 'lbs', startWeight: 185.0, currentWeight: 181.4, goalWeight: 170.0 };
+    this.bodyProfile = { ...DEFAULT_BODY_PROFILE };
     this.weightLogs = [];
     this.chartRange = '7d';
     this.customGoals = [];
@@ -37,12 +45,13 @@ class SatkinApp {
 
     // Profile editor modal state
     this.editingProfileId = null;
-    this.editorCategory = PROFILE_CATEGORIES.SATKIN;
+    this.editorCategory = PROFILE_CATEGORIES.ROTATION;
     this.editorInterval = 120;
     this.editorFixedTimes = [];
     this.editorDurationType = 'days';
     this.editorDurationValue = 7;
     this.editorRingtone = 'ring_classic';
+    this.editorAlertMode = 'sound_vibrate';
     this.editorLinkedGoalId = null;
 
     // Custom Goal modal state
@@ -57,6 +66,7 @@ class SatkinApp {
     this.profiles = await storage.getProfiles();
     this.completions = await storage.getCompletions();
     this.weightSettings = await storage.getWeightSettings();
+    this.bodyProfile = await storage.getBodyProfile();
     this.weightLogs = await storage.getWeightLogs();
     this.customGoals = await storage.getCustomGoals();
     this.goalLogs = await storage.getGoalLogs();
@@ -66,13 +76,35 @@ class SatkinApp {
       onComplete: (slot) => this.onPacerCompletedSlot(slot)
     });
 
-    // 3. Initialize Native Notifications & handle notification action tap
-    await notifications.init((extra) => {
-      console.log('App opened from notification tap with extra:', extra);
+    // 3. Initialize Native Notifications & handle interactive actions
+    await notifications.init((extra, actionId) => {
+      console.log('App opened from notification action:', { extra, actionId });
       const slotId = extra.slotId;
       const targetSlot = this.currentSchedule.find(s => s.id === slotId) || this.nextSlot;
 
-      if (extra.actionType === 'pacer_40' || extra.category === 'satkin') {
+      if (actionId === 'MARK_DONE' && slotId) {
+        storage.markSlotCompleted(slotId).then(all => {
+          this.completions = all;
+          this.refreshAll();
+        });
+        return;
+      }
+
+      if (actionId === 'LOG_HABIT') {
+        if (extra.actionType === 'log_water') {
+          this.triggerGoalIncrement('goal_water', slotId);
+        } else if (extra.customGoalId) {
+          this.triggerGoalIncrement(extra.customGoalId, slotId);
+        } else if (slotId) {
+          storage.markSlotCompleted(slotId).then(all => {
+            this.completions = all;
+            this.refreshAll();
+          });
+        }
+        return;
+      }
+
+      if (extra.actionType === 'pacer_40' || extra.category === 'rotation' || extra.category === 'satkin' || actionId === 'OPEN_PACER') {
         this.pacer.open(targetSlot);
       } else if (extra.actionType === 'log_weight' || extra.category === 'weight') {
         this.openWeightModal(slotId);
@@ -92,6 +124,7 @@ class SatkinApp {
     this.bindEvents();
     this.bindProfileEditorEvents();
     this.bindWeightEvents();
+    this.bindBodyProfileEvents();
     this.bindCustomGoalEvents();
     this.bindUpdaterEvents();
 
@@ -239,6 +272,7 @@ class SatkinApp {
       this.renderTimelineList();
     } else if (tab === 'stats') {
       this.renderWeightSection();
+      this.renderBodyProfileAndMilestones();
       this.renderCustomGoalsSection();
     }
   }
@@ -263,6 +297,7 @@ class SatkinApp {
 
     // 5. Render Stats Tab
     this.renderWeightSection();
+    this.renderBodyProfileAndMilestones();
     this.renderCustomGoalsSection();
   }
 
@@ -623,11 +658,50 @@ class SatkinApp {
     const todayCompleted = this.completions[todayDateKey] || {};
 
     this.profiles.forEach(p => {
-      const theme = CATEGORY_THEMES[p.category] || CATEGORY_THEMES.satkin;
+      const theme = CATEGORY_THEMES[p.category] || CATEGORY_THEMES.rotation || CATEGORY_THEMES.satkin;
       const isExpired = isProfileExpired(p);
       const remainingText = getProfileRemainingText(p);
       const ringKey = p.ringtone || 'ring_classic';
       const ringMeta = RINGTONES.find(r => r.id === ringKey) || RINGTONES[0];
+      const alertMode = p.alertMode || 'sound_vibrate';
+
+      let alertModeBadge = '';
+      if (alertMode === 'vibrate_only') {
+        alertModeBadge = '<span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">📳 Vibrate Only</span>';
+      } else if (alertMode === 'sound_only') {
+        alertModeBadge = '<span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">🔉 Sound Only</span>';
+      } else {
+        alertModeBadge = '<span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">🔊 Sound & Vibe</span>';
+      }
+
+      let audioPreviewRow = '';
+      if (alertMode === 'vibrate_only') {
+        audioPreviewRow = `
+          <div class="flex items-center justify-between bg-slate-900/80 px-3 py-1.5 rounded-xl border border-slate-800 text-xs">
+            <div class="flex items-center gap-2">
+              <span class="text-xs">📳</span>
+              <span class="text-slate-300 text-[11px] font-semibold">Vibrate Only (Silent Alarm)</span>
+            </div>
+            <button type="button" data-test-vibe="${p.id}" class="active-press px-2 py-0.5 rounded-md bg-slate-800 hover:bg-slate-700 text-indigo-300 font-semibold text-[11px] border border-indigo-500/20 flex items-center gap-1 transition">
+              <span>📳</span>
+              <span>Test Vibe</span>
+            </button>
+          </div>
+        `;
+      } else {
+        audioPreviewRow = `
+          <div class="flex items-center justify-between bg-slate-900/80 px-3 py-1.5 rounded-xl border border-slate-800 text-xs">
+            <div class="flex items-center gap-2">
+              <span class="text-xs">${ringMeta.icon}</span>
+              <span class="text-slate-300 text-[11px] font-semibold">${ringMeta.name}</span>
+            </div>
+            <button type="button" data-test-ringtone="${ringKey}" class="active-press px-2 py-0.5 rounded-md bg-slate-800 hover:bg-slate-700 text-amber-300 font-semibold text-[11px] border border-amber-500/20 flex items-center gap-1 transition">
+              <span>🔊</span>
+              <span>Test Sound</span>
+            </button>
+          </div>
+        `;
+      }
 
       const card = document.createElement('div');
       card.className = `p-4 rounded-2xl glass-card border border-slate-800/80 space-y-3 transition-all ${
@@ -677,6 +751,7 @@ class SatkinApp {
               <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
                 ${remainingText}
               </span>
+              ${alertModeBadge}
             </div>
             <h3 class="text-sm font-bold text-white pt-0.5">${p.name}</h3>
             <div class="flex items-center gap-2 text-[11px] text-slate-400">
@@ -693,17 +768,8 @@ class SatkinApp {
           </label>
         </div>
 
-        <!-- Ringtone Preview Pill -->
-        <div class="flex items-center justify-between bg-slate-900/80 px-3 py-1.5 rounded-xl border border-slate-800 text-xs">
-          <div class="flex items-center gap-2">
-            <span class="text-xs">${ringMeta.icon}</span>
-            <span class="text-slate-300 text-[11px] font-semibold">${ringMeta.name}</span>
-          </div>
-          <button type="button" data-test-ringtone="${ringKey}" class="active-press px-2 py-0.5 rounded-md bg-slate-800 hover:bg-slate-700 text-amber-300 font-semibold text-[11px] border border-amber-500/20 flex items-center gap-1 transition">
-            <span>🔊</span>
-            <span>Test Sound</span>
-          </button>
-        </div>
+        <!-- Alert Mode & Sound / Vibe Preview Row -->
+        ${audioPreviewRow}
 
         <!-- Today's exact ring times expandable / horizontal flow -->
         <div class="space-y-1 pt-1 border-t border-slate-800/60">
@@ -746,6 +812,12 @@ class SatkinApp {
         e.stopPropagation();
         const rKey = e.currentTarget.getAttribute('data-test-ringtone') || 'ring_classic';
         audio.playRingtone(rKey);
+        haptics.milestone();
+      });
+
+      // Test vibration preview
+      card.querySelector('[data-test-vibe]')?.addEventListener('click', (e) => {
+        e.stopPropagation();
         haptics.milestone();
       });
 
@@ -1471,6 +1543,23 @@ class SatkinApp {
       }
     });
 
+    // Alert Mode buttons (Sound & Vibe, Sound Only, Vibrate Only)
+    document.getElementById('alert-mode-sv')?.addEventListener('click', () => {
+      haptics.tick();
+      this.setEditorAlertMode('sound_vibrate');
+    });
+    document.getElementById('alert-mode-so')?.addEventListener('click', () => {
+      haptics.tick();
+      this.setEditorAlertMode('sound_only');
+    });
+    document.getElementById('alert-mode-vo')?.addEventListener('click', () => {
+      haptics.tick();
+      this.setEditorAlertMode('vibrate_only');
+    });
+    document.getElementById('alert-mode-test-vibe-btn')?.addEventListener('click', () => {
+      haptics.milestone();
+    });
+
     // Save profile button
     document.getElementById('edit-save-btn')?.addEventListener('click', () => {
       this.saveEditorProfile();
@@ -1515,12 +1604,13 @@ class SatkinApp {
       if (endInput) endInput.value = profile.endTime || '23:00';
       if (durValueInput) durValueInput.value = profile.durationValue || 7;
 
-      this.editorCategory = profile.category || PROFILE_CATEGORIES.SATKIN;
+      this.editorCategory = profile.category || PROFILE_CATEGORIES.ROTATION;
       this.editorInterval = profile.intervalMinutes !== undefined ? profile.intervalMinutes : 120;
       this.editorFixedTimes = [...(profile.specialFixedTimes || [])];
       this.editorDurationType = profile.durationType || 'days';
       this.editorDurationValue = profile.durationValue || 7;
       this.editorRingtone = profile.ringtone || 'ring_classic';
+      this.editorAlertMode = profile.alertMode || 'sound_vibrate';
       this.editorLinkedGoalId = profile.customGoalId || null;
 
       if (profile.actionType === 'custom_goal') {
@@ -1533,6 +1623,7 @@ class SatkinApp {
       this.setEditorCategory(this.editorCategory);
       this.setEditorInterval(this.editorInterval);
       this.setEditorDurationType(this.editorDurationType);
+      this.setEditorAlertMode(this.editorAlertMode);
       this.updateSpecialChipsUI();
       this.renderEditorFixedChips();
       this.renderRingtonePicker();
@@ -1622,12 +1713,13 @@ class SatkinApp {
     if (endInput) endInput.value = tpl.endTime || '23:00';
     if (durValueInput) durValueInput.value = tpl.durationValue || 7;
 
-    this.editorCategory = tpl.category || PROFILE_CATEGORIES.SATKIN;
+    this.editorCategory = tpl.category || PROFILE_CATEGORIES.ROTATION;
     this.editorInterval = tpl.intervalMinutes !== undefined ? tpl.intervalMinutes : 120;
     this.editorFixedTimes = [...(tpl.specialFixedTimes || [])];
     this.editorDurationType = tpl.durationType || 'days';
     this.editorDurationValue = tpl.durationValue || 7;
     this.editorRingtone = tpl.ringtone || 'ring_classic';
+    this.editorAlertMode = tpl.alertMode || 'sound_vibrate';
     this.editorLinkedGoalId = null;
 
     if (tpl.actionType === 'custom_goal') {
@@ -1640,6 +1732,7 @@ class SatkinApp {
     this.setEditorCategory(this.editorCategory);
     this.setEditorInterval(this.editorInterval);
     this.setEditorDurationType(this.editorDurationType);
+    this.setEditorAlertMode(this.editorAlertMode);
     this.updateSpecialChipsUI();
     this.renderEditorFixedChips();
     this.renderRingtonePicker();
@@ -1895,6 +1988,7 @@ class SatkinApp {
       durationType: this.editorDurationType,
       durationValue: durationVal,
       ringtone: this.editorRingtone || 'ring_classic',
+      alertMode: this.editorAlertMode || 'sound_vibrate',
       activatedAt: Date.now(),
       actionType,
       customGoalId
@@ -1910,9 +2004,223 @@ class SatkinApp {
 
     this.refreshAll();
   }
+
+  setEditorAlertMode(mode = 'sound_vibrate') {
+    this.editorAlertMode = mode;
+    const btnSV = document.getElementById('alert-mode-sv');
+    const btnSO = document.getElementById('alert-mode-so');
+    const btnVO = document.getElementById('alert-mode-vo');
+    const vibeRow = document.getElementById('alert-mode-vibrate-test-row');
+    const ringtoneContainer = document.getElementById('wizard-ringtone-container');
+
+    [btnSV, btnSO, btnVO].forEach(b => {
+      b?.classList.remove('bg-indigo-600', 'text-white', 'font-bold', 'border-indigo-500', 'shadow');
+      b?.classList.add('bg-slate-900', 'border-slate-800', 'text-slate-300', 'font-medium');
+    });
+
+    if (mode === 'vibrate_only') {
+      btnVO?.classList.add('bg-indigo-600', 'text-white', 'font-bold', 'border-indigo-500', 'shadow');
+      btnVO?.classList.remove('bg-slate-900', 'border-slate-800', 'text-slate-300', 'font-medium');
+      vibeRow?.classList.remove('hidden');
+      if (ringtoneContainer) ringtoneContainer.classList.add('opacity-40', 'pointer-events-none');
+    } else if (mode === 'sound_only') {
+      btnSO?.classList.add('bg-indigo-600', 'text-white', 'font-bold', 'border-indigo-500', 'shadow');
+      btnSO?.classList.remove('bg-slate-900', 'border-slate-800', 'text-slate-300', 'font-medium');
+      vibeRow?.classList.add('hidden');
+      if (ringtoneContainer) ringtoneContainer.classList.remove('opacity-40', 'pointer-events-none');
+    } else {
+      btnSV?.classList.add('bg-indigo-600', 'text-white', 'font-bold', 'border-indigo-500', 'shadow');
+      btnSV?.classList.remove('bg-slate-900', 'border-slate-800', 'text-slate-300', 'font-medium');
+      vibeRow?.classList.add('hidden');
+      if (ringtoneContainer) ringtoneContainer.classList.remove('opacity-40', 'pointer-events-none');
+    }
+  }
+
+  // --- LOCAL PERSONAL BODY PROFILE & STAGE MILESTONES ---
+  bindBodyProfileEvents() {
+    // Height Unit Toggle
+    document.getElementById('body-height-unit-toggle')?.addEventListener('click', () => {
+      haptics.tick();
+      this.bodyProfile.heightUnit = this.bodyProfile.heightUnit === 'cm' ? 'ft_in' : 'cm';
+      this.syncBodyProfileHeightUI();
+      this.renderBodyProfileAndMilestones();
+    });
+
+    // Save Height Button
+    document.getElementById('body-height-save-btn')?.addEventListener('click', async () => {
+      const feetEl = document.getElementById('body-height-feet');
+      const inchesEl = document.getElementById('body-height-inches');
+      const cmEl = document.getElementById('body-height-cm');
+
+      if (this.bodyProfile.heightUnit === 'cm') {
+        const cm = parseFloat(cmEl?.value);
+        if (isNaN(cm) || cm < 50 || cm > 260) {
+          alert('Please enter a valid height in centimeters (50 - 260 cm).');
+          return;
+        }
+        this.bodyProfile.heightCm = Math.round(cm);
+      } else {
+        const ft = parseInt(feetEl?.value, 10);
+        const inc = parseFloat(inchesEl?.value);
+        if (isNaN(ft) || ft < 2 || ft > 8 || isNaN(inc) || inc < 0 || inc >= 12) {
+          alert('Please enter valid feet (2-8) and inches (0-11.9).');
+          return;
+        }
+        this.bodyProfile.heightFeet = ft;
+        this.bodyProfile.heightInches = Math.round(inc * 10) / 10;
+      }
+
+      await storage.saveBodyProfile(this.bodyProfile);
+      haptics.success();
+      this.renderBodyProfileAndMilestones();
+
+      const btn = document.getElementById('body-height-save-btn');
+      if (btn) {
+        const origText = btn.textContent;
+        btn.textContent = '✓ Height Updated';
+        btn.classList.add('bg-emerald-600');
+        setTimeout(() => {
+          btn.textContent = origText;
+          btn.classList.remove('bg-emerald-600');
+        }, 1200);
+      }
+    });
+  }
+
+  syncBodyProfileHeightUI() {
+    const isCm = this.bodyProfile.heightUnit === 'cm';
+    const labelEl = document.getElementById('body-height-unit-label');
+    const impRow = document.getElementById('body-height-imperial-row');
+    const metricRow = document.getElementById('body-height-metric-row');
+    const feetEl = document.getElementById('body-height-feet');
+    const inchesEl = document.getElementById('body-height-inches');
+    const cmEl = document.getElementById('body-height-cm');
+
+    if (labelEl) labelEl.textContent = isCm ? 'cm' : 'ft / in';
+
+    if (isCm) {
+      impRow?.classList.add('hidden');
+      metricRow?.classList.remove('hidden');
+      if (cmEl) cmEl.value = this.bodyProfile.heightCm || 178;
+    } else {
+      metricRow?.classList.add('hidden');
+      impRow?.classList.remove('hidden');
+      if (feetEl) feetEl.value = this.bodyProfile.heightFeet || 5;
+      if (inchesEl) inchesEl.value = this.bodyProfile.heightInches || 10;
+    }
+  }
+
+  renderBodyProfileAndMilestones() {
+    this.syncBodyProfileHeightUI();
+
+    const badgeDisplay = document.getElementById('body-height-display-badge');
+    const isCm = this.bodyProfile.heightUnit === 'cm';
+    if (badgeDisplay) {
+      badgeDisplay.textContent = isCm
+        ? `${this.bodyProfile.heightCm || 178} cm`
+        : `${this.bodyProfile.heightFeet || 5} ft ${this.bodyProfile.heightInches || 0} in`;
+    }
+
+    const currentWeight = this.weightSettings.currentWeight || 180.0;
+    const unit = this.weightSettings.unit || 'lbs';
+
+    const bmiVal = calculateBMI(currentWeight, unit, this.bodyProfile);
+    const bmiCategory = getBMICategory(bmiVal);
+
+    const bmiValEl = document.getElementById('body-bmi-value');
+    const bmiBadgeEl = document.getElementById('body-bmi-badge');
+    const currentWeightRefEl = document.getElementById('body-current-weight-ref');
+
+    if (bmiValEl) bmiValEl.textContent = bmiVal ? bmiVal.toFixed(1) : '--';
+    if (bmiBadgeEl) {
+      bmiBadgeEl.textContent = bmiCategory.label;
+      bmiBadgeEl.className = `px-2 py-0.5 rounded-full text-[11px] font-bold ${bmiCategory.badgeClass}`;
+    }
+    if (currentWeightRefEl) {
+      currentWeightRefEl.textContent = `${currentWeight.toFixed(1)} ${unit}`;
+    }
+
+    // Milestone Ladder
+    const ladderContainer = document.getElementById('body-milestone-ladder-list');
+    if (!ladderContainer) return;
+    ladderContainer.innerHTML = '';
+
+    const milestones = calculateMilestoneLadder(currentWeight, unit, this.bodyProfile);
+    let immediateTargetFound = false;
+
+    milestones.forEach(m => {
+      const card = document.createElement('div');
+
+      if (m.isAchieved) {
+        card.className = 'p-3 rounded-xl bg-emerald-950/20 border border-emerald-900/40 flex items-center justify-between transition-all';
+        card.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            <span class="text-base text-emerald-400">✅</span>
+            <div>
+              <div class="text-xs font-bold text-slate-200">${m.name}</div>
+              <div class="text-[10px] text-slate-400">${m.badge} • Target: ${m.targetWeight} ${unit}</div>
+            </div>
+          </div>
+          <span class="text-[10px] font-bold text-emerald-400 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30">Achieved</span>
+        `;
+      } else if (!immediateTargetFound) {
+        // Immediate Next Milestone
+        immediateTargetFound = true;
+        const startWeight = this.weightSettings.startWeight || (currentWeight + 5);
+        const totalSpan = Math.max(1, startWeight - m.targetWeight);
+        const progressSpan = Math.max(0, startWeight - currentWeight);
+        const progressPct = Math.min(100, Math.max(0, Math.round((progressSpan / totalSpan) * 100)));
+
+        card.className = 'p-3.5 rounded-xl bg-gradient-to-r from-slate-900 via-indigo-950/50 to-slate-900 border border-indigo-500/60 ring-1 ring-indigo-500/30 shadow-lg space-y-2 transition-all';
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-base animate-pulse">🎯</span>
+              <div>
+                <div class="text-xs font-black text-white flex items-center gap-1.5">
+                  <span>${m.name}</span>
+                  <span class="text-[9px] uppercase px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-extrabold border border-amber-500/30">Next Target</span>
+                </div>
+                <div class="text-[10px] text-indigo-300 font-semibold">${m.badge} • Target: ${m.targetWeight} ${unit}</div>
+              </div>
+            </div>
+            <span class="text-xs font-mono font-bold text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded-md border border-amber-500/30">
+              -${m.remainingWeight} ${unit} left
+            </span>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between text-[10px] text-slate-400 mb-1">
+              <span>Progress towards milestone</span>
+              <span class="font-bold text-slate-300 font-mono">${progressPct}%</span>
+            </div>
+            <div class="h-2 w-full bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+              <div class="h-full bg-gradient-to-r from-amber-400 via-amber-300 to-emerald-400 transition-all duration-500" style="width: ${progressPct}%"></div>
+            </div>
+          </div>
+        `;
+      } else {
+        // Future Milestone
+        card.className = 'p-3 rounded-xl bg-slate-900/40 border border-slate-800/80 flex items-center justify-between opacity-70 transition-all';
+        card.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            <span class="text-base text-slate-500">⏳</span>
+            <div>
+              <div class="text-xs font-semibold text-slate-300">${m.name}</div>
+              <div class="text-[10px] text-slate-500">${m.badge} • Target: ${m.targetWeight} ${unit}</div>
+            </div>
+          </div>
+          <span class="text-[11px] font-mono text-slate-400">-${m.remainingWeight} ${unit}</span>
+        `;
+      }
+
+      ladderContainer.appendChild(card);
+    });
+  }
 }
 
 // Bootstrap app on DOM loaded
 window.addEventListener('DOMContentLoaded', () => {
-  window.satkinApp = new SatkinApp();
+  window.rotationApp = new RotationReminderApp();
+  window.satkinApp = window.rotationApp;
 });

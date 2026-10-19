@@ -1,12 +1,11 @@
 {
   "appId": "com.satkin.pacer",
-  "appName": "Satkin Pacer",
+  "appName": "Rotation Reminder",
   "webDir": "dist",
   "plugins": {
     "LocalNotifications": {
-      "smallIcon": "ic_stat_icon_config_sample",
-      "iconColor": "#10b981",
-      "sound": "single_ring.wav"
+      "smallIcon": "ic_stat_rotation",
+      "iconColor": "#4F46E5"
     }
   }
 }
