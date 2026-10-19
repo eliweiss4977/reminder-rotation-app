@@ -64,7 +64,6 @@ class NotificationManager {
 
       // 3. Listen for notification action / tap
       await LocalNotifications.addListener('localNotificationActionPerformed', async (action) => {
-        console.log('User performed notification action:', action);
         const actionId = action.actionId;
         const extra = action.notification?.extra || {};
 
@@ -222,7 +221,6 @@ class NotificationManager {
       // 2. Calculate next 5 days slots across all enabled profiles
       const slots = calculateMultiProfile5DaysNotificationSlots(profiles, new Date());
       if (slots.length === 0) {
-        console.log('No upcoming notification slots to schedule.');
         return 0;
       }
 
@@ -267,7 +265,6 @@ class NotificationManager {
 
       // 4. Batch schedule
       await LocalNotifications.schedule({ notifications });
-      console.log(`Scheduled ${notifications.length} multi-profile notifications across the next 5 days.`);
       return notifications.length;
     } catch (e) {
       console.warn('Error rescheduling multi-profile notifications:', e);
@@ -311,7 +308,6 @@ class NotificationManager {
       }
 
       await LocalNotifications.schedule({ notifications: [snoozeNotif] });
-      console.log(`Snooze notification scheduled for ${minutes} minute(s) from now.`);
       return true;
     } catch (e) {
       console.warn('Could not schedule snooze notification:', e);

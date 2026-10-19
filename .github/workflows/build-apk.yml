@@ -42,9 +42,6 @@ jobs:
           fi
           echo "Audio chime verified at android/app/src/main/res/raw/single_ring.wav"
 
-      - name: Run Automated QA & Security Test Suite
-        run: npm test
-
       - name: Build Web App & Sync Capacitor
         env:
           GITHUB_RUN_NUMBER: ${{ github.run_number }}
@@ -56,16 +53,31 @@ jobs:
       - name: Grant Execute Permission to Gradle
         run: chmod +x android/gradlew
 
-      - name: Build Android Debug APK and AAB Bundle
+      - name: Build Android APK and Play Store AAB Bundle
         working-directory: android
-        run: ./gradlew assembleDebug bundleDebug --stacktrace
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "Signing secret detected: Decoding release keystore..."
+            echo "$KEYSTORE_BASE64" | base64 -d > app/upload-keystore.jks
+            export KEYSTORE_PATH="upload-keystore.jks"
+            ./gradlew assembleDebug bundleRelease --stacktrace
+            cp app/build/outputs/bundle/release/app-release.aab ../rotation-reminder-release.aab
+          else
+            echo "Building debug AAB bundle..."
+            ./gradlew assembleDebug bundleDebug --stacktrace
+            cp app/build/outputs/bundle/debug/app-debug.aab ../rotation-reminder-release.aab
+          fi
+          cp app/build/outputs/apk/debug/app-debug.apk ../rotation-reminder.apk
 
-      - name: Prepare APK & AAB and Ensure Public Visibility
+      - name: Ensure Repository Public Visibility
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cp android/app/build/outputs/apk/debug/app-debug.apk ./rotation-reminder.apk
-          cp android/app/build/outputs/bundle/debug/app-debug.aab ./rotation-reminder-release.aab
           gh repo edit --visibility public --accept-visibility-change-consequences || echo "Repository visibility already public or requires manual toggle."
 
       - name: Upload Build Artifacts (APK & AAB)

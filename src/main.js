@@ -102,8 +102,7 @@ class RotationReminderApp {
 
     // 3. Initialize Native Notifications & handle interactive actions
     await notifications.init((extra, actionId) => {
-      console.log('App opened from notification action:', { extra, actionId });
-      const slotId = extra.slotId;
+      const slotId = extra?.slotId;
       const targetSlot = this.currentSchedule.find(s => s.id === slotId) || this.nextSlot;
 
       if (actionId === 'MARK_DONE' && slotId) {
@@ -188,7 +187,6 @@ class RotationReminderApp {
   checkMidnightDateRollover() {
     const todayKey = this.getTodayKey();
     if (todayKey !== this.currentDateKey) {
-      console.log('Midnight rollover detected: changing day from', this.currentDateKey, 'to', todayKey);
       this.currentDateKey = todayKey;
       this.updateHeaderDate();
       this.refreshAll();

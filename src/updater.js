@@ -164,7 +164,6 @@ class AppUpdater {
   // Open direct download link in Android native system downloader
   installUpdate(url = null) {
     const targetUrl = url || this.latestRelease?.downloadUrl || `https://github.com/${this.repoSlug}/releases/latest/download/rotation-reminder.apk`;
-    console.log('Opening APK download URL:', targetUrl);
 
     try {
       // In Capacitor/Android WebView, '_system' passes the URL to Android Download Manager

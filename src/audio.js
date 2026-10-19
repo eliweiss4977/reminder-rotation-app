@@ -240,7 +240,7 @@ class AudioEngine {
         this.fallbackAudio = new Audio('/sounds/ring_classic.wav');
       }
       this.fallbackAudio.currentTime = 0;
-      this.fallbackAudio.play().catch(e => console.log('Audio autoplay prevented:', e));
+      this.fallbackAudio.play().catch(() => {});
     } catch (e) {
       console.error('Audio playback error:', e);
     }

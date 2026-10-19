@@ -20,3 +20,9 @@ android/local.properties
 # Ensure single_ring.wav is tracked
 !android/app/src/main/res/raw/single_ring.wav
 !public/single_ring.wav
+
+# Keystore & Signing Secrets
+*.jks
+*.keystore
+upload-keystore.jks
+
