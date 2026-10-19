@@ -27,3 +27,7 @@ android/local.properties
 !android/app/release.keystore
 upload-keystore.jks
 
+# Local Package Binaries (published via GitHub Actions)
+*.apk
+*.aab
+

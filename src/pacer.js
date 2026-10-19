@@ -16,6 +16,7 @@ export class PacerController {
     this.paceIntervalMs = 1200; // 1.2s per rotation as required
     this.onComplete = options.onComplete || (() => {});
     this.wakeLock = null;
+    this.autoCloseTimer = null;
 
     // Elements
     this.counterEl = document.getElementById('pacer-count-display');
@@ -43,6 +44,12 @@ export class PacerController {
     this.closeBtn?.addEventListener('click', () => this.requestClose());
     this.resetBtn?.addEventListener('click', () => this.reset());
 
+    // Dismiss celebration immediately on tap
+    this.celebrationEl?.addEventListener('click', () => {
+      haptics.tap();
+      this.close();
+    });
+
     // Prevent accidental dismissal when tapping backdrop mid-count
     this.modalEl?.addEventListener('click', (e) => {
       if (e.target === this.modalEl) {
@@ -63,6 +70,12 @@ export class PacerController {
     });
 
     this.actionBtn?.addEventListener('click', () => {
+      // If session is completed, clicking 'Completed (Done)' immediately closes the modal
+      if (this.count >= this.targetCount) {
+        haptics.success();
+        this.close();
+        return;
+      }
       if (this.mode === 'auto') {
         if (this.isRunning) {
           this.pauseAutoPacer();
@@ -76,6 +89,10 @@ export class PacerController {
 
     this.tapTargetEl?.addEventListener('click', (e) => {
       e.preventDefault();
+      if (this.count >= this.targetCount) {
+        this.close();
+        return;
+      }
       if (this.mode === 'tap') {
         this.incrementCount();
       } else if (this.mode === 'auto' && !this.isRunning && this.count < this.targetCount) {
@@ -94,6 +111,10 @@ export class PacerController {
   }
 
   async open(slot = null) {
+    if (this.autoCloseTimer) {
+      clearTimeout(this.autoCloseTimer);
+      this.autoCloseTimer = null;
+    }
     this.targetSlot = slot;
     this.count = 0;
     this.isRunning = false;
@@ -132,6 +153,10 @@ export class PacerController {
   }
 
   async close() {
+    if (this.autoCloseTimer) {
+      clearTimeout(this.autoCloseTimer);
+      this.autoCloseTimer = null;
+    }
     this.pauseAutoPacer();
     if (this.timerId) {
       clearInterval(this.timerId);
@@ -240,6 +265,10 @@ export class PacerController {
   }
 
   reset() {
+    if (this.autoCloseTimer) {
+      clearTimeout(this.autoCloseTimer);
+      this.autoCloseTimer = null;
+    }
     this.pauseAutoPacer();
     this.count = 0;
     this.updateProgressRing(0);
@@ -270,6 +299,14 @@ export class PacerController {
     }
 
     this.updateUI();
+
+    // Auto-close modal after brief celebration (2.8 seconds)
+    if (this.autoCloseTimer) clearTimeout(this.autoCloseTimer);
+    this.autoCloseTimer = setTimeout(() => {
+      if (this.count >= this.targetCount && this.modalEl && !this.modalEl.classList.contains('hidden')) {
+        this.close();
+      }
+    }, 2800);
   }
 
   launchConfetti() {
@@ -320,9 +357,17 @@ export class PacerController {
       }
     }
 
+    if (this.actionBtn) {
+      if (this.count >= this.targetCount) {
+        this.actionBtn.className = 'w-full active-press py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-sm shadow-xl shadow-emerald-950/60 flex items-center justify-center gap-2 transition';
+      } else {
+        this.actionBtn.className = 'w-full active-press py-3.5 px-4 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold text-sm shadow-xl shadow-indigo-950/60 flex items-center justify-center gap-2 transition';
+      }
+    }
+
     if (this.actionBtnText) {
       if (this.count >= this.targetCount) {
-        this.actionBtnText.textContent = 'Completed (Done)';
+        this.actionBtnText.textContent = '✓ Completed (Done)';
       } else if (this.mode === 'auto') {
         this.actionBtnText.textContent = this.isRunning ? 'Pause Pacer' : 'Start Auto-Pacer';
       } else {
