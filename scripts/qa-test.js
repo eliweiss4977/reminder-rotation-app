@@ -329,7 +329,7 @@ async function runTestSuite() {
   // Verify Android SDK 35 & Dynamic VersionCode
   const variablesGradle = fs.readFileSync(path.join(projectRoot, 'android', 'variables.gradle'), 'utf8');
   assert(variablesGradle.includes('targetSdkVersion = 35'), 'android/variables.gradle sets targetSdkVersion = 35');
-  assert(variablesGradle.includes('compileSdkVersion = 35'), 'android/variables.gradle sets compileSdkVersion = 35');
+  assert(variablesGradle.includes('compileSdkVersion = 36'), 'android/variables.gradle sets compileSdkVersion = 36');
 
   const appBuildGradle = fs.readFileSync(path.join(projectRoot, 'android', 'app', 'build.gradle'), 'utf8');
   assert(appBuildGradle.includes('GITHUB_RUN_NUMBER'), 'android/app/build.gradle dynamically reads GITHUB_RUN_NUMBER for versionCode');
