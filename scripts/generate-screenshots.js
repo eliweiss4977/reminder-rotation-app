@@ -358,57 +358,108 @@ const screen3Content = `
   </g>
 `;
 
-// SCREEN 4: PRIVACY & LOCAL SECURITY
+// SCREEN 4: PROFILE, BIOMETRIC SECURITY & 100% OFFLINE DATA
 const screen4Content = `
   <!-- Header -->
   <rect x="0" y="0" width="808" height="70" fill="#0F172A"/>
-  <text x="404" y="42" fill="#FFFFFF" font-family="sans-serif" font-size="22" font-weight="900" text-anchor="middle">100% Offline Local Privacy</text>
+  <text x="404" y="42" fill="#FFFFFF" font-family="sans-serif" font-size="22" font-weight="900" text-anchor="middle">Profile &amp; App Settings</text>
 
-  <!-- Hero Shield -->
-  <g transform="translate(404, 160)">
-    <circle cx="0" cy="0" r="60" fill="#312E81" fill-opacity="0.5"/>
-    <circle cx="0" cy="0" r="45" fill="#4F46E5"/>
-    <text x="0" y="16" fill="#FFFFFF" font-family="sans-serif" font-size="44" text-anchor="middle">&#128737;</text>
-  </g>
-  <text x="404" y="260" fill="#FFFFFF" font-family="sans-serif" font-size="24" font-weight="900" text-anchor="middle">Zero Telemetry &#8226; Zero Cloud Storage</text>
-  <text x="404" y="290" fill="#94A3B8" font-family="sans-serif" font-size="15" text-anchor="middle">Your weight, alarms, and routines stay 100% on your device.</text>
+  <!-- Card 1: Personal Profile Summary -->
+  <g transform="translate(30, 90)">
+    <rect width="748" height="150" rx="20" fill="#1E1B4B" stroke="#6366F1" stroke-width="2"/>
+    <!-- Avatar circle -->
+    <circle cx="55" cy="48" r="26" fill="#4F46E5"/>
+    <circle cx="55" cy="42" r="9" fill="#FFFFFF"/>
+    <path d="M 43,58 C 43,51 49,49 55,49 C 61,49 67,51 67,58 Z" fill="#FFFFFF"/>
+    
+    <text x="95" y="42" fill="#FFFFFF" font-family="sans-serif" font-size="20" font-weight="800">Personal Health Profile</text>
+    <text x="95" y="64" fill="#A5B4FC" font-family="sans-serif" font-size="13">Stored locally on your device &#8226; 100% Private</text>
 
-  <!-- Feature Cards -->
-  <g transform="translate(30, 330)">
-    <rect width="748" height="95" rx="18" fill="#0F172A" stroke="#1E293B" stroke-width="2"/>
-    <text x="40" y="42" fill="#FFFFFF" font-family="sans-serif" font-size="26">&#128274;</text>
-    <text x="85" y="40" fill="#FFFFFF" font-family="sans-serif" font-size="18" font-weight="800">No Account or Cloud Login Required</text>
-    <text x="85" y="65" fill="#94A3B8" font-family="sans-serif" font-size="14">No email, passwords, subscriptions, or tracking servers.</text>
-  </g>
+    <!-- 3 Stat chips -->
+    <g transform="translate(30, 88)">
+      <rect width="215" height="42" rx="12" fill="#0F172A" stroke="#334155" stroke-width="1.5"/>
+      <text x="107" y="27" fill="#CBD5E1" font-family="sans-serif" font-size="14" font-weight="700" text-anchor="middle">Height: 5 ft 10 in</text>
 
-  <g transform="translate(30, 445)">
-    <rect width="748" height="95" rx="18" fill="#0F172A" stroke="#1E293B" stroke-width="2"/>
-    <text x="40" y="42" fill="#FFFFFF" font-family="sans-serif" font-size="26">&#128683;</text>
-    <text x="85" y="40" fill="#FFFFFF" font-family="sans-serif" font-size="18" font-weight="800">Zero Analytics or Ad Trackers</text>
-    <text x="85" y="65" fill="#94A3B8" font-family="sans-serif" font-size="14">No Google Firebase analytics, Facebook SDKs, or third-party ads.</text>
-  </g>
+      <rect x="235" y="0" width="220" height="42" rx="12" fill="#0F172A" stroke="#334155" stroke-width="1.5"/>
+      <text x="345" y="27" fill="#CBD5E1" font-family="sans-serif" font-size="14" font-weight="700" text-anchor="middle">Goal: 185.0 lbs</text>
 
-  <g transform="translate(30, 560)">
-    <rect width="748" height="95" rx="18" fill="#0F172A" stroke="#1E293B" stroke-width="2"/>
-    <text x="40" y="42" fill="#FFFFFF" font-family="sans-serif" font-size="26">&#128273;</text>
-    <text x="85" y="40" fill="#FFFFFF" font-family="sans-serif" font-size="18" font-weight="800">Biometric &amp; PIN App Lock</text>
-    <text x="85" y="65" fill="#94A3B8" font-family="sans-serif" font-size="14">Secure your personal health milestones with fingerprint or PIN.</text>
+      <rect x="475" y="0" width="215" height="42" rx="12" fill="#065F46" stroke="#10B981" stroke-width="1.5"/>
+      <text x="582" y="27" fill="#34D399" font-family="sans-serif" font-size="14" font-weight="800" text-anchor="middle">Target BMI: 24.2</text>
+    </g>
   </g>
 
-  <g transform="translate(30, 675)">
-    <rect width="748" height="95" rx="18" fill="#0F172A" stroke="#1E293B" stroke-width="2"/>
-    <text x="40" y="42" fill="#FFFFFF" font-family="sans-serif" font-size="26">&#128190;</text>
-    <text x="85" y="40" fill="#FFFFFF" font-family="sans-serif" font-size="18" font-weight="800">Offline JSON Export &amp; 1-Tap Wipe</text>
-    <text x="85" y="65" fill="#94A3B8" font-family="sans-serif" font-size="14">Backup your full data locally or permanently wipe it anytime.</text>
+  <!-- Card 2: Biometric App Lock -->
+  <g transform="translate(30, 260)">
+    <rect width="748" height="135" rx="20" fill="#0F172A" stroke="#1E293B" stroke-width="2"/>
+    <!-- Lock vector icon -->
+    <circle cx="55" cy="50" r="26" fill="#065F46"/>
+    <rect x="44" y="46" width="22" height="17" rx="4" fill="#34D399"/>
+    <path d="M 48,46 V 40 C 48,36 62,36 62,40 V 46" fill="none" stroke="#34D399" stroke-width="3" stroke-linecap="round"/>
+    
+    <text x="95" y="42" fill="#FFFFFF" font-family="sans-serif" font-size="19" font-weight="800">Biometric &amp; PIN App Lock</text>
+    <text x="95" y="64" fill="#94A3B8" font-family="sans-serif" font-size="13">Require fingerprint or PIN upon opening app</text>
+
+    <!-- Active Toggle Switch -->
+    <g transform="translate(635, 34)">
+      <rect width="64" height="34" rx="17" fill="#059669"/>
+      <circle cx="47" cy="17" r="13" fill="#FFFFFF"/>
+    </g>
+
+    <!-- Sub note -->
+    <text x="35" y="112" fill="#6EE7B7" font-family="sans-serif" font-size="13" font-weight="700">&#10003; Biometric Security Active &#8226; Device Keystore Protected</text>
   </g>
 
-  <!-- Support Card -->
-  <g transform="translate(30, 790)">
-    <rect width="748" height="110" rx="18" fill="#1E1B4B" stroke="#6366F1" stroke-width="1.5"/>
-    <text x="40" y="45" fill="#FFFFFF" font-family="sans-serif" font-size="26">&#128236;</text>
-    <text x="85" y="42" fill="#FFFFFF" font-family="sans-serif" font-size="18" font-weight="800">Direct Developer Support</text>
-    <text x="85" y="66" fill="#A5B4FC" font-family="sans-serif" font-size="14">Open source codebase &amp; direct support contact:</text>
-    <text x="85" y="90" fill="#818CF8" font-family="sans-serif" font-size="14" font-weight="800">rotationreminder@gmail.com</text>
+  <!-- Card 3: Sound & Vibration Customization -->
+  <g transform="translate(30, 415)">
+    <rect width="748" height="215" rx="20" fill="#0F172A" stroke="#1E293B" stroke-width="2"/>
+    <!-- Speaker vector icon -->
+    <circle cx="55" cy="45" r="26" fill="#78350F"/>
+    <polygon points="46,45 52,40 52,50" fill="#FDE047"/>
+    <rect x="42" y="42" width="5" height="6" rx="1" fill="#FDE047"/>
+    <path d="M 56,38 A 10,10 0 0,1 56,52" fill="none" stroke="#FDE047" stroke-width="2.5" stroke-linecap="round"/>
+    
+    <text x="95" y="40" fill="#FFFFFF" font-family="sans-serif" font-size="19" font-weight="800">Sound &amp; Vibration Diagnostics</text>
+    <text x="95" y="62" fill="#94A3B8" font-family="sans-serif" font-size="13">High-priority alarm channels (rings even on silent)</text>
+
+    <!-- Ringtones list rows -->
+    <g transform="translate(30, 85)">
+      <!-- Row 1: Selected Ringtone -->
+      <rect width="688" height="50" rx="14" fill="#1E1B4B" stroke="#6366F1" stroke-width="1.5"/>
+      <text x="25" y="31" fill="#FFFFFF" font-family="sans-serif" font-size="15" font-weight="700">Classic Single Ring (Default)</text>
+      <rect x="560" y="12" width="105" height="26" rx="13" fill="#4F46E5"/>
+      <text x="612" y="30" fill="#FFFFFF" font-family="sans-serif" font-size="12" font-weight="800" text-anchor="middle">ACTIVE</text>
+
+      <!-- Row 2 -->
+      <g transform="translate(0, 60)">
+        <rect width="688" height="50" rx="14" fill="#0B132B" stroke="#1E293B" stroke-width="1"/>
+        <text x="25" y="31" fill="#94A3B8" font-family="sans-serif" font-size="15" font-weight="600">Crystal Chime, Marimba &amp; Woodblock</text>
+        <text x="645" y="31" fill="#6366F1" font-family="sans-serif" font-size="14" font-weight="700" text-anchor="end">Audition &#9654;</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- Card 4: 100% Offline Privacy & Data Backup -->
+  <g transform="translate(30, 650)">
+    <rect width="748" height="195" rx="20" fill="#0F172A" stroke="#1E293B" stroke-width="2"/>
+    <!-- Shield icon -->
+    <circle cx="55" cy="45" r="26" fill="#312E81"/>
+    <path d="M 55,30 L 67,36 C 67,50 55,60 55,60 C 55,60 43,50 43,36 Z" fill="#818CF8"/>
+
+    <text x="95" y="38" fill="#FFFFFF" font-family="sans-serif" font-size="19" font-weight="800">100% Offline Local Privacy</text>
+    <text x="95" y="60" fill="#34D399" font-family="sans-serif" font-size="13" font-weight="700">&#10003; Zero Trackers &#8226; Zero Telemetry &#8226; No Accounts</text>
+
+    <!-- Action Buttons -->
+    <g transform="translate(30, 85)">
+      <rect width="330" height="46" rx="14" fill="#1E293B" stroke="#334155" stroke-width="1.5"/>
+      <text x="165" y="28" fill="#CBD5E1" font-family="sans-serif" font-size="14" font-weight="700" text-anchor="middle">Export Backup (JSON)</text>
+
+      <rect x="358" y="0" width="330" height="46" rx="14" fill="#1E293B" stroke="#334155" stroke-width="1.5"/>
+      <text x="523" y="28" fill="#CBD5E1" font-family="sans-serif" font-size="14" font-weight="700" text-anchor="middle">Import Backup (JSON)</text>
+    </g>
+
+    <!-- Verified Badge -->
+    <rect x="30" y="145" width="688" height="34" rx="10" fill="#1E1B4B"/>
+    <text x="374" y="167" fill="#C7D2FE" font-family="sans-serif" font-size="13" font-weight="700" text-anchor="middle">Google Play Compliant &#8226; Complete Offline Data Isolation</text>
   </g>
 `;
 
@@ -439,9 +490,9 @@ const screenshots = [
   },
   {
     name: 'screenshot-4-privacy.png',
-    tagline: 'PRIVACY FIRST',
-    title: '100% Offline Privacy',
-    subtitle: 'Encrypted local storage with zero cloud tracking',
+    tagline: 'SECURITY &amp; PROFILE',
+    title: 'Biometric Lock &amp; Privacy',
+    subtitle: 'Hardware security, custom chimes &amp; offline backup',
     content: screen4Content,
     accent: '#8B5CF6'
   }
