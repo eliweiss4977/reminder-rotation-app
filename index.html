@@ -42,24 +42,6 @@
     </div>
   </header>
 
-  <!-- Floating Top Update Banner -->
-  <div id="top-update-banner" class="hidden sticky top-[57px] z-20 px-3 py-2 bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-600 text-white shadow-lg border-b border-emerald-400/30 transition-all">
-    <div class="max-w-md mx-auto flex items-center justify-between text-xs">
-      <div class="flex items-center gap-2 truncate">
-        <span class="animate-bounce">🚀</span>
-        <span class="font-bold tracking-tight">New Update:</span>
-        <span id="top-update-tag" class="font-mono bg-black/30 px-1.5 py-0.5 rounded text-[11px]">v1.0.X</span>
-      </div>
-      <div class="flex items-center gap-1.5 shrink-0">
-        <button id="top-update-action-btn" class="active-press px-2.5 py-1 rounded-lg bg-white text-slate-950 font-bold text-[11px] shadow hover:bg-slate-100 transition">
-          Update Now
-        </button>
-        <button id="top-update-dismiss-btn" class="text-white/80 hover:text-white p-1 text-xs font-bold leading-none">
-          ✕
-        </button>
-      </div>
-    </div>
-  </div>
 
   <!-- Main Scrollable App Content Container -->
   <main class="flex-1 max-w-md w-full mx-auto px-4 py-4 pb-safe-nav overflow-y-auto no-scrollbar">
@@ -584,79 +566,35 @@
         </div>
       </div>
 
-      <!-- CARD 4: APP UPDATES & DATA BACKUP -->
+      <!-- CARD 4: APP INFORMATION & DATA BACKUP -->
       <div class="rounded-2xl glass-card p-5 border border-slate-700/60 shadow-xl space-y-4">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg font-bold">
-              🚀
+            <div class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-lg font-bold">
+              ℹ️
             </div>
             <div>
-              <h3 class="text-sm font-bold text-white">App Updates & Data Backup</h3>
-              <p class="text-[11px] text-slate-400">GitHub auto-updater and local backup</p>
+              <h3 class="text-sm font-bold text-white">App Information &amp; Backup</h3>
+              <p class="text-[11px] text-slate-400">Offline data management &amp; storage</p>
             </div>
           </div>
-          <span id="updater-installed-badge" class="px-2 py-0.5 text-[11px] font-mono font-bold rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+          <span id="app-version-badge" class="px-2 py-0.5 text-[11px] font-mono font-bold rounded-full bg-slate-800 text-slate-300 border border-slate-700">
             v1.0.0
           </span>
         </div>
 
-        <!-- GitHub Personal Access Token (Read-Only) -->
-        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800 space-y-2">
-          <div class="flex items-center justify-between text-xs">
-            <label class="font-semibold text-slate-300">GitHub Read-Only Token (Optional)</label>
-            <span class="text-[10px] text-slate-500">Stored locally only</span>
+        <!-- Distribution Channel & Storage Status -->
+        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
+          <div class="space-y-0.5">
+            <span class="text-slate-400 block text-[11px]">Distribution Channel</span>
+            <span class="text-emerald-400 font-bold flex items-center gap-1 text-xs">
+              <span>✓</span> Google Play Edition
+            </span>
           </div>
-          <div class="flex gap-2">
-            <div class="relative flex-1">
-              <input type="password" id="github-token-input" placeholder="github_pat_..." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-indigo-500 pr-8" />
-              <button type="button" id="github-token-toggle-btn" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs">👁️</button>
-            </div>
-            <button id="github-token-save-btn" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold active-press transition shrink-0">
-              Save
-            </button>
+          <div class="text-right space-y-0.5">
+            <span class="text-slate-400 block text-[11px]">Storage Mode</span>
+            <span class="text-indigo-400 font-bold text-xs">100% Offline Local</span>
           </div>
-          <p class="text-[10px] text-slate-400 leading-tight">
-            Stored locally in device Preferences to prevent GitHub API rate limits. Token is never transmitted elsewhere.
-          </p>
-        </div>
-
-        <!-- In-App Auto-Updater Status -->
-        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800 space-y-1.5">
-          <div class="flex items-center justify-between text-xs">
-            <span class="text-slate-400">Installed Version:</span>
-            <span id="updater-installed-text" class="font-mono font-bold text-slate-200">v1.0.0</span>
-          </div>
-          <div class="flex items-center justify-between text-xs">
-            <span class="text-slate-400">Latest on GitHub:</span>
-            <span id="updater-latest-text" class="font-mono font-bold text-amber-300">Checking...</span>
-          </div>
-          <div id="updater-status-message" class="text-[11px] text-slate-400 pt-1 border-t border-slate-800">
-            Tap "Check for Update" to query GitHub releases.
-          </div>
-        </div>
-
-        <div class="flex gap-2 pt-1">
-          <button id="updater-check-btn" class="flex-1 py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white shadow-md shadow-indigo-950/40 active-press transition flex items-center justify-center gap-1.5">
-            <svg id="updater-check-spinner" class="w-3.5 h-3.5 hidden animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle>
-              <path d="M12 2a10 10 0 0 1 10 10"></path>
-            </svg>
-            <span id="updater-check-btn-text">🔄 Check for Update</span>
-          </button>
-
-          <button id="updater-download-btn" class="hidden flex-1 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white shadow-md shadow-emerald-950/40 active-press transition">
-            ⬇️ Install Update
-          </button>
-        </div>
-
-        <!-- Target GitHub Repo -->
-        <div class="pt-2 border-t border-slate-800">
-          <div class="flex items-center justify-between text-[11px] text-slate-400 mb-1">
-            <span>Target GitHub Repo</span>
-            <button id="updater-save-repo-btn" class="text-indigo-400 font-bold hover:underline">Save</button>
-          </div>
-          <input type="text" id="updater-repo-input" value="eliweiss4977/reminder-rotation-app" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-indigo-500" />
         </div>
 
         <!-- Data Backup, Privacy & Maintenance -->
