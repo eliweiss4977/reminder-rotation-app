@@ -141,165 +141,50 @@ export const ALARM_TEMPLATES = [
   }
 ];
 
-export const INITIAL_PROFILES = [
-  {
-    id: 'prof_morning_weigh_in',
-    name: 'Morning Weigh-In',
-    category: 'weight',
-    enabled: true,
-    startTime: '07:15',
-    endTime: '08:30',
-    intervalMinutes: 0,
-    specialFixedTimes: ['07:15'],
-    durationType: 'indefinite',
-    durationValue: 0,
-    ringtone: 'ring_woodblock',
-    alertMode: 'sound_vibrate',
-    activatedAt: Date.now(),
-    actionType: 'log_weight'
-  },
-  {
-    id: 'prof_rotation_a',
-    name: 'Rotation Protocol (2h + 2:00 & 7:00)',
-    category: 'rotation',
-    enabled: true,
-    startTime: '07:00',
-    endTime: '23:00',
-    intervalMinutes: 120,
-    specialFixedTimes: ['14:00', '19:00'],
-    durationType: 'days',
-    durationValue: 7,
-    ringtone: 'ring_classic',
-    alertMode: 'sound_vibrate',
-    activatedAt: Date.now(),
-    actionType: 'pacer_40'
-  },
-  {
-    id: 'prof_rotation_b',
-    name: 'Rotation Protocol (1.5h + 4:00 & 7:00)',
-    category: 'rotation',
-    enabled: false,
-    startTime: '07:00',
-    endTime: '23:00',
-    intervalMinutes: 90,
-    specialFixedTimes: ['16:00', '19:00'],
-    durationType: 'days',
-    durationValue: 7,
-    ringtone: 'ring_crystal',
-    alertMode: 'sound_vibrate',
-    activatedAt: Date.now(),
-    actionType: 'pacer_40'
-  },
-  {
-    id: 'prof_water_daily',
-    name: 'Drink 1 Glass of Water',
-    category: 'water',
-    enabled: true,
-    startTime: '07:00',
-    endTime: '23:00',
-    intervalMinutes: 120,
-    specialFixedTimes: [],
-    durationType: 'indefinite',
-    durationValue: 0,
-    ringtone: 'ring_double',
-    alertMode: 'sound_vibrate',
-    activatedAt: Date.now(),
-    actionType: 'log_water'
-  },
-  {
-    id: 'prof_posture_evening',
-    name: 'Evening Posture / Stretch Check',
-    category: 'habit',
-    enabled: false,
-    startTime: '07:00',
-    endTime: '23:00',
-    intervalMinutes: 0,
-    specialFixedTimes: ['21:00'],
-    durationType: 'indefinite',
-    durationValue: 0,
-    ringtone: 'ring_marimba',
-    alertMode: 'sound_vibrate',
-    activatedAt: Date.now(),
-    actionType: 'check_off'
-  }
-];
+export const INITIAL_PROFILES = [];
 
 export const DEFAULT_WEIGHT_SETTINGS = {
   unit: 'lbs', // 'lbs' | 'kg'
-  startWeight: 185.0,
-  currentWeight: 181.4,
-  goalWeight: 170.0
+  startWeight: null,
+  currentWeight: null,
+  goalWeight: null,
+  isConfigured: false
 };
 
 export const DEFAULT_BODY_PROFILE = {
-  name: 'Alex',
+  name: '',
   heightUnit: 'ft_in', // 'ft_in' | 'cm'
-  heightFeet: 5,
-  heightInches: 10,
-  heightCm: 178
+  heightFt: null,
+  heightIn: null,
+  heightCm: null,
+  heightFeet: null,
+  heightInches: null,
+  isConfigured: false
 };
 
-export const INITIAL_WEIGHT_LOGS = [
-  { id: 'w_1', date: getPastDateStr(6), timestamp: Date.now() - 6 * 86400000, weight: 185.0, note: 'Initial weigh-in' },
-  { id: 'w_2', date: getPastDateStr(4), timestamp: Date.now() - 4 * 86400000, weight: 183.8, note: 'Seated protocol day 3' },
-  { id: 'w_3', date: getPastDateStr(2), timestamp: Date.now() - 2 * 86400000, weight: 182.2, note: 'Good hydration' },
-  { id: 'w_4', date: getPastDateStr(0), timestamp: Date.now(), weight: 181.4, note: 'Morning weigh-in' }
-];
+export const INITIAL_WEIGHT_LOGS = [];
 
-export const INITIAL_CUSTOM_GOALS = [
-  {
-    id: 'goal_water',
-    title: 'Drink Water',
-    icon: '💧',
-    goalType: 'counter',
-    targetValue: 8,
-    unit: 'glasses',
-    stepAmount: 1
-  },
-  {
-    id: 'goal_seated_rotation',
-    title: 'All Rotations Seated',
-    icon: '🪑',
-    goalType: 'boolean',
-    targetValue: 1,
-    unit: 'done',
-    stepAmount: 1
-  },
-  {
-    id: 'goal_daily_walk',
-    title: 'Daily Walk / Movement',
-    icon: '🚶',
-    goalType: 'counter',
-    targetValue: 30,
-    unit: 'mins',
-    stepAmount: 10
-  }
-];
-
-function getPastDateStr(daysAgo) {
-  const d = new Date();
-  d.setDate(d.getDate() - daysAgo);
-  return getLocalDateString(d);
-}
+export const INITIAL_CUSTOM_GOALS = [];
 
 // BMI & Milestone Helper Functions
 export function calculateTotalHeightInches(bodyProfile) {
-  if (!bodyProfile) return 70;
+  if (!bodyProfile) return 0;
   if (bodyProfile.heightUnit === 'cm') {
     const cm = parseFloat(bodyProfile.heightCm);
-    return cm > 0 ? cm / 2.54 : 0;
+    return (cm && cm > 0) ? cm / 2.54 : 0;
   }
-  const feet = parseInt(bodyProfile.heightFeet, 10);
-  const inches = parseFloat(bodyProfile.heightInches);
+  const feet = parseInt(bodyProfile.heightFeet ?? bodyProfile.heightFt, 10);
+  const inches = parseFloat(bodyProfile.heightInches ?? bodyProfile.heightIn ?? 0);
+  if (isNaN(feet) && isNaN(inches)) return 0;
   const totalInches = (isNaN(feet) ? 0 : feet * 12) + (isNaN(inches) ? 0 : inches);
   return totalInches > 0 ? totalInches : 0;
 }
 
 export function calculateTotalHeightMeters(bodyProfile) {
-  if (!bodyProfile) return 1.78;
+  if (!bodyProfile) return 0;
   if (bodyProfile.heightUnit === 'cm') {
     const cm = parseFloat(bodyProfile.heightCm);
-    return cm > 0 ? cm / 100 : 0;
+    return (cm && cm > 0) ? cm / 100 : 0;
   }
   const totalInches = calculateTotalHeightInches(bodyProfile);
   return totalInches > 0 ? totalInches * 0.0254 : 0;
@@ -360,7 +245,9 @@ export function calculateMilestoneLadder(currentWeight, weightUnit, bodyProfile)
   });
 }
 
-const KEYS = {
+export const KEYS = {
+  ONBOARDING_COMPLETED: 'rotation_onboarding_completed',
+  APP_LOCK_SETTINGS: 'rotation_app_lock_settings',
   PROFILES: 'rotation_profiles',
   LEGACY_PROFILES: 'satkin_profiles',
   COMPLETIONS: 'rotation_completions',
@@ -375,6 +262,14 @@ const KEYS = {
   GOAL_LOGS: 'rotation_goal_logs',
   LEGACY_GOAL_LOGS: 'satkin_goal_logs',
   BODY_PROFILE: 'rotation_body_profile'
+};
+
+export const DEFAULT_APP_LOCK_SETTINGS = {
+  enabled: false,
+  pinHash: null,
+  biometricsEnabled: false,
+  lockTiming: 'immediate', // 'immediate' | '1min' | 'restart'
+  lastUnlockedAt: 0
 };
 
 class StorageEngine {
@@ -413,17 +308,58 @@ class StorageEngine {
     }
   }
 
+  // --- Onboarding & App Lock Operations ---
+  async isOnboardingCompleted() {
+    const val = await this.get(KEYS.ONBOARDING_COMPLETED, null);
+    return val === true || val === 'true';
+  }
+
+  async setOnboardingCompleted(completed = true) {
+    await this.set(KEYS.ONBOARDING_COMPLETED, !!completed);
+  }
+
+  async checkAndClearPreAssumedDataIfNeeded() {
+    const completed = await this.isOnboardingCompleted();
+    if (!completed) {
+      // Clear any legacy seeded data so onboarding starts with completely blank slate
+      await this.set(KEYS.PROFILES, []);
+      await this.set(KEYS.WEIGHT_SETTINGS, DEFAULT_WEIGHT_SETTINGS);
+      await this.set(KEYS.BODY_PROFILE, DEFAULT_BODY_PROFILE);
+      await this.set(KEYS.WEIGHT_LOGS, []);
+      await this.set(KEYS.CUSTOM_GOALS, []);
+      await this.set(KEYS.COMPLETIONS, {});
+      await this.set(KEYS.GOAL_LOGS, {});
+      try {
+        localStorage.removeItem(KEYS.LEGACY_PROFILES);
+        localStorage.removeItem(KEYS.LEGACY_WEIGHT_SETTINGS);
+        localStorage.removeItem(KEYS.LEGACY_WEIGHT_LOGS);
+        localStorage.removeItem(KEYS.LEGACY_CUSTOM_GOALS);
+      } catch (e) {}
+    }
+  }
+
+  async getAppLockSettings() {
+    const saved = await this.get(KEYS.APP_LOCK_SETTINGS, null);
+    return { ...DEFAULT_APP_LOCK_SETTINGS, ...(saved || {}) };
+  }
+
+  async saveAppLockSettings(settings) {
+    const current = await this.getAppLockSettings();
+    const updated = { ...current, ...settings };
+    await this.set(KEYS.APP_LOCK_SETTINGS, updated);
+    return updated;
+  }
+
   // --- Profile Operations ---
   async getProfiles() {
     let profiles = await this.get(KEYS.PROFILES, null);
-    if (!profiles || !Array.isArray(profiles) || profiles.length === 0) {
+    if (!profiles || !Array.isArray(profiles)) {
       // Fallback check legacy satkin_profiles
       profiles = await this.get(KEYS.LEGACY_PROFILES, null);
     }
 
     if (!profiles || !Array.isArray(profiles) || profiles.length === 0) {
-      await this.saveProfiles(INITIAL_PROFILES);
-      return INITIAL_PROFILES;
+      return [];
     }
 
     let modified = false;
@@ -456,15 +392,10 @@ class StorageEngine {
       sanitized.push(clean);
     });
 
-    // Ensure pre-seeded Morning Weigh-In exists
-    if (!sanitized.some(p => p.actionType === 'log_weight' || p.id === 'prof_morning_weigh_in')) {
-      sanitized.unshift(INITIAL_PROFILES[0]);
-      modified = true;
-    }
     if (modified) {
       await this.saveProfiles(sanitized);
     }
-    return sanitized.length > 0 ? sanitized : INITIAL_PROFILES;
+    return sanitized;
   }
 
   async saveProfiles(profiles) {
@@ -512,12 +443,27 @@ class StorageEngine {
     if (!saved || typeof saved !== 'object') {
       return { ...DEFAULT_BODY_PROFILE };
     }
+    const heightFeet = saved.heightFeet !== undefined && saved.heightFeet !== null && saved.heightFeet !== ''
+      ? parseInt(saved.heightFeet, 10)
+      : (saved.heightFt !== undefined && saved.heightFt !== null && saved.heightFt !== '' ? parseInt(saved.heightFt, 10) : null);
+    const heightInches = saved.heightInches !== undefined && saved.heightInches !== null && saved.heightInches !== ''
+      ? parseFloat(saved.heightInches)
+      : (saved.heightIn !== undefined && saved.heightIn !== null && saved.heightIn !== '' ? parseFloat(saved.heightIn) : null);
+    const heightCm = saved.heightCm !== undefined && saved.heightCm !== null && saved.heightCm !== ''
+      ? parseFloat(saved.heightCm)
+      : null;
+
+    const isConfigured = !!(saved.isConfigured || (heightFeet !== null || heightCm !== null));
+
     return {
-      name: (typeof saved.name === 'string' && saved.name.trim()) ? saved.name.trim() : DEFAULT_BODY_PROFILE.name,
+      name: (typeof saved.name === 'string' && saved.name.trim()) ? saved.name.trim() : '',
       heightUnit: saved.heightUnit === 'cm' ? 'cm' : 'ft_in',
-      heightFeet: parseInt(saved.heightFeet, 10) || DEFAULT_BODY_PROFILE.heightFeet,
-      heightInches: parseFloat(saved.heightInches) ?? DEFAULT_BODY_PROFILE.heightInches,
-      heightCm: parseFloat(saved.heightCm) || DEFAULT_BODY_PROFILE.heightCm
+      heightFeet,
+      heightInches,
+      heightFt: heightFeet,
+      heightIn: heightInches,
+      heightCm,
+      isConfigured
     };
   }
 
@@ -525,16 +471,21 @@ class StorageEngine {
     if (!bodyProfile || typeof bodyProfile !== 'object') return { ...DEFAULT_BODY_PROFILE };
     const current = await this.getBodyProfile();
     const updated = { ...current, ...bodyProfile };
+    if (updated.heightFeet !== null || updated.heightCm !== null) {
+      updated.isConfigured = true;
+    }
     await this.set(KEYS.BODY_PROFILE, updated);
     return updated;
   }
 
   async resetAllToDefaults() {
-    await this.set(KEYS.PROFILES, INITIAL_PROFILES);
+    await this.set(KEYS.ONBOARDING_COMPLETED, false);
+    await this.set(KEYS.APP_LOCK_SETTINGS, DEFAULT_APP_LOCK_SETTINGS);
+    await this.set(KEYS.PROFILES, []);
     await this.set(KEYS.WEIGHT_SETTINGS, DEFAULT_WEIGHT_SETTINGS);
     await this.set(KEYS.BODY_PROFILE, DEFAULT_BODY_PROFILE);
-    await this.set(KEYS.WEIGHT_LOGS, INITIAL_WEIGHT_LOGS);
-    await this.set(KEYS.CUSTOM_GOALS, INITIAL_CUSTOM_GOALS);
+    await this.set(KEYS.WEIGHT_LOGS, []);
+    await this.set(KEYS.CUSTOM_GOALS, []);
     await this.set(KEYS.COMPLETIONS, {});
     await this.set(KEYS.GOAL_LOGS, {});
     return true;
@@ -549,17 +500,28 @@ class StorageEngine {
     if (!saved || typeof saved !== 'object') {
       return { ...DEFAULT_WEIGHT_SETTINGS };
     }
+    const startWeight = saved.startWeight !== undefined && saved.startWeight !== null && saved.startWeight !== '' ? parseFloat(saved.startWeight) : null;
+    const currentWeight = saved.currentWeight !== undefined && saved.currentWeight !== null && saved.currentWeight !== '' ? parseFloat(saved.currentWeight) : null;
+    const goalWeight = saved.goalWeight !== undefined && saved.goalWeight !== null && saved.goalWeight !== '' ? parseFloat(saved.goalWeight) : null;
+    const isConfigured = !!(saved.isConfigured || startWeight !== null || currentWeight !== null || goalWeight !== null);
+
     return {
       unit: saved.unit === 'kg' ? 'kg' : 'lbs',
-      startWeight: parseFloat(saved.startWeight) || DEFAULT_WEIGHT_SETTINGS.startWeight,
-      currentWeight: parseFloat(saved.currentWeight) || DEFAULT_WEIGHT_SETTINGS.currentWeight,
-      goalWeight: parseFloat(saved.goalWeight) || DEFAULT_WEIGHT_SETTINGS.goalWeight
+      startWeight,
+      currentWeight,
+      goalWeight,
+      isConfigured
     };
   }
 
   async saveWeightSettings(settings) {
-    await this.set(KEYS.WEIGHT_SETTINGS, settings);
-    return settings;
+    const current = await this.getWeightSettings();
+    const updated = { ...current, ...settings };
+    if (updated.startWeight !== null || updated.currentWeight !== null || updated.goalWeight !== null) {
+      updated.isConfigured = true;
+    }
+    await this.set(KEYS.WEIGHT_SETTINGS, updated);
+    return updated;
   }
 
   async getWeightLogs() {
@@ -754,20 +716,63 @@ class StorageEngine {
     return all;
   }
 
-  // --- Backward-compatible Water Methods ---
-  async getWaterData(dateStr = getLocalDateString()) {
-    const count = await this.getTodayGoalValue('goal_water', dateStr);
-    return { count, goal: 8 };
+  // --- Data Export & Import Operations ---
+  async exportAllData() {
+    const data = {
+      exportVersion: 1,
+      exportedAt: new Date().toISOString(),
+      onboardingCompleted: await this.isOnboardingCompleted(),
+      profiles: await this.getProfiles(),
+      bodyProfile: await this.getBodyProfile(),
+      weightSettings: await this.getWeightSettings(),
+      weightLogs: await this.getWeightLogs(),
+      customGoals: await this.getCustomGoals(),
+      goalLogs: await this.getGoalLogs(),
+      completions: await this.getCompletions(),
+      appLockSettings: await this.getAppLockSettings()
+    };
+    return JSON.stringify(data, null, 2);
   }
 
-  async setWaterGlasses(count, goal = 8, dateStr = getLocalDateString()) {
-    await this.setGoalValue('goal_water', count, dateStr);
-    return { count, goal };
-  }
+  async importAllData(jsonString) {
+    try {
+      const data = safeJsonParse(jsonString, null);
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid JSON backup data format');
+      }
 
-  async incrementWater(dateStr = getLocalDateString()) {
-    const count = await this.incrementGoal('goal_water', 1, dateStr);
-    return { count, goal: 8 };
+      if (Array.isArray(data.profiles)) {
+        await this.saveProfiles(data.profiles);
+      }
+      if (data.bodyProfile && typeof data.bodyProfile === 'object') {
+        await this.saveBodyProfile(data.bodyProfile);
+      }
+      if (data.weightSettings && typeof data.weightSettings === 'object') {
+        await this.saveWeightSettings(data.weightSettings);
+      }
+      if (Array.isArray(data.weightLogs)) {
+        await this.set(KEYS.WEIGHT_LOGS, data.weightLogs);
+      }
+      if (Array.isArray(data.customGoals)) {
+        await this.saveCustomGoals(data.customGoals);
+      }
+      if (data.goalLogs && typeof data.goalLogs === 'object') {
+        await this.set(KEYS.GOAL_LOGS, data.goalLogs);
+      }
+      if (data.completions && typeof data.completions === 'object') {
+        await this.set(KEYS.COMPLETIONS, data.completions);
+      }
+      if (data.appLockSettings && typeof data.appLockSettings === 'object') {
+        await this.saveAppLockSettings(data.appLockSettings);
+      }
+      if (data.onboardingCompleted !== undefined) {
+        await this.setOnboardingCompleted(!!data.onboardingCompleted);
+      }
+      return { success: true };
+    } catch (err) {
+      console.error('importAllData error:', err);
+      return { success: false, error: err.message };
+    }
   }
 }
 

@@ -282,6 +282,72 @@ async function runTestSuite() {
   assert(indexHtml.includes('id="github-token-input"'), 'GitHub read-only token input exists');
   assert(indexHtml.includes('id="backup-export-btn"'), 'Data Export (JSON) button exists');
 
+  // ---------------------------------------------------------------------------
+  // TEST SUITE 6: ONBOARDING, APP LOCK & ZERO PRE-ASSUMED DATA VERIFICATION
+  // ---------------------------------------------------------------------------
+  console.log('\n🔐 [Suite 6] Onboarding, App Lock & Zero Pre-Assumed Data Verification');
+
+  const { storage, INITIAL_PROFILES, INITIAL_WEIGHT_LOGS, INITIAL_CUSTOM_GOALS, DEFAULT_WEIGHT_SETTINGS, DEFAULT_BODY_PROFILE } = await import('../src/storage.js');
+  const { hashPin, verifyPin } = await import('../src/applock.js');
+
+  // Verify Zero Pre-Assumed Fake Seed Data
+  assertEqual(INITIAL_PROFILES.length, 0, 'INITIAL_PROFILES array is completely empty (0 alarms assumed)');
+  assertEqual(INITIAL_WEIGHT_LOGS.length, 0, 'INITIAL_WEIGHT_LOGS array is completely empty (0 weigh-ins assumed)');
+  assertEqual(INITIAL_CUSTOM_GOALS.length, 0, 'INITIAL_CUSTOM_GOALS array is completely empty (0 goals assumed)');
+  assertEqual(DEFAULT_WEIGHT_SETTINGS.startWeight, null, 'DEFAULT_WEIGHT_SETTINGS startWeight is null (not 185)');
+  assertEqual(DEFAULT_WEIGHT_SETTINGS.currentWeight, null, 'DEFAULT_WEIGHT_SETTINGS currentWeight is null (not 181.4)');
+  assertEqual(DEFAULT_WEIGHT_SETTINGS.goalWeight, null, 'DEFAULT_WEIGHT_SETTINGS goalWeight is null (not 170)');
+  assertEqual(DEFAULT_BODY_PROFILE.heightFeet, null, 'DEFAULT_BODY_PROFILE heightFeet is null (not 5)');
+  assertEqual(DEFAULT_BODY_PROFILE.heightInches, null, 'DEFAULT_BODY_PROFILE heightInches is null (not 10)');
+  assertEqual(DEFAULT_BODY_PROFILE.heightCm, null, 'DEFAULT_BODY_PROFILE heightCm is null (not 178)');
+  assertEqual(DEFAULT_BODY_PROFILE.isConfigured, false, 'DEFAULT_BODY_PROFILE isConfigured starts false');
+
+  // Verify App Lock SHA-256 PIN Hashing & Verification
+  const testPin = '2468';
+  const hashedPin = await hashPin(testPin);
+  assert(typeof hashedPin === 'string' && hashedPin.length === 64, 'hashPin produces valid 64-char SHA-256 hex string');
+  assert(await verifyPin('2468', hashedPin), 'verifyPin returns true for matching PIN');
+  assert(!await verifyPin('1111', hashedPin), 'verifyPin returns false for incorrect PIN');
+  assert(!await verifyPin('', hashedPin), 'verifyPin returns false for empty PIN');
+
+  // Verify Export / Import Data Engine
+  const exportedJson = await storage.exportAllData();
+  assert(typeof exportedJson === 'string' && exportedJson.includes('exportVersion'), 'exportAllData generates valid JSON with version metadata');
+  const parsedExport = JSON.parse(exportedJson);
+  assert(Array.isArray(parsedExport.profiles), 'Exported data includes profiles array');
+  assert(parsedExport.bodyProfile && typeof parsedExport.bodyProfile === 'object', 'Exported data includes bodyProfile object');
+  const importResult = await storage.importAllData(exportedJson);
+  assert(importResult && importResult.success === true, 'importAllData successfully imports exported backup data');
+
+  // Verify Privacy Policy & Play Store Readiness
+  const privacyHtmlPath = path.join(projectRoot, 'public', 'privacy-policy.html');
+  assert(fs.existsSync(privacyHtmlPath), 'public/privacy-policy.html exists on disk');
+  const privacyContent = fs.readFileSync(privacyHtmlPath, 'utf8');
+  assert(privacyContent.includes('100% Offline & Local Storage'), 'Privacy policy explicitly mentions offline local storage');
+  assert(privacyContent.includes('Zero Analytics'), 'Privacy policy confirms zero analytics and zero tracking');
+
+  // Verify Android SDK 35 & Dynamic VersionCode
+  const variablesGradle = fs.readFileSync(path.join(projectRoot, 'android', 'variables.gradle'), 'utf8');
+  assert(variablesGradle.includes('targetSdkVersion = 35'), 'android/variables.gradle sets targetSdkVersion = 35');
+  assert(variablesGradle.includes('compileSdkVersion = 35'), 'android/variables.gradle sets compileSdkVersion = 35');
+
+  const appBuildGradle = fs.readFileSync(path.join(projectRoot, 'android', 'app', 'build.gradle'), 'utf8');
+  assert(appBuildGradle.includes('GITHUB_RUN_NUMBER'), 'android/app/build.gradle dynamically reads GITHUB_RUN_NUMBER for versionCode');
+
+  // Verify Onboarding and Security DOM Elements in index.html
+  assert(indexHtml.includes('id="onboarding-modal"'), 'Onboarding modal #onboarding-modal exists in index.html');
+  assert(indexHtml.includes('id="onboard-screen-1"'), 'Onboarding Screen 1 exists in DOM');
+  assert(indexHtml.includes('id="onboard-screen-2"'), 'Onboarding Screen 2 exists in DOM');
+  assert(indexHtml.includes('id="onboard-screen-3"'), 'Onboarding Screen 3 exists in DOM');
+  assert(indexHtml.includes('id="onboard-screen-4"'), 'Onboarding Screen 4 exists in DOM');
+  assert(indexHtml.includes('id="onboard-screen-5"'), 'Onboarding Screen 5 exists in DOM');
+  assert(indexHtml.includes('id="applock-screen"'), 'App Lock screen #applock-screen exists in index.html');
+  assert(indexHtml.includes('id="privacy-policy-modal"'), 'Privacy policy modal #privacy-policy-modal exists in index.html');
+  assert(indexHtml.includes('id="btn-restart-onboarding"'), 'Restart onboarding button exists in index.html');
+  assert(indexHtml.includes('id="profile-applock-toggle"'), 'App Lock toggle switch exists in index.html');
+  assert(indexHtml.includes('id="backup-import-btn"'), 'Import backup button exists in index.html');
+  assert(indexHtml.includes('id="btn-view-privacy-policy"'), 'View privacy policy button exists in index.html');
+
   console.log('\n====================================================');
   console.log(`📊 TEST RESULTS: ${passedTests}/${totalTests} Passed (${failedTests} Failed)`);
   console.log('====================================================');

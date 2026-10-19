@@ -363,3 +363,5 @@ function hashCode(str) {
   }
   return hash;
 }
+
+export const calculateTodaySlots = calculateProfileDailySlots;

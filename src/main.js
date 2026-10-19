@@ -25,6 +25,8 @@ import {
 import { notifications } from './notifications.js';
 import { PacerController } from './pacer.js';
 import { updater } from './updater.js';
+import { appLock } from './applock.js';
+import { onboardingWizard } from './onboarding.js';
 
 class RotationReminderApp {
   constructor() {
@@ -37,8 +39,8 @@ class RotationReminderApp {
     this.pacer = null;
     this.currentDateKey = getLocalDateString();
 
-    // Weight, Body Profile & Goals state
-    this.weightSettings = { unit: 'lbs', startWeight: 185.0, currentWeight: 181.4, goalWeight: 170.0 };
+    // Weight, Body Profile & Goals state (100% clean, zero fake assumed data)
+    this.weightSettings = { unit: 'lbs', startWeight: null, currentWeight: null, goalWeight: null, isConfigured: false };
     this.bodyProfile = { ...DEFAULT_BODY_PROFILE };
     this.weightLogs = [];
     this.chartRange = '7d';
@@ -63,8 +65,7 @@ class RotationReminderApp {
     this.init();
   }
 
-  async init() {
-    // 1. Load persisted data
+  async reloadAllData() {
     this.profiles = await storage.getProfiles();
     this.completions = await storage.getCompletions();
     this.weightSettings = await storage.getWeightSettings();
@@ -72,6 +73,27 @@ class RotationReminderApp {
     this.weightLogs = await storage.getWeightLogs();
     this.customGoals = await storage.getCustomGoals();
     this.goalLogs = await storage.getGoalLogs();
+  }
+
+  async init() {
+    // 0. Startup check: clear any pre-assumed fake seed data if onboarding not completed
+    await storage.checkAndClearPreAssumedDataIfNeeded();
+
+    // 0b. Initialize App Lock (locks screen if enabled)
+    await appLock.init();
+
+    // 1. Load persisted data
+    await this.reloadAllData();
+
+    // 1b. Check onboarding status & setup wizard
+    onboardingWizard.bindDOMEvents();
+    const onboardingDone = await storage.isOnboardingCompleted();
+    if (!onboardingDone) {
+      onboardingWizard.open(false, async () => {
+        await this.reloadAllData();
+        this.refreshAll();
+      });
+    }
 
     // 2. Initialize Pacer modal controller
     this.pacer = new PacerController({
@@ -673,7 +695,7 @@ class RotationReminderApp {
         <div class="p-8 rounded-2xl glass-card text-center text-slate-400 border border-slate-800 space-y-3">
           <div class="text-4xl">⏰</div>
           <h3 class="text-base font-bold text-white">No Alarms Configured</h3>
-          <p class="text-xs text-slate-400 max-w-xs mx-auto">Create your first alarm or pick from 8 pre-made templates like 2h Satkin Rotation.</p>
+          <p class="text-xs text-slate-400 max-w-xs mx-auto">Create your first alarm or pick from 8 pre-made templates like 2h Rotation.</p>
           <button id="alarms-empty-add-btn" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg active-press transition">
             + Choose a Template
           </button>
@@ -1030,31 +1052,41 @@ class RotationReminderApp {
     const remainingEl = document.getElementById('stat-weight-remaining');
     const progressFill = document.getElementById('weight-progress-fill');
 
-    const start = this.weightSettings.startWeight || 185.0;
-    const current = this.weightSettings.currentWeight || start;
-    const goal = this.weightSettings.goalWeight || 170.0;
+    const start = this.weightSettings.startWeight;
+    const current = this.weightSettings.currentWeight;
+    const goal = this.weightSettings.goalWeight;
 
-    if (startEl) startEl.textContent = `${start.toFixed(1)} ${unit}`;
-    if (currentEl) currentEl.textContent = `${current.toFixed(1)} ${unit}`;
-    if (goalEl) goalEl.textContent = `${goal.toFixed(1)} ${unit}`;
+    if (startEl) startEl.textContent = start !== null ? `${start.toFixed(1)} ${unit}` : '--';
+    if (currentEl) currentEl.textContent = current !== null ? `${current.toFixed(1)} ${unit}` : '--';
+    if (goalEl) goalEl.textContent = goal !== null ? `${goal.toFixed(1)} ${unit}` : '--';
 
-    const diff = Math.round((current - start) * 10) / 10;
-    const toGoal = Math.round((current - goal) * 10) / 10;
-
-    if (totalLostEl) {
-      totalLostEl.textContent = diff <= 0 ? `Lost: ${Math.abs(diff).toFixed(1)} ${unit}` : `Change: +${diff.toFixed(1)} ${unit}`;
-      totalLostEl.className = diff <= 0 ? 'text-emerald-400 font-bold' : 'text-amber-400 font-bold';
+    if (start !== null && current !== null) {
+      const diff = Math.round((current - start) * 10) / 10;
+      if (totalLostEl) {
+        totalLostEl.textContent = diff <= 0 ? `Lost: ${Math.abs(diff).toFixed(1)} ${unit}` : `Change: +${diff.toFixed(1)} ${unit}`;
+        totalLostEl.className = diff <= 0 ? 'text-emerald-400 font-bold' : 'text-amber-400 font-bold';
+      }
+    } else {
+      if (totalLostEl) {
+        totalLostEl.textContent = 'Total: --';
+        totalLostEl.className = 'text-slate-400 font-semibold';
+      }
     }
 
-    if (remainingEl) {
-      remainingEl.textContent = toGoal > 0 ? `${toGoal.toFixed(1)} ${unit} to goal` : `Goal reached! 🎉`;
-    }
-
-    if (progressFill) {
-      const totalSpan = start - goal;
-      const progressSpan = start - current;
-      const pct = totalSpan > 0 ? Math.min(100, Math.max(0, Math.round((progressSpan / totalSpan) * 100))) : 100;
-      progressFill.style.width = `${pct}%`;
+    if (current !== null && goal !== null) {
+      const toGoal = Math.round((current - goal) * 10) / 10;
+      if (remainingEl) {
+        remainingEl.textContent = toGoal > 0 ? `${toGoal.toFixed(1)} ${unit} to goal` : `Goal reached! 🎉`;
+      }
+      if (progressFill && start !== null) {
+        const totalSpan = start - goal;
+        const progressSpan = start - current;
+        const pct = totalSpan > 0 ? Math.min(100, Math.max(0, Math.round((progressSpan / totalSpan) * 100))) : (toGoal <= 0 ? 100 : 0);
+        progressFill.style.width = `${pct}%`;
+      }
+    } else {
+      if (remainingEl) remainingEl.textContent = '-- to goal';
+      if (progressFill) progressFill.style.width = '0%';
     }
 
     this.renderWeightChart();
@@ -1274,6 +1306,15 @@ class RotationReminderApp {
     const container = document.getElementById('custom-goals-container');
     if (!container) return;
     container.innerHTML = '';
+
+    if (this.customGoals.length === 0) {
+      container.innerHTML = `
+        <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800 text-center text-xs text-slate-400">
+          No custom goals yet. Tap "+ Goal" above to track habits like hydration or walking.
+        </div>
+      `;
+      return;
+    }
 
     const today = this.getTodayKey();
 
@@ -2218,24 +2259,85 @@ class RotationReminderApp {
       alert('GitHub Personal Access Token saved securely in local Preferences.');
     });
 
-    // 7. Card 4: Data Export (JSON)
-    document.getElementById('backup-export-btn')?.addEventListener('click', () => {
-      haptics.tick();
-      const exportData = {
-        appName: 'Rotation Reminder',
-        version: updater.getCurrentVersion(),
-        exportDate: new Date().toISOString(),
-        bodyProfile: this.bodyProfile,
-        weightSettings: this.weightSettings,
-        weightLogs: this.weightLogs,
-        customGoals: this.customGoals,
-        goalLogs: this.goalLogs,
-        profiles: this.profiles,
-        completions: this.completions
-      };
+    // Onboarding Setup Shortcut
+    document.getElementById('btn-restart-onboarding')?.addEventListener('click', () => {
+      haptics.tap();
+      onboardingWizard.open(true, async () => {
+        await this.reloadAllData();
+        this.refreshAll();
+      });
+    });
 
+    // App Lock & Security Events
+    const appLockToggle = document.getElementById('profile-applock-toggle');
+    const appLockOptions = document.getElementById('profile-applock-options');
+    const changePinBtn = document.getElementById('profile-applock-change-pin-btn');
+    const bioRow = document.getElementById('profile-applock-bio-row');
+    const bioToggle = document.getElementById('profile-applock-bio-toggle');
+    const timingSelect = document.getElementById('profile-applock-timing-select');
+
+    const updateAppLockUI = async () => {
+      const s = await storage.getAppLockSettings();
+      if (appLockToggle) appLockToggle.checked = !!s.enabled;
+      if (appLockOptions) {
+        if (s.enabled) appLockOptions.classList.remove('hidden');
+        else appLockOptions.classList.add('hidden');
+      }
+      if (bioToggle) bioToggle.checked = !!s.biometricsEnabled;
+      if (timingSelect) timingSelect.value = s.lockTiming || 'immediate';
+
+      if (appLock.biometricsAvailable && bioRow) {
+        bioRow.classList.remove('hidden');
+      }
+    };
+    updateAppLockUI();
+
+    appLockToggle?.addEventListener('change', async () => {
+      haptics.tap();
+      const s = await storage.getAppLockSettings();
+      if (appLockToggle.checked) {
+        if (!s.pinHash) {
+          await appLock.startSetupPinFlow();
+        } else {
+          s.enabled = true;
+          await storage.saveAppLockSettings(s);
+        }
+      } else {
+        if (confirm('Disable App Lock?')) {
+          s.enabled = false;
+          await storage.saveAppLockSettings(s);
+        } else {
+          appLockToggle.checked = true;
+        }
+      }
+      await updateAppLockUI();
+    });
+
+    changePinBtn?.addEventListener('click', async () => {
+      haptics.tap();
+      await appLock.startSetupPinFlow();
+      await updateAppLockUI();
+    });
+
+    bioToggle?.addEventListener('change', async () => {
+      haptics.tap();
+      const s = await storage.getAppLockSettings();
+      s.biometricsEnabled = bioToggle.checked;
+      await storage.saveAppLockSettings(s);
+    });
+
+    timingSelect?.addEventListener('change', async () => {
+      haptics.tap();
+      const s = await storage.getAppLockSettings();
+      s.lockTiming = timingSelect.value;
+      await storage.saveAppLockSettings(s);
+    });
+
+    // 7. Card 4: Data Export & Import (JSON)
+    document.getElementById('backup-export-btn')?.addEventListener('click', async () => {
+      haptics.tick();
       try {
-        const jsonStr = JSON.stringify(exportData, null, 2);
+        const jsonStr = await storage.exportAllData();
         const blob = new Blob([jsonStr], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -2249,6 +2351,51 @@ class RotationReminderApp {
         alert('Failed to generate backup JSON.');
       }
     });
+
+    const importBtn = document.getElementById('backup-import-btn');
+    const importFileInput = document.getElementById('backup-import-file');
+    importBtn?.addEventListener('click', () => {
+      haptics.tap();
+      importFileInput?.click();
+    });
+
+    importFileInput?.addEventListener('change', async (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const res = await storage.importAllData(text);
+        if (res.success) {
+          haptics.success();
+          await this.reloadAllData();
+          await notifications.rescheduleMultiProfileNext5Days(this.profiles);
+          await updateAppLockUI();
+          this.refreshAll();
+          alert('Backup data successfully restored!');
+        } else {
+          alert(`Import failed: ${res.error || 'Invalid backup file format'}`);
+        }
+      } catch (err) {
+        alert(`Failed to read backup file: ${err.message}`);
+      }
+      importFileInput.value = '';
+    });
+
+    // Privacy Policy In-App Modal
+    const privacyModal = document.getElementById('privacy-policy-modal');
+    document.getElementById('btn-view-privacy-policy')?.addEventListener('click', () => {
+      haptics.tap();
+      privacyModal?.classList.remove('hidden');
+      privacyModal?.classList.add('flex');
+    });
+
+    const closePrivacyModal = () => {
+      privacyModal?.classList.add('hidden');
+      privacyModal?.classList.remove('flex');
+    };
+
+    document.getElementById('privacy-policy-close')?.addEventListener('click', closePrivacyModal);
+    document.getElementById('privacy-policy-close-btn')?.addEventListener('click', closePrivacyModal);
 
     // 8. Card 4: Reset Today's Completions
     document.getElementById('profile-reset-today-btn')?.addEventListener('click', async () => {
@@ -2268,15 +2415,9 @@ class RotationReminderApp {
       if (confirmed) {
         haptics.milestone();
         await storage.resetAllToDefaults();
-        // Reload persisted data
-        this.profiles = await storage.getProfiles();
-        this.completions = await storage.getCompletions();
-        this.weightSettings = await storage.getWeightSettings();
-        this.bodyProfile = await storage.getBodyProfile();
-        this.weightLogs = await storage.getWeightLogs();
-        this.customGoals = await storage.getCustomGoals();
-        this.goalLogs = await storage.getGoalLogs();
+        await this.reloadAllData();
         await notifications.rescheduleMultiProfileNext5Days(this.profiles);
+        await updateAppLockUI();
         this.refreshAll();
         alert('All app settings, profiles, and logs have been reset to initial defaults.');
       }
@@ -2297,12 +2438,12 @@ class RotationReminderApp {
     if (isCm) {
       impRow?.classList.add('hidden');
       metricRow?.classList.remove('hidden');
-      if (cmEl) cmEl.value = this.bodyProfile.heightCm || 178;
+      if (cmEl) cmEl.value = this.bodyProfile.heightCm !== null ? this.bodyProfile.heightCm : '';
     } else {
       metricRow?.classList.add('hidden');
       impRow?.classList.remove('hidden');
-      if (feetEl) feetEl.value = this.bodyProfile.heightFeet || 5;
-      if (inchesEl) inchesEl.value = this.bodyProfile.heightInches || 10;
+      if (feetEl) feetEl.value = this.bodyProfile.heightFeet !== null ? this.bodyProfile.heightFeet : '';
+      if (inchesEl) inchesEl.value = this.bodyProfile.heightInches !== null ? this.bodyProfile.heightInches : '';
     }
   }
 
@@ -2311,17 +2452,21 @@ class RotationReminderApp {
 
     // Populate Name
     const nameEl = document.getElementById('profile-name-input');
-    if (nameEl && !nameEl.value) {
-      nameEl.value = this.bodyProfile.name || 'Alex';
+    if (nameEl) {
+      nameEl.value = this.bodyProfile.name || '';
     }
 
     // Populate Height Badge
     const badgeDisplay = document.getElementById('body-height-display-badge');
     const isCm = this.bodyProfile.heightUnit === 'cm';
     if (badgeDisplay) {
-      badgeDisplay.textContent = isCm
-        ? `${this.bodyProfile.heightCm || 178} cm`
-        : `${this.bodyProfile.heightFeet || 5} ft ${this.bodyProfile.heightInches || 0} in`;
+      if (isCm && this.bodyProfile.heightCm) {
+        badgeDisplay.textContent = `${this.bodyProfile.heightCm} cm`;
+      } else if (!isCm && (this.bodyProfile.heightFeet !== null || this.bodyProfile.heightInches !== null)) {
+        badgeDisplay.textContent = `${this.bodyProfile.heightFeet || 0} ft ${this.bodyProfile.heightInches || 0} in`;
+      } else {
+        badgeDisplay.textContent = 'Not configured';
+      }
     }
 
     // Populate Weights in Card 1
@@ -2330,14 +2475,14 @@ class RotationReminderApp {
     const goalWeightEl = document.getElementById('profile-goal-weight-input');
     const weightUnitLabelEl = document.getElementById('profile-weight-unit-label');
 
-    const currentWeight = this.weightSettings.currentWeight || 180.0;
-    const startWeight = this.weightSettings.startWeight || 185.0;
-    const goalWeight = this.weightSettings.goalWeight || 170.0;
+    const currentWeight = this.weightSettings.currentWeight;
+    const startWeight = this.weightSettings.startWeight;
+    const goalWeight = this.weightSettings.goalWeight;
     const unit = this.weightSettings.unit || 'lbs';
 
-    if (startWeightEl) startWeightEl.value = startWeight.toFixed(1);
-    if (currentWeightEl) currentWeightEl.value = currentWeight.toFixed(1);
-    if (goalWeightEl) goalWeightEl.value = goalWeight.toFixed(1);
+    if (startWeightEl) startWeightEl.value = startWeight !== null ? startWeight.toFixed(1) : '';
+    if (currentWeightEl) currentWeightEl.value = currentWeight !== null ? currentWeight.toFixed(1) : '';
+    if (goalWeightEl) goalWeightEl.value = goalWeight !== null ? goalWeight.toFixed(1) : '';
     if (weightUnitLabelEl) weightUnitLabelEl.textContent = unit;
 
     // Calculate BMI
@@ -2350,17 +2495,31 @@ class RotationReminderApp {
 
     if (bmiValEl) bmiValEl.textContent = bmiVal ? bmiVal.toFixed(1) : '--';
     if (bmiBadgeEl) {
-      bmiBadgeEl.textContent = bmiCategory.label;
-      bmiBadgeEl.className = `px-2 py-0.5 rounded-full text-[11px] font-bold ${bmiCategory.badgeClass}`;
+      if (bmiVal) {
+        bmiBadgeEl.textContent = bmiCategory.label;
+        bmiBadgeEl.className = `px-2 py-0.5 rounded-full text-[11px] font-bold ${bmiCategory.badgeClass}`;
+      } else {
+        bmiBadgeEl.textContent = 'Unconfigured';
+        bmiBadgeEl.className = 'px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-800 text-slate-400 border border-slate-700';
+      }
     }
     if (currentWeightRefEl) {
-      currentWeightRefEl.textContent = `${currentWeight.toFixed(1)} ${unit}`;
+      currentWeightRefEl.textContent = currentWeight !== null ? `${currentWeight.toFixed(1)} ${unit}` : '--';
     }
 
     // Milestone Ladder
     const ladderContainer = document.getElementById('body-milestone-ladder-list');
     if (!ladderContainer) return;
     ladderContainer.innerHTML = '';
+
+    if (!currentWeight || currentWeight <= 0 || (!this.bodyProfile.heightFeet && !this.bodyProfile.heightCm)) {
+      ladderContainer.innerHTML = `
+        <div class="p-3 text-center text-xs text-slate-500 bg-slate-900/60 rounded-xl border border-slate-800/80">
+          Enter height and weight to view milestone progression ladder.
+        </div>
+      `;
+      return;
+    }
 
     const milestones = calculateMilestoneLadder(currentWeight, unit, this.bodyProfile);
     let immediateTargetFound = false;

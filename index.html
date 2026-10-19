@@ -274,6 +274,22 @@
     <!-- TAB 3: MY PROFILE -->
     <section id="tab-content-profile" class="space-y-4 hidden">
 
+      <!-- ONBOARDING SETUP SHORTCUT -->
+      <div class="rounded-2xl glass-card p-4 border border-indigo-500/40 bg-gradient-to-r from-indigo-950/40 via-purple-950/30 to-indigo-950/40 shadow-xl flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-xl shrink-0">
+            ✨
+          </div>
+          <div>
+            <h3 class="text-xs font-bold text-white">Setup Wizard</h3>
+            <p class="text-[11px] text-slate-400 leading-tight">Re-run the initial 5-step configuration anytime</p>
+          </div>
+        </div>
+        <button id="btn-restart-onboarding" class="active-press shrink-0 px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md shadow-indigo-950/50 flex items-center gap-1.5 transition">
+          <span>🔄 Restart Setup</span>
+        </button>
+      </div>
+
       <!-- CARD 1: DEDICATED PERSONAL BODY PROFILE -->
       <div class="rounded-2xl glass-card p-5 border border-slate-700/60 shadow-xl space-y-4">
         <div class="flex items-center justify-between">
@@ -300,7 +316,7 @@
           <div class="flex items-center justify-between text-xs">
             <span class="text-slate-300 font-semibold">Your Height</span>
             <div class="flex items-center gap-1.5">
-              <span id="body-height-display-badge" class="text-indigo-300 font-mono font-bold text-xs bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">5 ft 10 in</span>
+              <span id="body-height-display-badge" class="text-indigo-300 font-mono font-bold text-xs bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">Not configured</span>
               <button id="body-height-unit-toggle" class="active-press px-2 py-0.5 rounded bg-slate-800 text-[11px] font-bold text-indigo-300 border border-slate-700 hover:bg-slate-700 transition">
                 <span id="body-height-unit-label">ft / in</span> ⇄
               </button>
@@ -311,18 +327,18 @@
           <div id="body-height-imperial-row" class="grid grid-cols-2 gap-2">
             <div>
               <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Feet</label>
-              <input type="number" id="body-height-feet" min="2" max="8" value="5" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-indigo-500" />
+              <input type="number" id="body-height-feet" min="2" max="8" placeholder="e.g. 5" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-indigo-500" />
             </div>
             <div>
               <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Inches</label>
-              <input type="number" id="body-height-inches" min="0" max="11.9" step="0.5" value="10" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-indigo-500" />
+              <input type="number" id="body-height-inches" min="0" max="11.9" step="0.5" placeholder="e.g. 10" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-indigo-500" />
             </div>
           </div>
 
           <!-- Metric Input (Centimeters) -->
           <div id="body-height-metric-row" class="hidden">
             <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Centimeters (cm)</label>
-            <input type="number" id="body-height-cm" min="50" max="260" value="178" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-indigo-500" />
+            <input type="number" id="body-height-cm" min="50" max="260" placeholder="e.g. 178" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-indigo-500" />
           </div>
         </div>
 
@@ -338,15 +354,15 @@
           <div class="grid grid-cols-3 gap-2">
             <div>
               <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Start</label>
-              <input type="number" id="profile-start-weight-input" step="0.1" value="185.0" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-amber-500 text-center" />
+              <input type="number" id="profile-start-weight-input" step="0.1" placeholder="--" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-amber-500 text-center" />
             </div>
             <div>
               <label class="block text-[10px] uppercase font-bold text-amber-400 mb-1">Current</label>
-              <input type="number" id="profile-current-weight-input" step="0.1" value="181.4" class="w-full bg-slate-950 border border-amber-500/50 rounded-lg px-2 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-amber-500 text-center font-bold" />
+              <input type="number" id="profile-current-weight-input" step="0.1" placeholder="--" class="w-full bg-slate-950 border border-amber-500/50 rounded-lg px-2 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-amber-500 text-center font-bold" />
             </div>
             <div>
               <label class="block text-[10px] uppercase font-bold text-emerald-400 mb-1">Goal</label>
-              <input type="number" id="profile-goal-weight-input" step="0.1" value="170.0" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-emerald-300 font-mono focus:outline-none focus:border-emerald-500 text-center" />
+              <input type="number" id="profile-goal-weight-input" step="0.1" placeholder="--" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-emerald-300 font-mono focus:outline-none focus:border-emerald-500 text-center" />
             </div>
           </div>
         </div>
@@ -354,6 +370,60 @@
         <button id="save-body-profile-btn" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-950/40 transition active-press flex items-center justify-center gap-1.5">
           <span>💾 Save Profile</span>
         </button>
+      </div>
+
+      <!-- CARD: APP LOCK & SECURITY -->
+      <div class="rounded-2xl glass-card p-5 border border-slate-700/60 shadow-xl space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-lg font-bold">
+              🔒
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-white">App Lock & Security</h3>
+              <p class="text-[11px] text-slate-400">PIN & Biometric authentication</p>
+            </div>
+          </div>
+          <label class="switch-toggle">
+            <input type="checkbox" id="profile-applock-toggle" />
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+
+        <div id="profile-applock-options" class="hidden space-y-3 pt-1">
+          <!-- Change PIN Button -->
+          <div class="flex items-center justify-between p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-xs">
+            <div>
+              <span class="text-slate-200 font-semibold block">4-Digit Security PIN</span>
+              <span class="text-[11px] text-slate-400">Encrypted locally with SHA-256</span>
+            </div>
+            <button id="profile-applock-change-pin-btn" class="active-press px-3 py-1.5 rounded-lg bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 font-bold border border-indigo-500/40 text-xs">
+              Change PIN
+            </button>
+          </div>
+
+          <!-- Biometrics Toggle -->
+          <div id="profile-applock-bio-row" class="hidden flex items-center justify-between p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-xs">
+            <div>
+              <span class="text-slate-200 font-semibold block">Biometric Unlock</span>
+              <span class="text-[11px] text-slate-400">Unlock using Fingerprint or Face ID</span>
+            </div>
+            <label class="switch-toggle">
+              <input type="checkbox" id="profile-applock-bio-toggle" />
+              <span class="switch-slider emerald"></span>
+            </label>
+          </div>
+
+          <!-- Lock Timing Selector -->
+          <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-xs flex items-center justify-between">
+            <span class="text-slate-300 font-semibold">Auto-Lock Timing</span>
+            <select id="profile-applock-timing-select" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-indigo-500">
+              <option value="immediate">Immediately</option>
+              <option value="1min">After 1 Minute</option>
+              <option value="restart">On App Restart Only</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       <!-- CARD 2: LIVE BMI & STAGE MILESTONES -->
@@ -589,18 +659,29 @@
           <input type="text" id="updater-repo-input" value="eliweiss4977/reminder-rotation-app" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-indigo-500" />
         </div>
 
-        <!-- Data Backup & Maintenance -->
+        <!-- Data Backup, Privacy & Maintenance -->
         <div class="pt-2 border-t border-slate-800 space-y-2">
-          <span class="text-xs font-bold text-slate-300 block">Data Backup & Reset</span>
-          <button id="backup-export-btn" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 border border-slate-700 active-press transition flex items-center justify-center gap-1.5">
-            <span>📥 Export Data (JSON)</span>
-          </button>
+          <span class="text-xs font-bold text-slate-300 block">Data Backup, Privacy & Reset</span>
           <div class="grid grid-cols-2 gap-2">
+            <button id="backup-export-btn" class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 border border-slate-700 active-press transition flex items-center justify-center gap-1.5">
+              <span>📥 Export JSON</span>
+            </button>
+            <button id="backup-import-btn" class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 border border-slate-700 active-press transition flex items-center justify-center gap-1.5">
+              <span>📤 Import JSON</span>
+            </button>
+            <input type="file" id="backup-import-file" accept=".json" class="hidden" />
+          </div>
+
+          <button id="btn-view-privacy-policy" class="w-full py-2.5 px-3 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-xs font-semibold text-indigo-300 border border-indigo-500/30 active-press transition flex items-center justify-center gap-1.5">
+            <span>🛡️ View Privacy Policy (100% Offline)</span>
+          </button>
+
+          <div class="grid grid-cols-2 gap-2 pt-1">
             <button id="profile-reset-today-btn" class="py-2.5 px-2 rounded-xl bg-amber-950/20 hover:bg-amber-900/30 text-amber-300 text-xs font-semibold border border-amber-800/40 active-press">
               Reset Today's Checks
             </button>
             <button id="profile-reset-all-btn" class="py-2.5 px-2 rounded-xl bg-rose-950/30 hover:bg-rose-900/30 text-rose-300 text-xs font-semibold border border-rose-800/40 active-press">
-              Reset All Defaults
+              Delete All Local Data
             </button>
           </div>
         </div>
@@ -1139,6 +1220,511 @@
             Save & Activate
           </button>
         </div>
+      </div>
+
+  <!-- APPLOCK SCREEN OVERLAY (PIN & BIOMETRIC UNLOCK) -->
+  <div id="applock-screen" class="fixed inset-0 z-[100] bg-[#090d16] hidden flex-col items-center justify-between p-6 select-none">
+    <div class="w-full max-w-xs flex flex-col items-center pt-8">
+      <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-700 flex items-center justify-center shadow-lg shadow-indigo-950/60 mb-4 animate-ring-pulse">
+        <svg class="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+      </div>
+      <h2 class="text-lg font-black text-white tracking-tight">Rotation Reminder</h2>
+      <p id="applock-title" class="text-xs text-indigo-300 font-semibold mt-1">Enter 4-Digit PIN</p>
+
+      <!-- 4 PIN Dots -->
+      <div id="lock-dots-container" class="flex items-center gap-4 mt-6">
+        <div id="lock-dot-0" class="w-4 h-4 rounded-full border-2 border-slate-700 bg-slate-800 transition-all duration-150"></div>
+        <div id="lock-dot-1" class="w-4 h-4 rounded-full border-2 border-slate-700 bg-slate-800 transition-all duration-150"></div>
+        <div id="lock-dot-2" class="w-4 h-4 rounded-full border-2 border-slate-700 bg-slate-800 transition-all duration-150"></div>
+        <div id="lock-dot-3" class="w-4 h-4 rounded-full border-2 border-slate-700 bg-slate-800 transition-all duration-150"></div>
+      </div>
+
+      <div id="applock-error-msg" class="hidden text-xs text-rose-400 font-medium text-center mt-4"></div>
+    </div>
+
+    <!-- Numeric Keypad (48px+ touch targets) -->
+    <div class="w-full max-w-xs grid grid-cols-3 gap-3 pb-8">
+      <button data-lock-key="1" class="active-press h-16 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800/80 text-xl font-bold text-white shadow flex items-center justify-center">1</button>
+      <button data-lock-key="2" class="active-press h-16 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800/80 text-xl font-bold text-white shadow flex items-center justify-center">2</button>
+      <button data-lock-key="3" class="active-press h-16 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800/80 text-xl font-bold text-white shadow flex items-center justify-center">3</button>
+      <button data-lock-key="4" class="active-press h-16 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800/80 text-xl font-bold text-white shadow flex items-center justify-center">4</button>
+      <button data-lock-key="5" class="active-press h-16 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800/80 text-xl font-bold text-white shadow flex items-center justify-center">5</button>
+      <button data-lock-key="6" class="active-press h-16 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800/80 text-xl font-bold text-white shadow flex items-center justify-center">6</button>
+      <button data-lock-key="7" class="active-press h-16 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800/80 text-xl font-bold text-white shadow flex items-center justify-center">7</button>
+      <button data-lock-key="8" class="active-press h-16 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800/80 text-xl font-bold text-white shadow flex items-center justify-center">8</button>
+      <button data-lock-key="9" class="active-press h-16 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800/80 text-xl font-bold text-white shadow flex items-center justify-center">9</button>
+      
+      <button id="applock-bio-btn" title="Biometric Unlock" class="hidden active-press h-16 rounded-2xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-xl text-indigo-300 shadow flex items-center justify-center">
+        👆
+      </button>
+      <button data-lock-key="0" class="active-press h-16 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800/80 text-xl font-bold text-white shadow flex items-center justify-center col-start-2">0</button>
+      <button data-lock-key="backspace" title="Delete" class="active-press h-16 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800/80 text-lg font-bold text-slate-300 shadow flex items-center justify-center">
+        ⌫
+      </button>
+    </div>
+  </div>
+
+  <!-- 5-SCREEN ONBOARDING & SETUP WIZARD MODAL -->
+  <div id="onboarding-modal" class="fixed inset-0 z-50 bg-[#090d16] hidden flex-col justify-between overflow-y-auto no-scrollbar">
+    
+    <!-- Top Progress Bar -->
+    <div class="sticky top-0 z-20 bg-[#090d16]/95 backdrop-blur-md px-5 pt-safe pb-3 border-b border-slate-800/80">
+      <div class="max-w-md mx-auto flex items-center justify-between text-xs mb-2">
+        <span class="font-bold text-white flex items-center gap-2">
+          <span>✨</span> Welcome Setup
+        </span>
+        <span id="onboard-step-indicator" class="font-mono text-indigo-400 font-bold text-[11px]">Step 1 of 5</span>
+      </div>
+      <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden max-w-md mx-auto">
+        <div id="onboard-progress-bar" class="bg-gradient-to-r from-indigo-500 to-purple-500 h-full transition-all duration-300" style="width: 20%"></div>
+      </div>
+    </div>
+
+    <!-- Scrollable Screens Container -->
+    <div class="flex-1 max-w-md w-full mx-auto p-5">
+
+      <!-- SCREEN 1: WELCOME & FEATURE TOUR -->
+      <div id="onboard-screen-1" class="flex flex-col space-y-5">
+        <div class="text-center pt-4">
+          <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-700 flex items-center justify-center mx-auto shadow-xl shadow-indigo-950/60 mb-3">
+            <svg class="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+            </svg>
+          </div>
+          <h2 class="text-xl font-black text-white tracking-tight">Rotation Reminder</h2>
+          <p class="text-xs text-indigo-400 font-semibold mt-0.5">Multi-Profile Alarms & Habit Engine</p>
+          <p class="text-xs text-slate-400 max-w-xs mx-auto mt-2 leading-relaxed">
+            Take control of your daily acupressure rotation routines, hydration checkpoints, and weight loss milestones.
+          </p>
+        </div>
+
+        <div class="space-y-3">
+          <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-start gap-3">
+            <span class="text-xl">🔄</span>
+            <div>
+              <h4 class="text-xs font-bold text-white">Smart Rotation & Checkpoint Alarms</h4>
+              <p class="text-[11px] text-slate-400 leading-tight mt-0.5">Rings over Android's native Alarm stream even if your phone is locked or muted.</p>
+            </div>
+          </div>
+
+          <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-start gap-3">
+            <span class="text-xl">🪑</span>
+            <div>
+              <h4 class="text-xs font-bold text-white">40x Sitting Rotation Pacer</h4>
+              <p class="text-[11px] text-slate-400 leading-tight mt-0.5">Paces acupressure counts at 1.2s cadence and keeps your phone screen awake safely.</p>
+            </div>
+          </div>
+
+          <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-start gap-3">
+            <span class="text-xl">⚖️</span>
+            <div>
+              <h4 class="text-xs font-bold text-white">Milestone Ladder & Daily Habits</h4>
+              <p class="text-[11px] text-slate-400 leading-tight mt-0.5">Calculates personalized BMI milestones, water tracking, and walks with zero cloud tracking.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-4">
+          <button id="onboard-step1-next" class="w-full active-press py-3.5 px-4 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold text-sm shadow-xl shadow-indigo-950/50 flex items-center justify-center gap-2">
+            <span>Let's Set Up Your App →</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- SCREEN 2: BODY PROFILE & LIVE MILESTONE LADDER -->
+      <div id="onboard-screen-2" class="hidden flex-col space-y-4">
+        <div>
+          <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-400">Step 2 of 5</span>
+          <h3 class="text-lg font-black text-white">Personal Body Metrics</h3>
+          <p class="text-xs text-slate-400 leading-tight mt-0.5">We never guess your stats. Enter your height and weight for custom targets.</p>
+        </div>
+
+        <!-- Name Input -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Your Name (Optional)</label>
+          <input type="text" id="onboard-body-name" placeholder="e.g. Alex" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500" />
+        </div>
+
+        <!-- Height Section -->
+        <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2.5">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-slate-300 font-semibold">Your Height</span>
+            <div class="flex gap-1">
+              <button type="button" id="onboard-hunit-ft" class="px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-600 text-white">ft / in</button>
+              <button type="button" id="onboard-hunit-cm" class="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-900 text-slate-400">cm</button>
+            </div>
+          </div>
+
+          <div id="onboard-ft-row" class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Feet</label>
+              <input type="number" id="onboard-height-ft" min="2" max="8" placeholder="e.g. 5" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-indigo-500" />
+            </div>
+            <div>
+              <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Inches</label>
+              <input type="number" id="onboard-height-in" min="0" max="11.9" step="0.5" placeholder="e.g. 10" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-indigo-500" />
+            </div>
+          </div>
+
+          <div id="onboard-cm-row" class="hidden">
+            <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Centimeters (cm)</label>
+            <input type="number" id="onboard-height-cm" min="50" max="260" placeholder="e.g. 178" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-indigo-500" />
+          </div>
+        </div>
+
+        <!-- Weight Section -->
+        <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2.5">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-slate-300 font-semibold">Weight Measurements</span>
+            <div class="flex gap-1">
+              <button type="button" id="onboard-wunit-lbs" class="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-600 text-white">lbs</button>
+              <button type="button" id="onboard-wunit-kg" class="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-900 text-slate-400">kg</button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[10px] uppercase font-bold text-amber-400 mb-1">Current Weight</label>
+              <div class="relative">
+                <input type="number" id="onboard-current-weight" step="0.1" placeholder="--" class="w-full bg-slate-950 border border-amber-500/50 rounded-xl px-3 py-2 text-sm text-white font-mono font-bold focus:outline-none focus:border-amber-500" />
+                <span id="onboard-cur-weight-unit" class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">lbs</span>
+              </div>
+            </div>
+            <div>
+              <label class="block text-[10px] uppercase font-bold text-emerald-400 mb-1">Target Goal Weight</label>
+              <div class="relative">
+                <input type="number" id="onboard-goal-weight" step="0.1" placeholder="--" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-emerald-300 font-mono focus:outline-none focus:border-emerald-500" />
+                <span id="onboard-goal-weight-unit" class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">lbs</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Live BMI Badge -->
+          <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs">
+            <span class="text-slate-400 font-medium">Calculated BMI:</span>
+            <div class="flex items-center gap-2">
+              <span id="onboard-bmi-value" class="font-mono font-extrabold text-white text-sm">--.-</span>
+              <span id="onboard-bmi-badge" class="px-2 py-0.5 rounded-full text-xs font-medium bg-slate-800 text-slate-400 border border-slate-700">Enter height & weight</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Personalized Milestone Ladder -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Recommended Milestone Ladder (Tap to select goal)</label>
+          <div id="onboard-milestone-ladder" class="space-y-2">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <div class="pt-2 grid grid-cols-3 gap-2">
+          <button id="onboard-step2-back" class="py-3 px-3 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs active-press">
+            Back
+          </button>
+          <button id="onboard-step2-skip" class="py-3 px-3 rounded-xl bg-slate-800/80 text-slate-400 font-semibold text-xs active-press">
+            Skip
+          </button>
+          <button id="onboard-step2-next" class="py-3 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow active-press">
+            Next →
+          </button>
+        </div>
+      </div>
+
+      <!-- SCREEN 3: ROTATION ALARM SCHEDULE -->
+      <div id="onboard-screen-3" class="hidden flex-col space-y-4">
+        <div>
+          <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-400">Step 3 of 5</span>
+          <h3 class="text-lg font-black text-white">Choose Rotation Schedule</h3>
+          <p class="text-xs text-slate-400 leading-tight mt-0.5">Select a pre-built cadence or adjust start and cutoff times.</p>
+        </div>
+
+        <!-- 4 Templates Grid -->
+        <div id="onboard-alarm-templates-grid" class="space-y-2">
+          <!-- Rendered dynamically -->
+        </div>
+
+        <!-- Timing Window (07:00 to 23:00 Default) -->
+        <div class="grid grid-cols-2 gap-3 p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Daily Start</label>
+            <input type="time" id="onboard-alarm-start" value="07:00" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Daily Cutoff (11 PM)</label>
+            <input type="time" id="onboard-alarm-end" value="23:00" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500" />
+          </div>
+        </div>
+
+        <!-- Alert Mode -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Alert Mode</label>
+          <div class="grid grid-cols-3 gap-1.5">
+            <button type="button" id="onboard-mode-sv" class="py-2 text-xs font-bold rounded-xl bg-indigo-600 text-white border border-indigo-500 shadow">
+              🔊 Sound & Vibe
+            </button>
+            <button type="button" id="onboard-mode-so" class="py-2 text-xs font-medium rounded-xl bg-slate-900 border border-slate-800 text-slate-400">
+              🔉 Sound Only
+            </button>
+            <button type="button" id="onboard-mode-vo" class="py-2 text-xs font-medium rounded-xl bg-slate-900 border border-slate-800 text-slate-400">
+              📳 Vibrate Only
+            </button>
+          </div>
+        </div>
+
+        <!-- Ringtone Picker with Preview Audio -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Notification Ringtone</label>
+          <div id="onboard-ringtone-list" class="space-y-1.5">
+            <!-- Dynamic 5 ringtones -->
+          </div>
+        </div>
+
+        <!-- Live Ring Times Preview -->
+        <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1.5">
+          <div class="flex items-center justify-between text-xs font-bold">
+            <span class="text-slate-300 flex items-center gap-1">
+              <span>🔔</span> Ring Schedule
+            </span>
+            <span id="onboard-preview-count" class="text-indigo-300 text-[11px]">0 Rings</span>
+          </div>
+          <div id="onboard-preview-chips" class="flex flex-wrap gap-1 max-h-24 overflow-y-auto no-scrollbar"></div>
+        </div>
+
+        <div class="pt-2 grid grid-cols-3 gap-2">
+          <button id="onboard-step3-back" class="py-3 px-3 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs active-press">
+            Back
+          </button>
+          <button id="onboard-step3-skip" class="py-3 px-3 rounded-xl bg-slate-800/80 text-slate-400 font-semibold text-xs active-press">
+            Skip
+          </button>
+          <button id="onboard-step3-next" class="py-3 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow active-press">
+            Next →
+          </button>
+        </div>
+      </div>
+
+      <!-- SCREEN 4: DAILY HABITS & EXTRA REMINDERS -->
+      <div id="onboard-screen-4" class="hidden flex-col space-y-4">
+        <div>
+          <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-400">Step 4 of 5</span>
+          <h3 class="text-lg font-black text-white">Daily Habits & Goals</h3>
+          <p class="text-xs text-slate-400 leading-tight mt-0.5">Select healthy routines to track alongside your acupressure pacing.</p>
+        </div>
+
+        <div class="space-y-2.5">
+          <!-- Water -->
+          <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span class="text-2xl">💧</span>
+              <div>
+                <h4 class="text-xs font-bold text-white">Drink Water (8 Glasses)</h4>
+                <p class="text-[11px] text-slate-400">Hydration reminders every 2 hours</p>
+              </div>
+            </div>
+            <label class="switch-toggle">
+              <input type="checkbox" id="onboard-habit-water" checked />
+              <span class="switch-slider cyan"></span>
+            </label>
+          </div>
+
+          <!-- Walk -->
+          <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span class="text-2xl">🚶</span>
+              <div>
+                <h4 class="text-xs font-bold text-white">Daily Walk & Steps</h4>
+                <p class="text-[11px] text-slate-400">Target 8,000 steps (reminder at 6:00 PM)</p>
+              </div>
+            </div>
+            <label class="switch-toggle">
+              <input type="checkbox" id="onboard-habit-walk" checked />
+              <span class="switch-slider emerald"></span>
+            </label>
+          </div>
+
+          <!-- Morning Weigh-In -->
+          <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span class="text-2xl">⚖️</span>
+              <div>
+                <h4 class="text-xs font-bold text-white">Morning Weigh-In</h4>
+                <p class="text-[11px] text-slate-400">Consistent daily checkpoint at 7:15 AM</p>
+              </div>
+            </div>
+            <label class="switch-toggle">
+              <input type="checkbox" id="onboard-habit-weighin" checked />
+              <span class="switch-slider"></span>
+            </label>
+          </div>
+
+          <!-- Custom Goal -->
+          <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <span class="text-2xl">🎯</span>
+                <div>
+                  <h4 class="text-xs font-bold text-white">Custom Habit Goal</h4>
+                  <p class="text-[11px] text-slate-400">Create your own daily routine</p>
+                </div>
+              </div>
+              <label class="switch-toggle">
+                <input type="checkbox" id="onboard-habit-custom" />
+                <span class="switch-slider emerald"></span>
+              </label>
+            </div>
+            <div id="onboard-habit-custom-fields" class="hidden pt-2 border-t border-slate-800 grid grid-cols-2 gap-2">
+              <input type="text" id="onboard-custom-title" placeholder="e.g. Green Tea, Stretching" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500" />
+              <input type="number" id="onboard-custom-target" placeholder="Target # (e.g. 2)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500" />
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-4 grid grid-cols-2 gap-2.5">
+          <button id="onboard-step4-back" class="py-3 px-4 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs active-press">
+            Back
+          </button>
+          <button id="onboard-step4-next" class="py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow active-press">
+            Next: Permissions & Lock →
+          </button>
+        </div>
+      </div>
+
+      <!-- SCREEN 5: PERMISSIONS & APP LOCK -->
+      <div id="onboard-screen-5" class="hidden flex-col space-y-4">
+        <div>
+          <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-400">Step 5 of 5</span>
+          <h3 class="text-lg font-black text-white">Permissions & Security</h3>
+          <p class="text-xs text-slate-400 leading-tight mt-0.5">Enable locked-screen audio alerts and protect your data locally.</p>
+        </div>
+
+        <!-- Notification Permission Card -->
+        <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2.5">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-300 flex items-center justify-center text-lg shrink-0">
+              🔔
+            </div>
+            <div>
+              <h4 class="text-xs font-bold text-white">Alarm & Notification Stream</h4>
+              <p id="onboard-perm-status" class="text-[11px] text-slate-400 leading-tight mt-0.5">Required for locked-screen audio rings and pacer prompts.</p>
+            </div>
+          </div>
+          <button type="button" id="onboard-grant-perms-btn" class="w-full py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow active-press transition flex items-center justify-center gap-1.5">
+            <span>🔔 Allow Notifications & Alarms</span>
+          </button>
+        </div>
+
+        <!-- Optional App Lock Setup -->
+        <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-lg shrink-0">
+                🔒
+              </div>
+              <div>
+                <h4 class="text-xs font-bold text-white">Optional App Lock</h4>
+                <p class="text-[11px] text-slate-400 leading-tight mt-0.5">4-digit PIN and Biometrics</p>
+              </div>
+            </div>
+            <label class="switch-toggle">
+              <input type="checkbox" id="onboard-applock-toggle" />
+              <span class="switch-slider"></span>
+            </label>
+          </div>
+
+          <div id="onboard-applock-fields" class="hidden pt-2 border-t border-slate-800 space-y-3">
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] font-semibold text-slate-400 mb-1">Create PIN (4 Digits)</label>
+                <input type="password" id="onboard-pin-input" maxlength="4" placeholder="••••" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-center text-sm text-white font-mono tracking-widest focus:outline-none focus:border-indigo-500" />
+              </div>
+              <div>
+                <label class="block text-[10px] font-semibold text-slate-400 mb-1">Confirm PIN</label>
+                <input type="password" id="onboard-pin-confirm" maxlength="4" placeholder="••••" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-center text-sm text-white font-mono tracking-widest focus:outline-none focus:border-indigo-500" />
+              </div>
+            </div>
+
+            <div id="onboard-applock-bio-row" class="hidden flex items-center justify-between p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs">
+              <span class="text-slate-300">Enable Biometric (Fingerprint/Face)</span>
+              <label class="switch-toggle">
+                <input type="checkbox" id="onboard-applock-bio-toggle" />
+                <span class="switch-slider emerald"></span>
+              </label>
+            </div>
+
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-slate-400">Auto-Lock Timing</span>
+              <select id="onboard-lock-timing" class="bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-indigo-500">
+                <option value="immediate">Immediately</option>
+                <option value="1min">After 1 Minute</option>
+                <option value="restart">On App Restart</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-4 grid grid-cols-3 gap-2">
+          <button id="onboard-step5-back" class="py-3 px-3 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs active-press">
+            Back
+          </button>
+          <button id="onboard-finish-btn" class="col-span-2 py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-indigo-600 hover:from-emerald-400 hover:to-indigo-500 text-white font-black text-xs shadow-xl shadow-emerald-950/50 flex items-center justify-center gap-2 active-press transition">
+            <span>🚀 Finish & Launch My App</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- IN-APP PRIVACY POLICY MODAL -->
+  <div id="privacy-policy-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex-col justify-end sm:justify-center items-center p-0 sm:p-4 transition-all">
+    <div class="w-full max-w-md bg-gradient-to-b from-[#111827] to-[#090d16] rounded-t-3xl sm:rounded-3xl border border-slate-700/80 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      
+      <div class="px-5 pt-4 pb-3 flex items-center justify-between border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-sm font-bold">
+            🛡️
+          </div>
+          <h3 class="text-sm font-bold text-white">Privacy Policy</h3>
+        </div>
+        <button id="privacy-policy-close" class="p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white active-press">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4 overflow-y-auto no-scrollbar text-xs text-slate-300 leading-relaxed">
+        <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+          <h4 class="text-white font-bold mb-1">🔒 100% Offline & Local Storage</h4>
+          <p class="text-[11px] text-slate-400">All data (height, weight logs, alarm schedules, habit completions, and security PIN) is saved exclusively on your device. Zero cloud servers or analytics tracking.</p>
+        </div>
+
+        <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+          <h4 class="text-white font-bold mb-1">⚙️ Device Permissions</h4>
+          <p class="text-[11px] text-slate-400">Notifications & Exact Alarms are used strictly to sound your 40x acupressure rotation reminders. Biometrics are processed only by your device's operating system.</p>
+        </div>
+
+        <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+          <h4 class="text-white font-bold mb-1">📦 Data Ownership</h4>
+          <p class="text-[11px] text-slate-400">You can export your complete data as JSON or permanently wipe all data anytime from My Profile.</p>
+        </div>
+
+        <div class="text-center pt-2">
+          <a href="/privacy-policy.html" target="_blank" class="text-indigo-400 text-xs font-bold hover:underline">
+            Open Full Privacy Policy Document ↗
+          </a>
+        </div>
+      </div>
+
+      <div class="p-4 border-t border-slate-800 pb-safe">
+        <button type="button" id="privacy-policy-close-btn" class="w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold active-press">
+          Close
+        </button>
       </div>
 
     </div>

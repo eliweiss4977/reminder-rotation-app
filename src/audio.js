@@ -292,3 +292,4 @@ class AudioEngine {
 }
 
 export const audio = new AudioEngine();
+export const audioService = audio;
