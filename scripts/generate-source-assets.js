@@ -277,6 +277,107 @@ async function main() {
     .png()
     .toFile(path.join(assetsDir, 'splash-dark.png'));
   console.log('✓ Created assets/splash.png & assets/splash-dark.png');
+
+  // Generate 1024x500 Google Play Store Feature Graphic
+  const featureGraphicSvg = `
+<svg width="1024" height="500" viewBox="0 0 1024 500" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="fgBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#090D16"/>
+      <stop offset="45%" stop-color="#1E1B4B"/>
+      <stop offset="85%" stop-color="#2E1065"/>
+      <stop offset="100%" stop-color="#4338CA"/>
+    </linearGradient>
+    <radialGradient id="fgGlow" cx="28%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="#4F46E5" stop-opacity="0.5"/>
+      <stop offset="70%" stop-color="#1E1B4B" stop-opacity="0.1"/>
+      <stop offset="100%" stop-color="#090D16" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="fgEmerald" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34D399"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <linearGradient id="fgGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FDE047"/>
+      <stop offset="100%" stop-color="#D97706"/>
+    </linearGradient>
+    <filter id="fgShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#000000" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1024" height="500" fill="url(#fgBg)"/>
+  <rect width="1024" height="500" fill="url(#fgGlow)"/>
+
+  <!-- Left: Rotation Emblem (Center ~ 230, 250) -->
+  <g filter="url(#fgShadow)" transform="translate(220, 250)">
+    <!-- Squircle badge background -->
+    <rect x="-140" y="-140" width="280" height="280" rx="64" fill="#131138" stroke="#312E81" stroke-width="4"/>
+    
+    <!-- Clockwise Arc 1: Emerald Top/Right -->
+    <path d="M -80,-67 A 105,105 0 0,1 91,-52" fill="none" stroke="url(#fgEmerald)" stroke-width="19" stroke-linecap="round"/>
+    <polygon points="91,-52 113,-36 97,-16" fill="#34D399"/>
+
+    <!-- Clockwise Arc 2: Gold Bottom/Left -->
+    <path d="M 80,67 A 105,105 0 0,1 -91,52" fill="none" stroke="url(#fgGold)" stroke-width="19" stroke-linecap="round"/>
+    <polygon points="-91,52 -113,36 -97,16" fill="#FDE047"/>
+
+    <!-- Center Bell Element -->
+    <path d="M -30,22 C -30,22 -32,-30 0,-40 C 32,-30 30,22 30,22 Z" fill="url(#fgGold)"/>
+    <ellipse cx="0" cy="22" rx="35" ry="11" fill="#F59E0B"/>
+    <circle cx="0" cy="27" r="8" fill="#D97706"/>
+    <circle cx="0" cy="-44" r="7" fill="#FDE047"/>
+  </g>
+
+  <!-- Right: Branding & Feature Text (X ~ 430 to 950) -->
+  <g transform="translate(430, 160)">
+    <!-- Title -->
+    <text x="0" y="32" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="46" font-weight="800" fill="#FFFFFF" letter-spacing="-0.5">
+      Rotation Reminder
+    </text>
+
+    <!-- Subtitle -->
+    <text x="0" y="76" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="21" font-weight="600" fill="#34D399" letter-spacing="0.2">
+      Smart Interval Alarms &amp; Seated 40x Pacer
+    </text>
+
+    <!-- Description line -->
+    <text x="0" y="116" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="400" fill="#94A3B8">
+      Custom routines • High-priority chimes • BMI milestone ladder
+    </text>
+
+    <!-- Feature Pill Badges -->
+    <g transform="translate(0, 148)">
+      <!-- Pill 1: Alarms -->
+      <g>
+        <rect x="0" y="0" width="138" height="36" rx="18" fill="#1E1B4B" stroke="#4F46E5" stroke-width="1.5"/>
+        <text x="69" y="23" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="600" fill="#E0E7FF" text-anchor="middle">⏰ Every 2h Routine</text>
+      </g>
+      <!-- Pill 2: 40x Pacer -->
+      <g transform="translate(148, 0)">
+        <rect x="0" y="0" width="128" height="36" rx="18" fill="#064E3B" stroke="#059669" stroke-width="1.5"/>
+        <text x="64" y="23" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="600" fill="#A7F3D0" text-anchor="middle">⚡ 40x Pacer Tick</text>
+      </g>
+      <!-- Pill 3: Offline Privacy -->
+      <g transform="translate(286, 0)">
+        <rect x="0" y="0" width="138" height="36" rx="18" fill="#1E293B" stroke="#475569" stroke-width="1.5"/>
+        <text x="69" y="23" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="600" fill="#F1F5F9" text-anchor="middle">🔒 100% Offline</text>
+      </g>
+    </g>
+  </g>
+</svg>
+  `;
+
+  await sharp(Buffer.from(featureGraphicSvg))
+    .resize(1024, 500)
+    .png()
+    .toFile(path.join(assetsDir, 'play-store-feature-graphic.png'));
+  await sharp(Buffer.from(featureGraphicSvg))
+    .resize(1024, 500)
+    .png()
+    .toFile(path.join(publicDir, 'feature-graphic.png'));
+  console.log('✓ Created assets/play-store-feature-graphic.png & public/feature-graphic.png (1024x500)');
 }
 
 main().catch(err => {
