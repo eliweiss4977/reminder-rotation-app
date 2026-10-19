@@ -13,12 +13,12 @@ export const ALARM_TEMPLATES = [
     intervalMinutes: 120,
     specialFixedTimes: [],
     durationType: 'days',
-    durationValue: 7,
+    durationValue: 10,
     ringtone: 'ring_classic',
     alertMode: 'sound_vibrate',
-    badge: 'Popular',
+    badge: 'Standard 10-Day Block',
     icon: '🔄',
-    description: 'Standard 40x acupressure rotation every 2h from 7 AM to 11 PM'
+    description: 'Dietitian standard 10-day block: 40x acupressure rotation every 2h until 11 PM'
   },
   {
     id: 'template_rotation_2h_2_7',
@@ -30,12 +30,12 @@ export const ALARM_TEMPLATES = [
     intervalMinutes: 120,
     specialFixedTimes: ['14:00', '19:00'],
     durationType: 'days',
-    durationValue: 7,
+    durationValue: 10,
     ringtone: 'ring_classic',
     alertMode: 'sound_vibrate',
     badge: 'Recommended',
     icon: '⭐',
-    description: '2h schedule + afternoon (2 PM) & evening (7 PM) priority acupressure'
+    description: 'Dietitian 10-day block: 2h schedule + afternoon (2 PM) & evening (7 PM) priority acupressure'
   },
   {
     id: 'template_rotation_2h_3_7',
@@ -47,12 +47,12 @@ export const ALARM_TEMPLATES = [
     intervalMinutes: 120,
     specialFixedTimes: ['15:00', '19:00'],
     durationType: 'days',
-    durationValue: 7,
+    durationValue: 10,
     ringtone: 'ring_crystal',
     alertMode: 'sound_vibrate',
     badge: 'Alternative',
     icon: '🕒',
-    description: '2h schedule with 3:00 PM & 7:00 PM key acupressure checkpoints'
+    description: 'Dietitian 10-day block: 2h schedule with 3:00 PM & 7:00 PM key acupressure checkpoints'
   },
   {
     id: 'template_rotation_1_5h_4_7',
@@ -64,12 +64,12 @@ export const ALARM_TEMPLATES = [
     intervalMinutes: 90,
     specialFixedTimes: ['16:00', '19:00'],
     durationType: 'days',
-    durationValue: 7,
+    durationValue: 10,
     ringtone: 'ring_crystal',
     alertMode: 'sound_vibrate',
-    badge: 'Intense',
+    badge: 'Alternative',
     icon: '⚡',
-    description: 'Accelerated 90-min protocol with 4 PM & 7 PM checkpoints'
+    description: 'Dietitian 10-day block: 90-min protocol with 4 PM & 7 PM checkpoints'
   },
   {
     id: 'template_drink_water',
@@ -408,10 +408,19 @@ class StorageEngine {
     if (!profile || !profile.id) return await this.getProfiles();
     const profiles = await this.getProfiles();
     const index = profiles.findIndex(p => p.id === profile.id);
+
+    const cleanProfile = { ...profile };
+    if (cleanProfile.enabled && !cleanProfile.activatedAt) {
+      cleanProfile.activatedAt = Date.now();
+    }
+    if (cleanProfile.durationType === 'days' && cleanProfile.durationValue && cleanProfile.activatedAt) {
+      cleanProfile.expiresAt = cleanProfile.activatedAt + (cleanProfile.durationValue * 24 * 60 * 60 * 1000);
+    }
+
     if (index >= 0) {
-      profiles[index] = { ...profiles[index], ...profile };
+      profiles[index] = { ...profiles[index], ...cleanProfile };
     } else {
-      profiles.push(profile);
+      profiles.push(cleanProfile);
     }
     await this.saveProfiles(profiles);
     return profiles;
@@ -431,6 +440,9 @@ class StorageEngine {
       target.enabled = !target.enabled;
       if (target.enabled) {
         target.activatedAt = Date.now();
+        if (target.durationType === 'days' && target.durationValue) {
+          target.expiresAt = target.activatedAt + (target.durationValue * 24 * 60 * 60 * 1000);
+        }
       }
       await this.saveProfiles(profiles);
     }

@@ -34,7 +34,7 @@ class OnboardingWizard {
       ringtone: 'ring_classic',
       alertMode: 'sound_vibrate',
       durationType: 'days',
-      durationValue: 7,
+      durationValue: 10,
 
       // Step 4: Habits & Extra Reminders
       habits: {
@@ -321,7 +321,7 @@ class OnboardingWizard {
         id: 'template_rotation_2h_2_7',
         name: 'Every 2h + 2:00 & 7:00 PM',
         badge: 'Recommended',
-        desc: 'Every 2 hours + priority afternoon (2 PM) & evening (7 PM) 40x acupressure',
+        desc: 'Dietitian 10-day block: Every 2 hours + priority afternoon (2 PM) & evening (7 PM) 40x acupressure',
         interval: 120,
         fixed: ['14:00', '19:00'],
         ringtone: 'ring_classic'
@@ -329,8 +329,8 @@ class OnboardingWizard {
       {
         id: 'template_rotation_2h',
         name: 'Every 2 Hours (Standard)',
-        badge: 'Popular',
-        desc: 'Steady 2h pacing from 7:00 AM to 11:00 PM',
+        badge: 'Standard 10-Day Block',
+        desc: 'Dietitian standard 10-day block: Steady 2h pacing from 7:00 AM to 11:00 PM',
         interval: 120,
         fixed: [],
         ringtone: 'ring_classic'
@@ -339,7 +339,7 @@ class OnboardingWizard {
         id: 'template_rotation_2h_3_7',
         name: 'Every 2h + 3:00 & 7:00 PM',
         badge: 'Alternative',
-        desc: '2h schedule with 3 PM & 7 PM checkpoints',
+        desc: 'Dietitian 10-day block: 2h schedule with 3 PM & 7 PM checkpoints',
         interval: 120,
         fixed: ['15:00', '19:00'],
         ringtone: 'ring_crystal'
@@ -347,8 +347,8 @@ class OnboardingWizard {
       {
         id: 'template_rotation_1_5h_4_7',
         name: 'Every 1.5h + 4:00 & 7:00 PM',
-        badge: 'Intense',
-        desc: 'Accelerated 90-min protocol with 4 PM & 7 PM checkpoints',
+        badge: 'Alternative',
+        desc: 'Dietitian 10-day block: 90-min protocol with 4 PM & 7 PM checkpoints',
         interval: 90,
         fixed: ['16:00', '19:00'],
         ringtone: 'ring_crystal'
@@ -467,6 +467,51 @@ class OnboardingWizard {
     soBtn?.addEventListener('click', () => updateModeUI('sound_only'));
     voBtn?.addEventListener('click', () => updateModeUI('vibrate_only'));
     updateModeUI(this.draft.alertMode);
+
+    // Cycle Duration Selector (Dietitian 10-day block default)
+    const dur10dBtn = document.getElementById('onboard-dur-10d');
+    const dur7dBtn = document.getElementById('onboard-dur-7d');
+    const durAlwaysBtn = document.getElementById('onboard-dur-always');
+    const cycleDisplay = document.getElementById('onboard-cycle-display');
+    const cycleEndDate = document.getElementById('onboard-cycle-end-date');
+    const cycleHint = document.getElementById('onboard-cycle-hint');
+
+    const updateCycleUI = (type, val) => {
+      this.draft.durationType = type;
+      this.draft.durationValue = val;
+
+      [dur10dBtn, dur7dBtn, durAlwaysBtn].forEach(b => {
+        b?.classList.remove('bg-indigo-600', 'text-white', 'border-indigo-500', 'font-bold', 'shadow');
+        b?.classList.add('bg-slate-950', 'text-slate-400', 'border-slate-800', 'font-medium');
+      });
+
+      if (type === 'days') {
+        const activeBtn = val === 10 ? dur10dBtn : dur7dBtn;
+        activeBtn?.classList.add('bg-indigo-600', 'text-white', 'border-indigo-500', 'font-bold', 'shadow');
+        activeBtn?.classList.remove('bg-slate-950', 'text-slate-400', 'border-slate-800', 'font-medium');
+
+        if (cycleDisplay) cycleDisplay.textContent = `${val} Days`;
+
+        const expDate = new Date(Date.now() + (val * 24 * 60 * 60 * 1000));
+        const dateStr = expDate.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+        if (cycleEndDate) cycleEndDate.textContent = dateStr;
+        if (cycleHint) {
+          cycleHint.innerHTML = `Standard ${val}-day block: Auto-expires on <span class="text-slate-300 font-semibold">${dateStr}</span> to prompt for your next rotation phase.`;
+        }
+      } else {
+        durAlwaysBtn?.classList.add('bg-indigo-600', 'text-white', 'border-indigo-500', 'font-bold', 'shadow');
+        durAlwaysBtn?.classList.remove('bg-slate-950', 'text-slate-400', 'border-slate-800', 'font-medium');
+        if (cycleDisplay) cycleDisplay.textContent = 'Until Turned Off';
+        if (cycleHint) {
+          cycleHint.textContent = 'Continuous schedule: Remains active every day until manually switched off.';
+        }
+      }
+    };
+
+    dur10dBtn?.addEventListener('click', () => updateCycleUI('days', 10));
+    dur7dBtn?.addEventListener('click', () => updateCycleUI('days', 7));
+    durAlwaysBtn?.addEventListener('click', () => updateCycleUI('indefinite', 0));
+    updateCycleUI(this.draft.durationType || 'days', this.draft.durationValue || 10);
 
     this.updateStep3Preview();
   }
@@ -651,7 +696,10 @@ class OnboardingWizard {
           alertMode: this.draft.alertMode,
           durationType: this.draft.durationType,
           durationValue: this.draft.durationValue,
-          activatedAt: Date.now()
+          activatedAt: Date.now(),
+          expiresAt: this.draft.durationType === 'days' && this.draft.durationValue
+            ? Date.now() + (this.draft.durationValue * 24 * 60 * 60 * 1000)
+            : Infinity
         };
         initialProfiles.push(rotationProfile);
       }
@@ -771,8 +819,16 @@ class OnboardingWizard {
         }
       }
 
-      // 6. Schedule notifications
-      await notifications.scheduleMultiProfile(initialProfiles);
+      // 6. Schedule notifications safely (never blocks onboarding completion)
+      try {
+        if (typeof notifications.scheduleMultiProfile === 'function') {
+          await notifications.scheduleMultiProfile(initialProfiles);
+        } else if (typeof notifications.rescheduleMultiProfileNext5Days === 'function') {
+          await notifications.rescheduleMultiProfileNext5Days(initialProfiles);
+        }
+      } catch (schedErr) {
+        console.warn('Notification scheduling warning during onboarding:', schedErr?.message);
+      }
 
       // 7. Mark onboarding complete
       await storage.setOnboardingCompleted(true);

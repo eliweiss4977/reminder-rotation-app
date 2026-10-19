@@ -790,6 +790,25 @@ class RotationReminderApp {
         }).join('');
       }
 
+      let expiredBanner = '';
+      if (isExpired) {
+        const cycleDays = p.durationValue || 10;
+        expiredBanner = `
+          <div class="p-3 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-200 flex items-center justify-between gap-2">
+            <div class="space-y-0.5">
+              <div class="text-xs font-bold flex items-center gap-1.5 text-amber-300">
+                <span>🏁</span>
+                <span>${cycleDays}-Day Block Concluded</span>
+              </div>
+              <p class="text-[11px] text-amber-300/80">Completed your cycle! Ready to begin the next 10-day block?</p>
+            </div>
+            <button type="button" data-restart-cycle="${p.id}" class="active-press px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs whitespace-nowrap shadow transition">
+              Restart ${cycleDays}d Block
+            </button>
+          </div>
+        `;
+      }
+
       card.innerHTML = `
         <div class="flex items-start justify-between">
           <div class="space-y-1">
@@ -816,6 +835,9 @@ class RotationReminderApp {
             <span class="switch-slider ${theme.colorName}"></span>
           </label>
         </div>
+
+        <!-- 10-Day Block Concluded Prompt Banner -->
+        ${expiredBanner}
 
         <!-- Alert Mode & Sound / Vibe Preview Row -->
         ${audioPreviewRow}
@@ -847,6 +869,21 @@ class RotationReminderApp {
           </div>
         </div>
       `;
+
+      // Restart expired cycle block button
+      card.querySelector('[data-restart-cycle]')?.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        haptics.success();
+        const cycleDays = p.durationValue || 10;
+        p.activatedAt = Date.now();
+        p.enabled = true;
+        if (p.durationType === 'days') {
+          p.expiresAt = p.activatedAt + (cycleDays * 24 * 60 * 60 * 1000);
+        }
+        this.profiles = await storage.saveProfile(p);
+        await notifications.rescheduleMultiProfileNext5Days(this.profiles);
+        this.refreshAll();
+      });
 
       // Toggle profile enabled switch
       card.querySelector('[data-toggle-profile]')?.addEventListener('change', async () => {
@@ -1565,10 +1602,30 @@ class RotationReminderApp {
       this.updateWizardLivePreview();
     });
 
-    // Duration pills
-    document.getElementById('dur-btn-indefinite')?.addEventListener('click', () => this.setEditorDurationType('indefinite'));
-    document.getElementById('dur-btn-days')?.addEventListener('click', () => this.setEditorDurationType('days'));
-    document.getElementById('dur-btn-hours')?.addEventListener('click', () => this.setEditorDurationType('hours'));
+    // Duration & Cycle Length buttons
+    document.getElementById('dur-btn-10days')?.addEventListener('click', () => {
+      haptics.tick();
+      this.setEditorDuration('days', 10);
+    });
+    document.getElementById('dur-btn-7days')?.addEventListener('click', () => {
+      haptics.tick();
+      this.setEditorDuration('days', 7);
+    });
+    document.getElementById('dur-btn-indefinite')?.addEventListener('click', () => {
+      haptics.tick();
+      this.setEditorDuration('indefinite', 0);
+    });
+    document.getElementById('dur-btn-custom')?.addEventListener('click', () => {
+      haptics.tick();
+      const valInput = document.getElementById('edit-duration-value');
+      const cur = parseInt(valInput?.value, 10) || 14;
+      this.setEditorDuration('days', cur);
+      valInput?.focus();
+    });
+    document.getElementById('edit-duration-value')?.addEventListener('input', (e) => {
+      const v = parseInt(e.target.value, 10) || 1;
+      this.setEditorDuration('days', v);
+    });
 
     // Special fixed quick toggle chips (2 PM, 3 PM, 4 PM, 7 PM)
     document.querySelectorAll('.special-chip').forEach(btn => {
@@ -1670,13 +1727,14 @@ class RotationReminderApp {
       if (actionSelect) actionSelect.value = profile.actionType || 'pacer_40';
       if (startInput) startInput.value = profile.startTime || '07:00';
       if (endInput) endInput.value = profile.endTime || '23:00';
-      if (durValueInput) durValueInput.value = profile.durationValue || 7;
+      const durVal = profile.durationValue !== undefined && profile.durationValue !== null ? profile.durationValue : 10;
+      if (durValueInput) durValueInput.value = durVal;
 
       this.editorCategory = profile.category || PROFILE_CATEGORIES.ROTATION;
       this.editorInterval = profile.intervalMinutes !== undefined ? profile.intervalMinutes : 120;
       this.editorFixedTimes = [...(profile.specialFixedTimes || [])];
       this.editorDurationType = profile.durationType || 'days';
-      this.editorDurationValue = profile.durationValue || 7;
+      this.editorDurationValue = durVal;
       this.editorRingtone = profile.ringtone || 'ring_classic';
       this.editorAlertMode = profile.alertMode || 'sound_vibrate';
       this.editorLinkedGoalId = profile.customGoalId || null;
@@ -1690,7 +1748,7 @@ class RotationReminderApp {
 
       this.setEditorCategory(this.editorCategory);
       this.setEditorInterval(this.editorInterval);
-      this.setEditorDurationType(this.editorDurationType);
+      this.setEditorDuration(this.editorDurationType, this.editorDurationValue);
       this.setEditorAlertMode(this.editorAlertMode);
       this.updateSpecialChipsUI();
       this.renderEditorFixedChips();
@@ -1779,13 +1837,14 @@ class RotationReminderApp {
     if (actionSelect) actionSelect.value = tpl.actionType || 'pacer_40';
     if (startInput) startInput.value = tpl.startTime || '07:00';
     if (endInput) endInput.value = tpl.endTime || '23:00';
-    if (durValueInput) durValueInput.value = tpl.durationValue || 7;
+    const durVal = tpl.durationValue !== undefined && tpl.durationValue !== null ? tpl.durationValue : 10;
+    if (durValueInput) durValueInput.value = durVal;
 
     this.editorCategory = tpl.category || PROFILE_CATEGORIES.ROTATION;
     this.editorInterval = tpl.intervalMinutes !== undefined ? tpl.intervalMinutes : 120;
     this.editorFixedTimes = [...(tpl.specialFixedTimes || [])];
     this.editorDurationType = tpl.durationType || 'days';
-    this.editorDurationValue = tpl.durationValue || 7;
+    this.editorDurationValue = durVal;
     this.editorRingtone = tpl.ringtone || 'ring_classic';
     this.editorAlertMode = tpl.alertMode || 'sound_vibrate';
     this.editorLinkedGoalId = null;
@@ -1799,7 +1858,7 @@ class RotationReminderApp {
 
     this.setEditorCategory(this.editorCategory);
     this.setEditorInterval(this.editorInterval);
-    this.setEditorDurationType(this.editorDurationType);
+    this.setEditorDuration(this.editorDurationType, this.editorDurationValue);
     this.setEditorAlertMode(this.editorAlertMode);
     this.updateSpecialChipsUI();
     this.renderEditorFixedChips();
@@ -1970,32 +2029,51 @@ class RotationReminderApp {
     }
   }
 
-  setEditorDurationType(type) {
+  setEditorDuration(type, daysVal = 10) {
     this.editorDurationType = type;
+    this.editorDurationValue = daysVal;
+
+    const btn10 = document.getElementById('dur-btn-10days');
+    const btn7 = document.getElementById('dur-btn-7days');
     const btnIndefinite = document.getElementById('dur-btn-indefinite');
-    const btnDays = document.getElementById('dur-btn-days');
-    const btnHours = document.getElementById('dur-btn-hours');
+    const btnCustom = document.getElementById('dur-btn-custom');
     const valueRow = document.getElementById('duration-value-row');
+    const valInput = document.getElementById('edit-duration-value');
     const unitLabel = document.getElementById('duration-unit-label');
 
-    [btnIndefinite, btnDays, btnHours].forEach(b => {
-      b?.classList.remove('bg-indigo-600', 'text-white', 'font-bold');
+    [btn10, btn7, btnIndefinite, btnCustom].forEach(b => {
+      b?.classList.remove('bg-indigo-600', 'text-white', 'font-bold', 'shadow');
       b?.classList.add('bg-slate-900', 'border-slate-800', 'text-slate-300', 'font-medium');
     });
 
     if (type === 'indefinite') {
-      btnIndefinite?.classList.add('bg-indigo-600', 'text-white', 'font-bold');
+      btnIndefinite?.classList.add('bg-indigo-600', 'text-white', 'font-bold', 'shadow');
+      btnIndefinite?.classList.remove('bg-slate-900', 'text-slate-300', 'font-medium');
       valueRow?.classList.add('hidden');
     } else {
       valueRow?.classList.remove('hidden');
-      if (type === 'days') {
-        btnDays?.classList.add('bg-indigo-600', 'text-white', 'font-bold');
-        if (unitLabel) unitLabel.textContent = 'Days from activation';
+      if (valInput) valInput.value = daysVal;
+
+      if (daysVal === 10) {
+        btn10?.classList.add('bg-indigo-600', 'text-white', 'font-bold', 'shadow');
+        btn10?.classList.remove('bg-slate-900', 'text-slate-300', 'font-medium');
+        if (unitLabel) unitLabel.textContent = 'Days from activation (Dietitian 10-day standard)';
+      } else if (daysVal === 7) {
+        btn7?.classList.add('bg-indigo-600', 'text-white', 'font-bold', 'shadow');
+        btn7?.classList.remove('bg-slate-900', 'text-slate-300', 'font-medium');
+        if (unitLabel) unitLabel.textContent = 'Days from activation (7-day block)';
       } else {
-        btnHours?.classList.add('bg-indigo-600', 'text-white', 'font-bold');
-        if (unitLabel) unitLabel.textContent = 'Hours from activation';
+        btnCustom?.classList.add('bg-indigo-600', 'text-white', 'font-bold', 'shadow');
+        btnCustom?.classList.remove('bg-slate-900', 'text-slate-300', 'font-medium');
+        if (unitLabel) unitLabel.textContent = 'Days from activation (Custom length)';
       }
     }
+  }
+
+  setEditorDurationType(type) {
+    const valInput = document.getElementById('edit-duration-value');
+    const val = parseInt(valInput?.value, 10) || 10;
+    this.setEditorDuration(type, val);
   }
 
   renderEditorFixedChips() {
@@ -2040,7 +2118,7 @@ class RotationReminderApp {
       return;
     }
 
-    const durationVal = this.editorDurationType === 'indefinite' ? 0 : (parseInt(durValueInput?.value, 10) || 7);
+    const durationVal = this.editorDurationType === 'indefinite' ? 0 : (parseInt(durValueInput?.value, 10) || 10);
     const actionType = actionSelect?.value || 'pacer_40';
     const customGoalId = actionType === 'custom_goal' ? linkedGoalSelect?.value : null;
 
@@ -2058,6 +2136,9 @@ class RotationReminderApp {
       ringtone: this.editorRingtone || 'ring_classic',
       alertMode: this.editorAlertMode || 'sound_vibrate',
       activatedAt: Date.now(),
+      expiresAt: this.editorDurationType === 'days' && durationVal > 0
+        ? Date.now() + (durationVal * 24 * 60 * 60 * 1000)
+        : Infinity,
       actionType,
       customGoalId
     };

@@ -365,7 +365,18 @@ class NotificationManager {
       return 0;
     }
   }
+
+  /**
+   * Alias for rescheduleMultiProfileNext5Days
+   */
+  async scheduleMultiProfile(profiles) {
+    return this.rescheduleMultiProfileNext5Days(profiles);
+  }
 }
 
 export const notifications = new NotificationManager();
+
+export async function scheduleMultiProfile(profiles) {
+  return notifications.scheduleMultiProfile(profiles);
+}
 
