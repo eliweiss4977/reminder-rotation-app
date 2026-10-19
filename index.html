@@ -1,0 +1,1776 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Rotation Reminder & Habit Engine</title>
+  <meta name="theme-color" content="#090d16" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <script type="module" crossorigin src="./assets/index-B3-X5WVz.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-BUU2gDsj.css">
+</head>
+<body class="bg-[#090d16] text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- Top Fixed App Header -->
+  <header class="sticky top-0 z-30 pt-safe px-4 pb-3 glass-panel border-b border-slate-800/80">
+    <div class="max-w-md mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-2.5">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-700 flex items-center justify-center shadow-md shadow-indigo-950/50">
+          <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-1.5">
+            Rotation Reminder
+            <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-semibold border border-indigo-500/30">Pro Engine</span>
+          </h1>
+          <p class="text-[11px] text-slate-400 leading-none" id="header-today-date">Loading schedule...</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button id="header-test-chime" title="Test 528Hz Crystal Bell Chime" class="active-press flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-xs text-amber-300 border border-amber-500/20 shadow-sm transition">
+          <svg class="w-3.5 h-3.5 animate-pulse text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
+            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
+          </svg>
+          <span class="font-medium text-[11px]">528Hz Ring</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Floating Top Update Banner -->
+  <div id="top-update-banner" class="hidden sticky top-[57px] z-20 px-3 py-2 bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-600 text-white shadow-lg border-b border-emerald-400/30 transition-all">
+    <div class="max-w-md mx-auto flex items-center justify-between text-xs">
+      <div class="flex items-center gap-2 truncate">
+        <span class="animate-bounce">🚀</span>
+        <span class="font-bold tracking-tight">New Update:</span>
+        <span id="top-update-tag" class="font-mono bg-black/30 px-1.5 py-0.5 rounded text-[11px]">v1.0.X</span>
+      </div>
+      <div class="flex items-center gap-1.5 shrink-0">
+        <button id="top-update-action-btn" class="active-press px-2.5 py-1 rounded-lg bg-white text-slate-950 font-bold text-[11px] shadow hover:bg-slate-100 transition">
+          Update Now
+        </button>
+        <button id="top-update-dismiss-btn" class="text-white/80 hover:text-white p-1 text-xs font-bold leading-none">
+          ✕
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Scrollable App Content Container -->
+  <main class="flex-1 max-w-md w-full mx-auto px-4 py-4 pb-safe-nav overflow-y-auto no-scrollbar">
+
+    <!-- NOTIFICATION & ALARM PERMISSIONS WARNING BANNER -->
+    <div id="permission-warning-banner" class="hidden mb-4 overflow-hidden rounded-2xl p-3.5 bg-gradient-to-r from-amber-500/15 via-rose-500/15 to-amber-500/15 border border-amber-500/40 shadow-xl transition-all">
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-start gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center shrink-0 text-amber-300 text-lg mt-0.5">
+            🔔
+          </div>
+          <div>
+            <h3 class="text-xs font-bold text-amber-200">Enable Alarm Permissions</h3>
+            <p class="text-[11px] text-slate-300 leading-tight mt-0.5">Allow notifications so 40x rotation reminders ring on time even when locked.</p>
+          </div>
+        </div>
+        <button id="btn-request-notification-perms" class="active-press shrink-0 px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-md shadow-amber-950/40 transition min-h-[44px] min-w-[70px] flex items-center justify-center">
+          Enable
+        </button>
+      </div>
+    </div>
+
+    <!-- TAB 1: ALARMS & REMINDERS (DEFAULT HOME SCREEN) -->
+    <section id="tab-content-alarms" class="space-y-4">
+
+      <!-- TOP SUMMARY BAR -->
+      <div class="relative overflow-hidden rounded-2xl glass-card p-4 border border-indigo-500/30 bg-gradient-to-r from-slate-900/90 via-indigo-950/40 to-slate-900/90 shadow-xl">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-300">Next Upcoming Ring</span>
+          </div>
+          <span id="alarms-top-countdown" class="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30">
+            --:--:--
+          </span>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <div>
+            <div id="alarms-top-next-time" class="text-2xl font-black tracking-tight text-white">
+              --:--
+            </div>
+            <div id="alarms-top-next-title" class="text-xs text-slate-300 truncate max-w-[210px] font-medium">
+              Loading active alarms...
+            </div>
+          </div>
+
+          <!-- Quick 40x Pacer Button -->
+          <button id="alarms-top-pacer-btn" class="active-press flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold text-xs shadow-lg shadow-indigo-950/60 transition">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            <span>40x Pacer</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ALARMS LIST HEADER & CREATE BUTTON -->
+      <div class="flex items-center justify-between px-1">
+        <div>
+          <h2 class="text-base font-bold text-white flex items-center gap-2">
+            My Alarms & Reminders
+            <span id="alarms-active-count-badge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+              0 Active
+            </span>
+          </h2>
+          <p class="text-[11px] text-slate-400">Default window: 7:00 AM – 11:00 PM</p>
+        </div>
+
+        <button id="alarms-create-header-btn" class="active-press px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-950/40 flex items-center gap-1.5 transition">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>+ New Alarm</span>
+        </button>
+      </div>
+
+      <!-- ALARMS CARDS LIST CONTAINER -->
+      <div id="alarms-list-container" class="space-y-3">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- FLOATING ACTION BUTTON (+ New Alarm / Reminder) -->
+      <div class="sticky bottom-20 flex justify-end pointer-events-none pr-1">
+        <button id="alarms-floating-add-btn" class="pointer-events-auto active-press flex items-center gap-2 px-4 py-3 rounded-full bg-gradient-to-r from-indigo-500 via-indigo-600 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold text-xs shadow-2xl shadow-indigo-950 border border-indigo-400/30 transition transform hover:scale-105">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>New Alarm</span>
+        </button>
+      </div>
+
+    </section>
+
+    <!-- TAB 2: GOALS & WEIGHT -->
+    <section id="tab-content-goals" class="space-y-4 hidden">
+
+      <!-- 1. DAILY CUSTOM HABIT GOALS SECTION -->
+      <div class="rounded-2xl glass-card p-5 border border-slate-700/60 shadow-xl space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <circle cx="12" cy="12" r="6"></circle>
+                <circle cx="12" cy="12" r="2"></circle>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-white">Daily Custom Goals</h3>
+              <p class="text-[11px] text-slate-400">Automatic daily reset with streak tracking</p>
+            </div>
+          </div>
+
+          <button id="open-add-goal-btn" class="active-press px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow flex items-center gap-1 transition">
+            <span>+ Goal</span>
+          </button>
+        </div>
+
+        <!-- Custom Goals List -->
+        <div id="custom-goals-container" class="space-y-2.5 pt-1">
+          <!-- Dynamically populated custom goals -->
+        </div>
+      </div>
+
+      <!-- 2. WEIGHT TRACKER SECTION -->
+      <div class="rounded-2xl glass-card p-5 border border-slate-700/60 shadow-xl space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 3v18"></path>
+                <path d="M6 7l6-4 6 4"></path>
+                <path d="M4 14l4-7 4 7H4z"></path>
+                <path d="M16 14l4-7 4 7h-8z"></path>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-white">Weight Journey</h3>
+              <p class="text-[11px] text-slate-400">Acupressure & health progress</p>
+            </div>
+          </div>
+
+          <!-- Unit Switcher & Quick Log -->
+          <div class="flex items-center gap-1.5">
+            <button id="weight-unit-toggle" class="active-press px-2 py-1 rounded-lg bg-slate-800 text-xs font-bold text-amber-300 border border-slate-700 hover:bg-slate-700 transition">
+              <span id="weight-unit-label">lbs</span> ⇄
+            </button>
+            <button id="open-log-weight-btn" class="active-press px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold shadow transition flex items-center gap-1">
+              <span>+ Log</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3-Column Milestone Progress (Start -> Current -> Goal) -->
+        <div class="grid grid-cols-3 gap-2 bg-slate-900/80 p-3 rounded-xl border border-slate-800 text-center">
+          <div>
+            <div class="text-[10px] text-slate-400 uppercase font-semibold">Start</div>
+            <div id="stat-weight-start" class="text-base font-bold text-slate-200">--</div>
+          </div>
+          <div class="border-x border-slate-800 px-1">
+            <div class="text-[10px] text-amber-400 uppercase font-bold">Current</div>
+            <div id="stat-weight-current" class="text-xl font-extrabold text-white">--</div>
+          </div>
+          <div>
+            <div class="text-[10px] text-emerald-400 uppercase font-semibold">Target Goal</div>
+            <div id="stat-weight-goal" class="text-base font-bold text-emerald-300">--</div>
+          </div>
+        </div>
+
+        <!-- Progress bar and delta statistics -->
+        <div>
+          <div class="flex items-center justify-between text-xs mb-1.5 font-semibold">
+            <span id="stat-weight-total-lost" class="text-emerald-400">Total: -- lbs</span>
+            <span id="stat-weight-remaining" class="text-slate-400">-- lbs to goal</span>
+          </div>
+          <div class="h-2.5 w-full bg-slate-800 rounded-full overflow-hidden">
+            <div id="weight-progress-fill" class="h-full bg-gradient-to-r from-amber-500 via-amber-400 to-emerald-400 transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- VISUAL SVG TREND LINE CHART -->
+        <div class="pt-2 border-t border-slate-800/80">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-bold text-slate-300">Trend Line</span>
+            <div class="flex gap-1 text-[10px]">
+              <button id="chart-range-7d" class="chart-range-btn px-2 py-0.5 rounded font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">7D</button>
+              <button id="chart-range-30d" class="chart-range-btn px-2 py-0.5 rounded text-slate-400 hover:text-white">30D</button>
+              <button id="chart-range-all" class="chart-range-btn px-2 py-0.5 rounded text-slate-400 hover:text-white">All</button>
+            </div>
+          </div>
+
+          <!-- Responsive SVG Chart Container -->
+          <div id="weight-chart-container" class="w-full h-36 bg-slate-950/60 rounded-xl p-2 border border-slate-800/60 flex items-center justify-center overflow-hidden">
+            <!-- Dynamically generated SVG rendered here -->
+          </div>
+        </div>
+
+        <!-- RECENT WEIGH-INS HISTORY -->
+        <div class="pt-2 border-t border-slate-800/80 space-y-2">
+          <span class="text-xs font-bold text-slate-300">Recent Weigh-Ins</span>
+          <div id="weight-history-list" class="space-y-1.5 max-h-40 overflow-y-auto no-scrollbar">
+            <!-- Dynamic entries -->
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- TAB 3: MY PROFILE -->
+    <section id="tab-content-profile" class="space-y-4 hidden">
+
+      <!-- ONBOARDING SETUP SHORTCUT -->
+      <div class="rounded-2xl glass-card p-4 border border-indigo-500/40 bg-gradient-to-r from-indigo-950/40 via-purple-950/30 to-indigo-950/40 shadow-xl flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-xl shrink-0">
+            ✨
+          </div>
+          <div>
+            <h3 class="text-xs font-bold text-white">Setup Wizard</h3>
+            <p class="text-[11px] text-slate-400 leading-tight">Re-run the initial 5-step configuration anytime</p>
+          </div>
+        </div>
+        <button id="btn-restart-onboarding" class="active-press shrink-0 px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md shadow-indigo-950/50 flex items-center gap-1.5 transition">
+          <span>🔄 Restart Setup</span>
+        </button>
+      </div>
+
+      <!-- CARD 1: DEDICATED PERSONAL BODY PROFILE -->
+      <div class="rounded-2xl glass-card p-5 border border-slate-700/60 shadow-xl space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-lg font-bold">
+              👤
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-white">Personal Body Profile</h3>
+              <p class="text-[11px] text-slate-400">Name, height & weight targets</p>
+            </div>
+          </div>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-semibold border border-indigo-500/30">Local Only</span>
+        </div>
+
+        <!-- Name Input -->
+        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800 space-y-1.5">
+          <label class="block text-[11px] font-semibold text-slate-300">Your Name</label>
+          <input type="text" id="profile-name-input" placeholder="e.g. Alex" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500" />
+        </div>
+
+        <!-- Height Section -->
+        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800 space-y-2.5">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-slate-300 font-semibold">Your Height</span>
+            <div class="flex items-center gap-1.5">
+              <span id="body-height-display-badge" class="text-indigo-300 font-mono font-bold text-xs bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">Not configured</span>
+              <button id="body-height-unit-toggle" class="active-press px-2 py-0.5 rounded bg-slate-800 text-[11px] font-bold text-indigo-300 border border-slate-700 hover:bg-slate-700 transition">
+                <span id="body-height-unit-label">ft / in</span> ⇄
+              </button>
+            </div>
+          </div>
+
+          <!-- Imperial Inputs (Feet & Inches) -->
+          <div id="body-height-imperial-row" class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Feet</label>
+              <input type="number" id="body-height-feet" min="2" max="8" placeholder="e.g. 5" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-indigo-500" />
+            </div>
+            <div>
+              <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Inches</label>
+              <input type="number" id="body-height-inches" min="0" max="11.9" step="0.5" placeholder="e.g. 10" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-indigo-500" />
+            </div>
+          </div>
+
+          <!-- Metric Input (Centimeters) -->
+          <div id="body-height-metric-row" class="hidden">
+            <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Centimeters (cm)</label>
+            <input type="number" id="body-height-cm" min="50" max="260" placeholder="e.g. 178" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-indigo-500" />
+          </div>
+        </div>
+
+        <!-- Weight Settings Section -->
+        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800 space-y-2.5">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-slate-300 font-semibold">Weight Journey Targets</span>
+            <button id="profile-weight-unit-toggle" class="active-press px-2 py-0.5 rounded bg-slate-800 text-[11px] font-bold text-amber-300 border border-slate-700 hover:bg-slate-700 transition">
+              <span id="profile-weight-unit-label">lbs</span> ⇄
+            </button>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Start</label>
+              <input type="number" id="profile-start-weight-input" step="0.1" placeholder="--" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-amber-500 text-center" />
+            </div>
+            <div>
+              <label class="block text-[10px] uppercase font-bold text-amber-400 mb-1">Current</label>
+              <input type="number" id="profile-current-weight-input" step="0.1" placeholder="--" class="w-full bg-slate-950 border border-amber-500/50 rounded-lg px-2 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-amber-500 text-center font-bold" />
+            </div>
+            <div>
+              <label class="block text-[10px] uppercase font-bold text-emerald-400 mb-1">Goal</label>
+              <input type="number" id="profile-goal-weight-input" step="0.1" placeholder="--" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-emerald-300 font-mono focus:outline-none focus:border-emerald-500 text-center" />
+            </div>
+          </div>
+        </div>
+
+        <button id="save-body-profile-btn" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-950/40 transition active-press flex items-center justify-center gap-1.5">
+          <span>💾 Save Profile</span>
+        </button>
+      </div>
+
+      <!-- CARD: APP LOCK & SECURITY -->
+      <div class="rounded-2xl glass-card p-5 border border-slate-700/60 shadow-xl space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-lg font-bold">
+              🔒
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-white">App Lock & Security</h3>
+              <p class="text-[11px] text-slate-400">PIN & Biometric authentication</p>
+            </div>
+          </div>
+          <label class="switch-toggle">
+            <input type="checkbox" id="profile-applock-toggle" />
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+
+        <div id="profile-applock-options" class="hidden space-y-3 pt-1">
+          <!-- Change PIN Button -->
+          <div class="flex items-center justify-between p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-xs">
+            <div>
+              <span class="text-slate-200 font-semibold block">4-Digit Security PIN</span>
+              <span class="text-[11px] text-slate-400">Encrypted locally with SHA-256</span>
+            </div>
+            <button id="profile-applock-change-pin-btn" class="active-press px-3 py-1.5 rounded-lg bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 font-bold border border-indigo-500/40 text-xs">
+              Change PIN
+            </button>
+          </div>
+
+          <!-- Biometrics Toggle -->
+          <div id="profile-applock-bio-row" class="hidden flex items-center justify-between p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-xs">
+            <div>
+              <span class="text-slate-200 font-semibold block">Biometric Unlock</span>
+              <span class="text-[11px] text-slate-400">Unlock using Fingerprint or Face ID</span>
+            </div>
+            <label class="switch-toggle">
+              <input type="checkbox" id="profile-applock-bio-toggle" />
+              <span class="switch-slider emerald"></span>
+            </label>
+          </div>
+
+          <!-- Lock Timing Selector -->
+          <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-xs flex items-center justify-between">
+            <span class="text-slate-300 font-semibold">Auto-Lock Timing</span>
+            <select id="profile-applock-timing-select" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-indigo-500">
+              <option value="immediate">Immediately</option>
+              <option value="1min">After 1 Minute</option>
+              <option value="restart">On App Restart Only</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 2: LIVE BMI & STAGE MILESTONES -->
+      <div class="rounded-2xl glass-card p-5 border border-slate-700/60 shadow-xl space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-lg font-bold">
+              🎯
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-white">BMI Roadmap & Milestones</h3>
+              <p class="text-[11px] text-slate-400">Dynamic thresholds based on your height</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live BMI Hero Display -->
+        <div class="bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 p-4 rounded-xl border border-indigo-500/30 flex items-center justify-between shadow-inner">
+          <div>
+            <div class="text-[10px] text-slate-400 uppercase font-semibold">Live Calculated BMI</div>
+            <div class="flex items-baseline gap-2 mt-0.5">
+              <span id="body-bmi-value" class="text-3xl font-black text-white font-mono">--</span>
+              <span id="body-bmi-badge" class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                Calculating...
+              </span>
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="text-[10px] text-slate-400 uppercase font-semibold">Current Weight</div>
+            <div id="body-current-weight-ref" class="text-sm font-bold text-slate-200 mt-0.5">-- lbs</div>
+          </div>
+        </div>
+
+        <!-- Stage Milestone Ladder -->
+        <div class="space-y-2 pt-1">
+          <div class="flex items-center justify-between text-xs px-0.5">
+            <span class="font-bold text-slate-200 flex items-center gap-1.5">
+              <span>🪜</span> Stage Milestone Ladder
+            </span>
+            <span class="text-[11px] text-slate-400">Next milestone highlighted</span>
+          </div>
+
+          <div id="body-milestone-ladder-list" class="space-y-2">
+            <!-- Dynamically populated milestones with immediate target highlighted -->
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 3: SOUND & VIBRATION DIAGNOSTICS -->
+      <div class="rounded-2xl glass-card p-5 border border-slate-700/60 shadow-xl space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg font-bold">
+              🔊
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-white">Sound & Vibration Diagnostics</h3>
+              <p class="text-[11px] text-slate-400">Audition alarm streams & test haptic engine</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5 Ringtones Audition List -->
+        <div class="space-y-2">
+          <span class="text-xs font-semibold text-slate-300 block">Audition Available Ringtones (Locked-Screen Audio)</span>
+          <div class="space-y-1.5" id="profile-ringtones-preview-list">
+            <!-- 5 ringtone rows -->
+            <div class="flex items-center justify-between bg-slate-900/80 px-3 py-2 rounded-xl border border-slate-800 text-xs">
+              <div class="flex items-center gap-2">
+                <span>🔔</span>
+                <div>
+                  <div class="font-bold text-white text-xs">Classic Single Ring</div>
+                  <div class="text-[10px] text-slate-400">Clean 528Hz + 1056Hz crystal singing bowl</div>
+                </div>
+              </div>
+              <button type="button" data-test-ringtone="ring_classic" class="active-press px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs border border-amber-500/20 flex items-center gap-1">
+                <span>▶ Play</span>
+              </button>
+            </div>
+
+            <div class="flex items-center justify-between bg-slate-900/80 px-3 py-2 rounded-xl border border-slate-800 text-xs">
+              <div class="flex items-center gap-2">
+                <span>🛎️</span>
+                <div>
+                  <div class="font-bold text-white text-xs">Crystal Desk Bell</div>
+                  <div class="text-[10px] text-slate-400">Crisp 1046Hz high bell chime</div>
+                </div>
+              </div>
+              <button type="button" data-test-ringtone="ring_crystal" class="active-press px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs border border-amber-500/20 flex items-center gap-1">
+                <span>▶ Play</span>
+              </button>
+            </div>
+
+            <div class="flex items-center justify-between bg-slate-900/80 px-3 py-2 rounded-xl border border-slate-800 text-xs">
+              <div class="flex items-center gap-2">
+                <span>🎵</span>
+                <div>
+                  <div class="font-bold text-white text-xs">Soft Double Chime</div>
+                  <div class="text-[10px] text-slate-400">Two gentle notes: 528Hz → 660Hz</div>
+                </div>
+              </div>
+              <button type="button" data-test-ringtone="ring_double" class="active-press px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs border border-amber-500/20 flex items-center gap-1">
+                <span>▶ Play</span>
+              </button>
+            </div>
+
+            <div class="flex items-center justify-between bg-slate-900/80 px-3 py-2 rounded-xl border border-slate-800 text-xs">
+              <div class="flex items-center gap-2">
+                <span>🪵</span>
+                <div>
+                  <div class="font-bold text-white text-xs">Zen Woodblock</div>
+                  <div class="text-[10px] text-slate-400">Short percussive 400Hz warm knock</div>
+                </div>
+              </div>
+              <button type="button" data-test-ringtone="ring_woodblock" class="active-press px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs border border-amber-500/20 flex items-center gap-1">
+                <span>▶ Play</span>
+              </button>
+            </div>
+
+            <div class="flex items-center justify-between bg-slate-900/80 px-3 py-2 rounded-xl border border-slate-800 text-xs">
+              <div class="flex items-center gap-2">
+                <span>🎶</span>
+                <div>
+                  <div class="font-bold text-white text-xs">Warm Marimba</div>
+                  <div class="text-[10px] text-slate-400">Pleasant 3-note ascending arpeggio</div>
+                </div>
+              </div>
+              <button type="button" data-test-ringtone="ring_marimba" class="active-press px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs border border-amber-500/20 flex items-center gap-1">
+                <span>▶ Play</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Haptics Test Button -->
+        <button id="profile-test-vibe-btn" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-indigo-300 text-xs font-bold border border-indigo-500/30 transition active-press flex items-center justify-center gap-1.5">
+          <span>📳 Test Haptic Vibration Pattern</span>
+        </button>
+
+        <!-- Native Stream Diagnostic Note -->
+        <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 text-xs space-y-1">
+          <div class="flex items-center gap-1.5 text-indigo-300 font-bold text-[11px]">
+            <span>ℹ️</span> Native Android Alarm Stream
+          </div>
+          <p class="text-[11px] text-slate-400 leading-relaxed">
+            Locked-screen notifications play over Android's <code class="text-indigo-200 bg-slate-950 px-1 py-0.5 rounded">USAGE_ALARM</code> stream, ensuring rotation reminders audibly sound even if your phone ringer is switched to Silent or Vibrate.
+          </p>
+        </div>
+
+        <!-- Quick Notifications Test Actions -->
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button id="profile-sync-notifs-btn" class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-indigo-300 border border-indigo-500/30 active-press">
+            Sync 5-Day Alerts
+          </button>
+          <button id="profile-test-notif-btn" class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-amber-300 border border-amber-500/30 active-press">
+            Test Alert in 5s
+          </button>
+        </div>
+      </div>
+
+      <!-- CARD 4: APP UPDATES & DATA BACKUP -->
+      <div class="rounded-2xl glass-card p-5 border border-slate-700/60 shadow-xl space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg font-bold">
+              🚀
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-white">App Updates & Data Backup</h3>
+              <p class="text-[11px] text-slate-400">GitHub auto-updater and local backup</p>
+            </div>
+          </div>
+          <span id="updater-installed-badge" class="px-2 py-0.5 text-[11px] font-mono font-bold rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+            v1.0.0
+          </span>
+        </div>
+
+        <!-- GitHub Personal Access Token (Read-Only) -->
+        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between text-xs">
+            <label class="font-semibold text-slate-300">GitHub Read-Only Token (Optional)</label>
+            <span class="text-[10px] text-slate-500">Stored locally only</span>
+          </div>
+          <div class="flex gap-2">
+            <div class="relative flex-1">
+              <input type="password" id="github-token-input" placeholder="github_pat_..." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-indigo-500 pr-8" />
+              <button type="button" id="github-token-toggle-btn" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs">👁️</button>
+            </div>
+            <button id="github-token-save-btn" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold active-press transition shrink-0">
+              Save
+            </button>
+          </div>
+          <p class="text-[10px] text-slate-400 leading-tight">
+            Stored locally in device Preferences to prevent GitHub API rate limits. Token is never transmitted elsewhere.
+          </p>
+        </div>
+
+        <!-- In-App Auto-Updater Status -->
+        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800 space-y-1.5">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-slate-400">Installed Version:</span>
+            <span id="updater-installed-text" class="font-mono font-bold text-slate-200">v1.0.0</span>
+          </div>
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-slate-400">Latest on GitHub:</span>
+            <span id="updater-latest-text" class="font-mono font-bold text-amber-300">Checking...</span>
+          </div>
+          <div id="updater-status-message" class="text-[11px] text-slate-400 pt-1 border-t border-slate-800">
+            Tap "Check for Update" to query GitHub releases.
+          </div>
+        </div>
+
+        <div class="flex gap-2 pt-1">
+          <button id="updater-check-btn" class="flex-1 py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white shadow-md shadow-indigo-950/40 active-press transition flex items-center justify-center gap-1.5">
+            <svg id="updater-check-spinner" class="w-3.5 h-3.5 hidden animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle>
+              <path d="M12 2a10 10 0 0 1 10 10"></path>
+            </svg>
+            <span id="updater-check-btn-text">🔄 Check for Update</span>
+          </button>
+
+          <button id="updater-download-btn" class="hidden flex-1 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white shadow-md shadow-emerald-950/40 active-press transition">
+            ⬇️ Install Update
+          </button>
+        </div>
+
+        <!-- Target GitHub Repo -->
+        <div class="pt-2 border-t border-slate-800">
+          <div class="flex items-center justify-between text-[11px] text-slate-400 mb-1">
+            <span>Target GitHub Repo</span>
+            <button id="updater-save-repo-btn" class="text-indigo-400 font-bold hover:underline">Save</button>
+          </div>
+          <input type="text" id="updater-repo-input" value="eliweiss4977/reminder-rotation-app" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-indigo-500" />
+        </div>
+
+        <!-- Data Backup, Privacy & Maintenance -->
+        <div class="pt-2 border-t border-slate-800 space-y-2">
+          <span class="text-xs font-bold text-slate-300 block">Data Backup, Privacy & Reset</span>
+          <div class="grid grid-cols-2 gap-2">
+            <button id="backup-export-btn" class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 border border-slate-700 active-press transition flex items-center justify-center gap-1.5">
+              <span>📥 Export JSON</span>
+            </button>
+            <button id="backup-import-btn" class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 border border-slate-700 active-press transition flex items-center justify-center gap-1.5">
+              <span>📤 Import JSON</span>
+            </button>
+            <input type="file" id="backup-import-file" accept=".json" class="hidden" />
+          </div>
+
+          <button id="btn-view-privacy-policy" class="w-full py-2.5 px-3 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-xs font-semibold text-indigo-300 border border-indigo-500/30 active-press transition flex items-center justify-center gap-1.5">
+            <span>🛡️ View Privacy Policy (100% Offline)</span>
+          </button>
+
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <button id="profile-reset-today-btn" class="py-2.5 px-2 rounded-xl bg-amber-950/20 hover:bg-amber-900/30 text-amber-300 text-xs font-semibold border border-amber-800/40 active-press">
+              Reset Today's Checks
+            </button>
+            <button id="profile-reset-all-btn" class="py-2.5 px-2 rounded-xl bg-rose-950/30 hover:bg-rose-900/30 text-rose-300 text-xs font-semibold border border-rose-800/40 active-press">
+              Delete All Local Data
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- BOTTOM FIXED NAVIGATION BAR (3 TABS) -->
+  <nav class="fixed bottom-0 left-0 right-0 z-30 pb-safe glass-panel border-t border-slate-800/90 shadow-2xl">
+    <div class="max-w-md mx-auto grid grid-cols-3 h-16">
+      
+      <!-- Tab 1: Alarms (Default) -->
+      <button id="nav-btn-alarms" class="nav-btn flex flex-col items-center justify-center text-indigo-400 active-press">
+        <svg class="w-5 h-5 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="13" r="8"></circle>
+          <path d="M12 9v4l2 2"></path>
+          <path d="M5 3L2 6"></path>
+          <path d="M22 6l-3-3"></path>
+          <path d="M6.38 18.7 4 21"></path>
+          <path d="M17.64 18.67 20 21"></path>
+        </svg>
+        <span class="text-[11px] font-semibold">Alarms</span>
+      </button>
+
+      <!-- Tab 2: Goals & Weight -->
+      <button id="nav-btn-goals" class="nav-btn flex flex-col items-center justify-center text-slate-400 active-press hover:text-white">
+        <svg class="w-5 h-5 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <circle cx="12" cy="12" r="6"></circle>
+          <circle cx="12" cy="12" r="2"></circle>
+        </svg>
+        <span class="text-[11px] font-medium">Goals & Weight</span>
+      </button>
+
+      <!-- Tab 3: My Profile -->
+      <button id="nav-btn-profile" class="nav-btn flex flex-col items-center justify-center text-slate-400 active-press hover:text-white">
+        <svg class="w-5 h-5 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+        <span class="text-[11px] font-medium">My Profile</span>
+      </button>
+
+    </div>
+  </nav>
+
+  <!-- INTERACTIVE 40x SITTING PACER MODAL -->
+  <div id="pacer-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex-col justify-end sm:justify-center items-center p-0 sm:p-4 transition-all">
+    <div class="w-full max-w-md bg-gradient-to-b from-[#111827] to-[#090d16] rounded-t-3xl sm:rounded-3xl border border-slate-700/80 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      
+      <div class="px-5 pt-4 pb-3 flex items-center justify-between border-b border-slate-800">
+        <div>
+          <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-400">Rotation Protocol</span>
+          <h3 id="pacer-slot-title" class="text-sm font-bold text-white">40x Rotation Session</h3>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <button id="pacer-reset-btn" title="Reset Counter" class="p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white active-press">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+              <path d="M3 3v5h5"></path>
+            </svg>
+          </button>
+          <button id="pacer-close-btn" title="Close" class="p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white active-press">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- PROMINENT SITTING BANNER -->
+      <div class="bg-amber-500/15 border-b border-amber-500/30 px-4 py-2.5 flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-amber-500/20 text-amber-300 flex items-center justify-center shrink-0">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="12" cy="5" r="2.5"></circle>
+            <path d="M9 20h6"></path>
+            <path d="M12 7.5v6.5l3 4"></path>
+            <path d="M9 14h6"></path>
+          </svg>
+        </div>
+        <div>
+          <div class="text-xs font-extrabold text-amber-300 tracking-tight">
+            Sit Down First — Perform 40 Rotations Seated
+          </div>
+          <div class="text-[11px] text-amber-200/80">
+            Acupressure ear balls stimulate vagal reflex; seated posture prevents dizziness.
+          </div>
+        </div>
+      </div>
+
+      <!-- SCREEN STAY-AWAKE ACTIVE BADGE -->
+      <div id="pacer-wake-badge" class="hidden mx-4 mt-2.5 py-1 px-3 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[11px] font-semibold flex items-center justify-center gap-1.5 shadow-sm">
+        <span>🔆</span>
+        <span>Screen Stay-Awake Active</span>
+      </div>
+
+      <div class="px-5 pt-3">
+        <div class="grid grid-cols-2 gap-1.5 bg-slate-900/90 p-1 rounded-xl border border-slate-800">
+          <button id="pacer-mode-auto" class="py-2 text-xs font-semibold rounded-lg text-white bg-indigo-600 shadow transition active-press">
+            Auto-Pace (1.2s)
+          </button>
+          <button id="pacer-mode-tap" class="py-2 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition active-press">
+            Tap-to-Count
+          </button>
+        </div>
+      </div>
+
+      <div class="flex-1 py-4 flex flex-col items-center justify-center px-4">
+        <div id="pacer-tap-target" class="relative cursor-pointer transition-transform duration-100 flex items-center justify-center">
+          <div class="absolute inset-2 rounded-full bg-indigo-500/10 blur-xl"></div>
+          <svg class="w-64 h-64 transform -rotate-90" viewBox="0 0 240 240">
+            <circle cx="120" cy="120" r="110" stroke="rgba(51, 65, 85, 0.4)" stroke-width="12" fill="none" />
+            <circle
+              id="pacer-progress-circle"
+              cx="120"
+              cy="120"
+              r="110"
+              stroke="#6366f1"
+              stroke-width="12"
+              stroke-linecap="round"
+              fill="rgba(15, 23, 42, 0.7)"
+              stroke-dasharray="691.15"
+              stroke-dashoffset="691.15"
+              class="transition-all duration-300 ease-out"
+            />
+          </svg>
+          <div class="absolute inset-0 flex flex-col items-center justify-center text-center select-none pointer-events-none">
+            <div id="pacer-count-display" class="text-6xl font-black tracking-tight text-white font-mono tabular-nums">0</div>
+            <div class="text-xs font-bold uppercase tracking-wider text-indigo-400 mt-1">of 40 Rotations</div>
+            <div id="pacer-status-text" class="text-[11px] text-slate-400 max-w-[150px] mt-2">Tap Start to begin 1.2s Auto-Pace</div>
+          </div>
+        </div>
+
+        <div id="pacer-celebration" class="hidden mt-3 p-2.5 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-center animate-bounce">
+          <span class="text-xs font-bold text-emerald-300 flex items-center justify-center gap-1.5">
+            🎉 40 Rotations Completed! Time slot marked done.
+          </span>
+        </div>
+      </div>
+
+      <div class="p-5 pt-1 border-t border-slate-800 space-y-2 pb-safe">
+        <button id="pacer-action-btn" class="w-full active-press py-3.5 px-4 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold text-sm shadow-xl shadow-indigo-950/60 flex items-center justify-center gap-2 transition">
+          <span id="pacer-action-btn-text">Start Auto-Pacer</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- LOG WEIGHT MODAL -->
+  <div id="weight-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex-col justify-end sm:justify-center items-center p-0 sm:p-4 transition-all">
+    <div class="w-full max-w-md bg-gradient-to-b from-[#111827] to-[#090d16] rounded-t-3xl sm:rounded-3xl border border-slate-700/80 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      
+      <div class="px-5 pt-4 pb-3 flex items-center justify-between border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center">
+            ⚖️
+          </div>
+          <h3 class="text-sm font-bold text-white">Log Today's Weight</h3>
+        </div>
+        <button id="weight-modal-close" class="p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white active-press">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4">
+        <!-- Big Number Display & Steppers -->
+        <div class="text-center py-2 bg-slate-900/80 rounded-2xl border border-slate-800 p-4">
+          <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Weight Value</span>
+          <div class="flex items-center justify-center gap-2 my-1">
+            <input type="number" id="weight-input-value" step="0.1" class="text-5xl font-black text-amber-400 bg-transparent text-center w-48 font-mono focus:outline-none" />
+            <span id="weight-input-unit-label" class="text-lg font-bold text-slate-400">lbs</span>
+          </div>
+
+          <!-- Quick Steppers -->
+          <div class="flex items-center justify-center gap-2 mt-3">
+            <button id="step-minus-1" class="active-press min-h-[44px] min-w-[54px] px-3 py-2 rounded-xl bg-slate-800 text-xs font-bold text-slate-300 hover:bg-slate-700 flex items-center justify-center">-1.0</button>
+            <button id="step-minus-02" class="active-press min-h-[44px] min-w-[54px] px-3 py-2 rounded-xl bg-slate-800 text-xs font-bold text-slate-300 hover:bg-slate-700 flex items-center justify-center">-0.2</button>
+            <button id="step-plus-02" class="active-press min-h-[44px] min-w-[54px] px-3 py-2 rounded-xl bg-slate-800 text-xs font-bold text-amber-300 hover:bg-slate-700 flex items-center justify-center">+0.2</button>
+            <button id="step-plus-1" class="active-press min-h-[44px] min-w-[54px] px-3 py-2 rounded-xl bg-slate-800 text-xs font-bold text-amber-300 hover:bg-slate-700 flex items-center justify-center">+1.0</button>
+          </div>
+        </div>
+
+        <!-- Optional Note -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Note (Optional)</label>
+          <input type="text" id="weight-input-note" placeholder="e.g. Morning weigh-in, post-seated protocol" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500" />
+        </div>
+
+        <!-- Goal Weight Target Edit -->
+        <div class="pt-2 border-t border-slate-800 flex items-center justify-between text-xs">
+          <span class="text-slate-400">Target Goal Weight:</span>
+          <div class="flex items-center gap-1.5">
+            <input type="number" id="weight-input-goal-target" step="0.5" class="w-20 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white text-right focus:outline-none focus:border-emerald-500" />
+            <span id="weight-goal-unit-label" class="text-slate-400">lbs</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 border-t border-slate-800 grid grid-cols-2 gap-2.5 pb-safe">
+        <button type="button" id="weight-modal-cancel" class="py-3 px-4 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold active-press">
+          Cancel
+        </button>
+        <button type="button" id="weight-modal-save" class="py-3 px-4 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold shadow-lg shadow-amber-950/50 active-press">
+          Save Weigh-In
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ADD / EDIT CUSTOM GOAL MODAL -->
+  <div id="goal-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex-col justify-end sm:justify-center items-center p-0 sm:p-4 transition-all">
+    <div class="w-full max-w-md bg-gradient-to-b from-[#111827] to-[#090d16] rounded-t-3xl sm:rounded-3xl border border-slate-700/80 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      
+      <div class="px-5 pt-4 pb-3 flex items-center justify-between border-b border-slate-800">
+        <h3 class="text-sm font-bold text-white">Add Custom Daily Goal</h3>
+        <button id="goal-modal-close" class="p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white active-press">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4 overflow-y-auto no-scrollbar">
+        <!-- Goal Title -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Goal Title</label>
+          <input type="text" id="goal-input-title" placeholder="e.g. Walk 8,000 Steps, Green Tea" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500" />
+        </div>
+
+        <!-- Emoji Picker -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Choose Icon</label>
+          <div id="goal-emoji-row" class="flex flex-wrap gap-2">
+            <button type="button" class="goal-emoji-btn active-press w-11 h-11 rounded-xl bg-slate-900 border border-emerald-500 text-lg flex items-center justify-center">💧</button>
+            <button type="button" class="goal-emoji-btn active-press w-11 h-11 rounded-xl bg-slate-900 border border-slate-800 text-lg flex items-center justify-center">🪑</button>
+            <button type="button" class="goal-emoji-btn active-press w-11 h-11 rounded-xl bg-slate-900 border border-slate-800 text-lg flex items-center justify-center">🚶</button>
+            <button type="button" class="goal-emoji-btn active-press w-11 h-11 rounded-xl bg-slate-900 border border-slate-800 text-lg flex items-center justify-center">🥗</button>
+            <button type="button" class="goal-emoji-btn active-press w-11 h-11 rounded-xl bg-slate-900 border border-slate-800 text-lg flex items-center justify-center">🍵</button>
+            <button type="button" class="goal-emoji-btn active-press w-11 h-11 rounded-xl bg-slate-900 border border-slate-800 text-lg flex items-center justify-center">🏃</button>
+            <button type="button" class="goal-emoji-btn active-press w-11 h-11 rounded-xl bg-slate-900 border border-slate-800 text-lg flex items-center justify-center">🧘</button>
+            <button type="button" class="goal-emoji-btn active-press w-11 h-11 rounded-xl bg-slate-900 border border-slate-800 text-lg flex items-center justify-center">🍎</button>
+            <button type="button" class="goal-emoji-btn active-press w-11 h-11 rounded-xl bg-slate-900 border border-slate-800 text-lg flex items-center justify-center">🎯</button>
+          </div>
+        </div>
+
+        <!-- Goal Type: Counter vs Yes/No -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Goal Type</label>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" id="goal-type-counter-btn" class="active-press py-2 rounded-xl text-xs font-bold bg-emerald-600 text-white border border-emerald-500 shadow">
+              Counter (Target #)
+            </button>
+            <button type="button" id="goal-type-boolean-btn" class="active-press py-2 rounded-xl text-xs font-medium bg-slate-900 text-slate-400 border border-slate-800">
+              Yes / No Checkbox
+            </button>
+          </div>
+        </div>
+
+        <!-- Target & Unit & Step -->
+        <div id="goal-counter-config-row" class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Target #</label>
+            <input type="number" id="goal-input-target" value="8" min="1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-sm text-white focus:outline-none focus:border-emerald-500" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Unit Label</label>
+            <input type="text" id="goal-input-unit" value="glasses" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-sm text-white focus:outline-none focus:border-emerald-500" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Step (+)</label>
+            <input type="number" id="goal-input-step" value="1" min="0.1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-sm text-white focus:outline-none focus:border-emerald-500" />
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 border-t border-slate-800 grid grid-cols-2 gap-2.5 pb-safe">
+        <button type="button" id="goal-modal-cancel" class="py-3 px-4 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold active-press">
+          Cancel
+        </button>
+        <button type="button" id="goal-modal-save" class="py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-950/50 active-press">
+          Save Goal
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ALARM & REMINDER WIZARD MODAL (STEP A: TEMPLATES, STEP B: CUSTOMIZE & LIVE PREVIEW) -->
+  <div id="profile-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex-col justify-end sm:justify-center items-center p-0 sm:p-4 transition-all">
+    <div class="w-full max-w-md bg-gradient-to-b from-[#111827] to-[#090d16] rounded-t-3xl sm:rounded-3xl border border-slate-700/80 shadow-2xl overflow-hidden flex flex-col max-h-[94vh]">
+      
+      <!-- STEP A: 1-TAP TEMPLATE PICKER -->
+      <div id="wizard-step-templates" class="flex flex-col flex-1 overflow-hidden">
+        <div class="px-5 pt-4 pb-3 flex items-center justify-between border-b border-slate-800 shrink-0">
+          <div>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-400">Step 1 of 2</span>
+            <h3 class="text-sm font-bold text-white">Choose an Alarm Template</h3>
+          </div>
+          <button id="wizard-templates-close" class="p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white active-press">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-4 space-y-2.5 no-scrollbar">
+          <p class="text-xs text-slate-400">Tap a template below to auto-fill times, interval and ringtone:</p>
+          <div id="wizard-templates-grid" class="grid grid-cols-1 gap-2.5">
+            <!-- 8 Template Cards rendered dynamically -->
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP B: CUSTOMIZE & LIVE PREVIEW -->
+      <div id="wizard-step-customize" class="hidden flex flex-col flex-1 overflow-hidden">
+        <div class="px-5 pt-4 pb-3 flex items-center justify-between border-b border-slate-800 shrink-0">
+          <div class="flex items-center gap-2">
+            <button id="wizard-back-to-templates" class="p-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white active-press" title="Back to Templates">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+              </svg>
+            </button>
+            <div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-400">Step 2 of 2</span>
+              <h3 id="profile-modal-title" class="text-sm font-bold text-white">Customize & Preview</h3>
+            </div>
+          </div>
+          <button id="profile-modal-close" class="p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white active-press">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto px-5 py-4 space-y-4 no-scrollbar">
+          <input type="hidden" id="edit-profile-id" value="" />
+
+          <!-- Alarm Name -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Alarm / Reminder Title</label>
+            <input type="text" id="edit-profile-name" placeholder="e.g. Rotation Protocol (2h + 2:00 & 7:00)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500" />
+          </div>
+
+          <!-- Category Selector -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Routine Category</label>
+            <div class="grid grid-cols-4 gap-1.5">
+              <button type="button" id="cat-btn-satkin" class="cat-pill active-press py-2 rounded-xl text-xs font-bold border border-indigo-500/50 bg-indigo-500/20 text-indigo-300 text-center">
+                Rotation 40x
+              </button>
+              <button type="button" id="cat-btn-weight" class="cat-pill active-press py-2 rounded-xl text-xs font-medium border border-slate-800 bg-slate-900 text-slate-400 text-center">
+                Weight
+              </button>
+              <button type="button" id="cat-btn-water" class="cat-pill active-press py-2 rounded-xl text-xs font-medium border border-slate-800 bg-slate-900 text-slate-400 text-center">
+                Water
+              </button>
+              <button type="button" id="cat-btn-habit" class="cat-pill active-press py-2 rounded-xl text-xs font-medium border border-slate-800 bg-slate-900 text-slate-400 text-center">
+                Habit
+              </button>
+            </div>
+          </div>
+
+          <!-- Action Type -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">When Triggered Action</label>
+            <select id="edit-action-type" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+              <option value="pacer_40">40x Sitting Rotation Pacer</option>
+              <option value="log_weight">Log Today's Weight</option>
+              <option value="custom_goal">Update Custom Goal</option>
+              <option value="log_water">Log 1 Glass of Water (+1)</option>
+              <option value="check_off">1-Tap Simple Check-off</option>
+            </select>
+          </div>
+
+          <!-- Linked Goal Row -->
+          <div id="linked-goal-row" class="hidden">
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Link to Daily Goal</label>
+            <select id="edit-linked-goal-select" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"></select>
+          </div>
+
+          <!-- Active Daily Window (Start - End) -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Start Time</label>
+              <input type="time" id="edit-start-time" value="07:00" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Cutoff Time (11:00 PM)</label>
+              <input type="time" id="edit-end-time" value="23:00" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
+            </div>
+          </div>
+
+          <!-- Base Interval Cadence -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Base Interval Cadence</label>
+            <div class="grid grid-cols-3 gap-1.5 mb-2">
+              <button type="button" data-interval="60" class="int-pill active-press py-1.5 text-xs font-medium rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
+                Every 1h
+              </button>
+              <button type="button" data-interval="90" class="int-pill active-press py-1.5 text-xs font-medium rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
+                Every 1.5h
+              </button>
+              <button type="button" data-interval="120" class="int-pill active-press py-1.5 text-xs font-bold rounded-lg bg-indigo-600 text-white">
+                Every 2h
+              </button>
+              <button type="button" data-interval="180" class="int-pill active-press py-1.5 text-xs font-medium rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
+                Every 3h
+              </button>
+              <button type="button" data-interval="0" class="int-pill active-press py-1.5 text-xs font-medium rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
+                Fixed Only
+              </button>
+              <button type="button" data-interval="custom" class="int-pill active-press py-1.5 text-xs font-medium rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
+                Custom Mins
+              </button>
+            </div>
+            <div id="custom-interval-input-row" class="hidden">
+              <input type="number" id="edit-custom-interval" min="15" max="360" step="5" value="120" placeholder="Interval in minutes" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
+            </div>
+          </div>
+
+          <!-- Special Fixed Times (Quick Multi-Select Chips) -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="block text-xs font-semibold text-slate-300">Special Fixed Times</label>
+              <button type="button" id="fixed-preset-clear" class="text-[11px] font-medium text-slate-400 hover:text-rose-400">
+                Clear All
+              </button>
+            </div>
+            <div class="flex flex-wrap gap-1.5 mb-2">
+              <button type="button" data-special="14:00" class="special-chip active-press px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:border-amber-500">
+                ⭐ 2:00 PM
+              </button>
+              <button type="button" data-special="15:00" class="special-chip active-press px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:border-amber-500">
+                ⭐ 3:00 PM
+              </button>
+              <button type="button" data-special="16:00" class="special-chip active-press px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:border-amber-500">
+                ⭐ 4:00 PM
+              </button>
+              <button type="button" data-special="19:00" class="special-chip active-press px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:border-amber-500">
+                ⭐ 7:00 PM
+              </button>
+            </div>
+            <div class="flex gap-2 mb-2">
+              <input type="time" id="edit-new-fixed-time" value="14:00" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
+              <button type="button" id="edit-add-fixed-btn" class="px-3.5 py-2 bg-amber-600 hover:bg-amber-500 rounded-xl text-xs font-bold text-white active-press">
+                + Custom
+              </button>
+            </div>
+            <div id="edit-fixed-chips-list" class="flex flex-wrap gap-1.5 min-h-[24px]"></div>
+          </div>
+
+          <!-- Alert Mode Selector (Sound + Vibrate, Sound Only, Vibrate Only) -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Alert Mode</label>
+            <div class="grid grid-cols-3 gap-1.5 mb-2">
+              <button type="button" id="alert-mode-sv" class="alert-mode-pill active-press py-2 text-xs font-bold rounded-xl bg-indigo-600 text-white border border-indigo-500 shadow">
+                🔊 Sound & Vibe
+              </button>
+              <button type="button" id="alert-mode-so" class="alert-mode-pill active-press py-2 text-xs font-medium rounded-xl bg-slate-900 border border-slate-800 text-slate-300">
+                🔉 Sound Only
+              </button>
+              <button type="button" id="alert-mode-vo" class="alert-mode-pill active-press py-2 text-xs font-medium rounded-xl bg-slate-900 border border-slate-800 text-slate-300">
+                📳 Vibrate Only
+              </button>
+            </div>
+            <div id="alert-mode-vibrate-test-row" class="hidden flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-xs">
+              <span class="text-slate-400 text-[11px]">Silent alert with triple-pulse vibration</span>
+              <button type="button" id="alert-mode-test-vibe-btn" class="active-press px-2.5 py-1 rounded-lg bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 font-bold border border-indigo-500/40 text-[11px] flex items-center gap-1">
+                <span>📳 Test Vibration</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Selectable Ringtones -->
+          <div id="wizard-ringtone-container">
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Notification Ringtone (Locked Screen Audio)</label>
+            <div id="ringtone-picker-list" class="space-y-1.5">
+              <!-- Rendered dynamically with 5 ringtones & sound test buttons -->
+            </div>
+          </div>
+
+          <!-- Run Duration & Cycle Length -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="block text-xs font-semibold text-slate-300">Cycle Length & Duration</label>
+              <span class="text-[10px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full font-bold">10d Standard</span>
+            </div>
+            <div class="grid grid-cols-4 gap-1.5 mb-2">
+              <button type="button" id="dur-btn-10days" class="dur-pill active-press py-2 text-xs font-bold rounded-xl bg-indigo-600 text-white shadow">
+                10 Days
+              </button>
+              <button type="button" id="dur-btn-7days" class="dur-pill active-press py-2 text-xs font-medium rounded-xl bg-slate-900 border border-slate-800 text-slate-300">
+                7 Days
+              </button>
+              <button type="button" id="dur-btn-indefinite" class="dur-pill active-press py-2 text-xs font-medium rounded-xl bg-slate-900 border border-slate-800 text-slate-300">
+                Until Off
+              </button>
+              <button type="button" id="dur-btn-custom" class="dur-pill active-press py-2 text-xs font-medium rounded-xl bg-slate-900 border border-slate-800 text-slate-300">
+                Custom
+              </button>
+            </div>
+            <div id="duration-value-row" class="flex items-center gap-2">
+              <input type="number" id="edit-duration-value" min="1" max="365" value="10" class="w-24 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
+              <span id="duration-unit-label" class="text-xs text-slate-400">Days from activation (10-day block)</span>
+            </div>
+          </div>
+
+          <!-- LIVE RING TIMES PREVIEW -->
+          <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2">
+            <div class="flex items-center justify-between text-xs font-bold">
+              <span class="text-slate-200 flex items-center gap-1.5">
+                <span>🔔</span> Live Generated Ring Times
+              </span>
+              <span id="wizard-preview-count" class="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-[11px]">
+                0 Rings Today
+              </span>
+            </div>
+            <div id="wizard-preview-chips" class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto no-scrollbar">
+              <!-- Dynamic live pills -->
+            </div>
+          </div>
+
+        </div>
+
+        <div class="p-4 border-t border-slate-800 grid grid-cols-2 gap-2.5 pb-safe shrink-0">
+          <button type="button" id="edit-cancel-btn" class="py-3 px-4 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold active-press">
+            Cancel
+          </button>
+          <button type="button" id="edit-save-btn" class="py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white text-xs font-bold shadow-lg shadow-indigo-950/50 active-press">
+            Save & Activate
+          </button>
+        </div>
+      </div>
+
+  <!-- APPLOCK SCREEN OVERLAY (PIN & BIOMETRIC UNLOCK) -->
+  <div id="applock-screen" class="fixed inset-0 z-[100] bg-[#090d16] hidden flex-col items-center justify-between p-6 select-none">
+    <div class="w-full max-w-xs flex flex-col items-center pt-8">
+      <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-700 flex items-center justify-center shadow-lg shadow-indigo-950/60 mb-4 animate-ring-pulse">
+        <svg class="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+      </div>
+      <h2 class="text-lg font-black text-white tracking-tight">Rotation Reminder</h2>
+      <p id="applock-title" class="text-xs text-indigo-300 font-semibold mt-1">Enter 4-Digit PIN</p>
+
+      <!-- 4 PIN Dots -->
+      <div id="lock-dots-container" class="flex items-center gap-4 mt-6">
+        <div id="lock-dot-0" class="w-4 h-4 rounded-full border-2 border-slate-700 bg-slate-800 transition-all duration-150"></div>
+        <div id="lock-dot-1" class="w-4 h-4 rounded-full border-2 border-slate-700 bg-slate-800 transition-all duration-150"></div>
+        <div id="lock-dot-2" class="w-4 h-4 rounded-full border-2 border-slate-700 bg-slate-800 transition-all duration-150"></div>
+        <div id="lock-dot-3" class="w-4 h-4 rounded-full border-2 border-slate-700 bg-slate-800 transition-all duration-150"></div>
+      </div>
+
+      <div id="applock-error-msg" class="hidden text-xs text-rose-400 font-medium text-center mt-4"></div>
+    </div>
+
+    <!-- Numeric Keypad (48px+ touch targets) -->
+    <div class="w-full max-w-xs grid grid-cols-3 gap-3 pb-8">
+      <button data-lock-key="1" class="active-press h-16 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800/80 text-xl font-bold text-white shadow flex items-center justify-center">1</button>
+      <button data-lock-key="2" class="active-press h-16 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800/80 text-xl font-bold text-white shadow flex items-center justify-center">2</button>
+      <button data-lock-key="3" class="active-press h-16 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800/80 text-xl font-bold text-white shadow flex items-center justify-center">3</button>
+      <button data-lock-key="4" class="active-press h-16 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800/80 text-xl font-bold text-white shadow flex items-center justify-center">4</button>
+      <button data-lock-key="5" class="active-press h-16 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800/80 text-xl font-bold text-white shadow flex items-center justify-center">5</button>
+      <button data-lock-key="6" class="active-press h-16 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800/80 text-xl font-bold text-white shadow flex items-center justify-center">6</button>
+      <button data-lock-key="7" class="active-press h-16 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800/80 text-xl font-bold text-white shadow flex items-center justify-center">7</button>
+      <button data-lock-key="8" class="active-press h-16 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800/80 text-xl font-bold text-white shadow flex items-center justify-center">8</button>
+      <button data-lock-key="9" class="active-press h-16 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800/80 text-xl font-bold text-white shadow flex items-center justify-center">9</button>
+      
+      <button id="applock-bio-btn" title="Biometric Unlock" class="hidden active-press h-16 rounded-2xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-xl text-indigo-300 shadow flex items-center justify-center">
+        👆
+      </button>
+      <button data-lock-key="0" class="active-press h-16 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800/80 text-xl font-bold text-white shadow flex items-center justify-center col-start-2">0</button>
+      <button data-lock-key="backspace" title="Delete" class="active-press h-16 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800/80 text-lg font-bold text-slate-300 shadow flex items-center justify-center">
+        ⌫
+      </button>
+    </div>
+  </div>
+
+  <!-- 5-SCREEN ONBOARDING & SETUP WIZARD MODAL -->
+  <div id="onboarding-modal" class="fixed inset-0 z-50 bg-[#090d16] hidden flex-col justify-between overflow-y-auto no-scrollbar">
+    
+    <!-- Top Progress Bar -->
+    <div class="sticky top-0 z-20 bg-[#090d16]/95 backdrop-blur-md px-5 pt-safe pb-3 border-b border-slate-800/80">
+      <div class="max-w-md mx-auto flex items-center justify-between text-xs mb-2">
+        <span class="font-bold text-white flex items-center gap-2">
+          <span>✨</span> Welcome Setup
+        </span>
+        <span id="onboard-step-indicator" class="font-mono text-indigo-400 font-bold text-[11px]">Step 1 of 5</span>
+      </div>
+      <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden max-w-md mx-auto">
+        <div id="onboard-progress-bar" class="bg-gradient-to-r from-indigo-500 to-purple-500 h-full transition-all duration-300" style="width: 20%"></div>
+      </div>
+    </div>
+
+    <!-- Scrollable Screens Container -->
+    <div class="flex-1 max-w-md w-full mx-auto p-5">
+
+      <!-- SCREEN 1: WELCOME & FEATURE TOUR -->
+      <div id="onboard-screen-1" class="flex flex-col space-y-5">
+        <div class="text-center pt-4">
+          <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-700 flex items-center justify-center mx-auto shadow-xl shadow-indigo-950/60 mb-3">
+            <svg class="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+            </svg>
+          </div>
+          <h2 class="text-xl font-black text-white tracking-tight">Rotation Reminder</h2>
+          <p class="text-xs text-indigo-400 font-semibold mt-0.5">Multi-Profile Alarms & Habit Engine</p>
+          <p class="text-xs text-slate-400 max-w-xs mx-auto mt-2 leading-relaxed">
+            Take control of your daily acupressure rotation routines, hydration checkpoints, and weight loss milestones.
+          </p>
+        </div>
+
+        <div class="space-y-3">
+          <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-start gap-3">
+            <span class="text-xl">🔄</span>
+            <div>
+              <h4 class="text-xs font-bold text-white">Smart Rotation & Checkpoint Alarms</h4>
+              <p class="text-[11px] text-slate-400 leading-tight mt-0.5">Rings over Android's native Alarm stream even if your phone is locked or muted.</p>
+            </div>
+          </div>
+
+          <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-start gap-3">
+            <span class="text-xl">🪑</span>
+            <div>
+              <h4 class="text-xs font-bold text-white">40x Sitting Rotation Pacer</h4>
+              <p class="text-[11px] text-slate-400 leading-tight mt-0.5">Paces acupressure counts at 1.2s cadence and keeps your phone screen awake safely.</p>
+            </div>
+          </div>
+
+          <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-start gap-3">
+            <span class="text-xl">⚖️</span>
+            <div>
+              <h4 class="text-xs font-bold text-white">Milestone Ladder & Daily Habits</h4>
+              <p class="text-[11px] text-slate-400 leading-tight mt-0.5">Calculates personalized BMI milestones, water tracking, and walks with zero cloud tracking.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-4">
+          <button id="onboard-step1-next" class="w-full active-press py-3.5 px-4 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold text-sm shadow-xl shadow-indigo-950/50 flex items-center justify-center gap-2">
+            <span>Let's Set Up Your App →</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- SCREEN 2: BODY PROFILE & LIVE MILESTONE LADDER -->
+      <div id="onboard-screen-2" class="hidden flex-col space-y-4">
+        <div>
+          <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-400">Step 2 of 5</span>
+          <h3 class="text-lg font-black text-white">Personal Body Metrics</h3>
+          <p class="text-xs text-slate-400 leading-tight mt-0.5">We never guess your stats. Enter your height and weight for custom targets.</p>
+        </div>
+
+        <!-- Name Input -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Your Name (Optional)</label>
+          <input type="text" id="onboard-body-name" placeholder="e.g. Alex" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500" />
+        </div>
+
+        <!-- Height Section -->
+        <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2.5">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-slate-300 font-semibold">Your Height</span>
+            <div class="flex gap-1">
+              <button type="button" id="onboard-hunit-ft" class="px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-600 text-white">ft / in</button>
+              <button type="button" id="onboard-hunit-cm" class="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-900 text-slate-400">cm</button>
+            </div>
+          </div>
+
+          <div id="onboard-ft-row" class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Feet</label>
+              <input type="number" id="onboard-height-ft" min="2" max="8" placeholder="e.g. 5" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-indigo-500" />
+            </div>
+            <div>
+              <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Inches</label>
+              <input type="number" id="onboard-height-in" min="0" max="11.9" step="0.5" placeholder="e.g. 10" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-indigo-500" />
+            </div>
+          </div>
+
+          <div id="onboard-cm-row" class="hidden">
+            <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Centimeters (cm)</label>
+            <input type="number" id="onboard-height-cm" min="50" max="260" placeholder="e.g. 178" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-indigo-500" />
+          </div>
+        </div>
+
+        <!-- Weight Section -->
+        <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2.5">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-slate-300 font-semibold">Weight Measurements</span>
+            <div class="flex gap-1">
+              <button type="button" id="onboard-wunit-lbs" class="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-600 text-white">lbs</button>
+              <button type="button" id="onboard-wunit-kg" class="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-900 text-slate-400">kg</button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[10px] uppercase font-bold text-amber-400 mb-1">Current Weight</label>
+              <div class="relative">
+                <input type="number" id="onboard-current-weight" step="0.1" placeholder="--" class="w-full bg-slate-950 border border-amber-500/50 rounded-xl px-3 py-2 text-sm text-white font-mono font-bold focus:outline-none focus:border-amber-500" />
+                <span id="onboard-cur-weight-unit" class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">lbs</span>
+              </div>
+            </div>
+            <div>
+              <label class="block text-[10px] uppercase font-bold text-emerald-400 mb-1">Target Goal Weight</label>
+              <div class="relative">
+                <input type="number" id="onboard-goal-weight" step="0.1" placeholder="--" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-emerald-300 font-mono focus:outline-none focus:border-emerald-500" />
+                <span id="onboard-goal-weight-unit" class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">lbs</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Live BMI Badge -->
+          <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs">
+            <span class="text-slate-400 font-medium">Calculated BMI:</span>
+            <div class="flex items-center gap-2">
+              <span id="onboard-bmi-value" class="font-mono font-extrabold text-white text-sm">--.-</span>
+              <span id="onboard-bmi-badge" class="px-2 py-0.5 rounded-full text-xs font-medium bg-slate-800 text-slate-400 border border-slate-700">Enter height & weight</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Personalized Milestone Ladder -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Recommended Milestone Ladder (Tap to select goal)</label>
+          <div id="onboard-milestone-ladder" class="space-y-2">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <div class="pt-2 grid grid-cols-3 gap-2">
+          <button id="onboard-step2-back" class="py-3 px-3 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs active-press">
+            Back
+          </button>
+          <button id="onboard-step2-skip" class="py-3 px-3 rounded-xl bg-slate-800/80 text-slate-400 font-semibold text-xs active-press">
+            Skip
+          </button>
+          <button id="onboard-step2-next" class="py-3 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow active-press">
+            Next →
+          </button>
+        </div>
+      </div>
+
+      <!-- SCREEN 3: ROTATION ALARM SCHEDULE -->
+      <div id="onboard-screen-3" class="hidden flex-col space-y-4">
+        <div>
+          <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-400">Step 3 of 5</span>
+          <h3 class="text-lg font-black text-white">Choose Rotation Schedule</h3>
+          <p class="text-xs text-slate-400 leading-tight mt-0.5">Select a pre-built cadence or adjust start and cutoff times.</p>
+        </div>
+
+        <!-- 4 Templates Grid -->
+        <div id="onboard-alarm-templates-grid" class="space-y-2">
+          <!-- Rendered dynamically -->
+        </div>
+
+        <!-- Cycle Duration Selector (Dietitian 10-Day Block Default) -->
+        <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="block text-xs font-semibold text-slate-300">
+              🗓️ Cycle Length: <span id="onboard-cycle-display" class="text-indigo-400 font-bold">10 Days</span>
+            </label>
+            <span class="text-[10px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full font-bold">Dietitian Standard</span>
+          </div>
+          <div class="grid grid-cols-3 gap-1.5">
+            <button type="button" id="onboard-dur-10d" class="onboard-dur-btn py-2 px-2 text-xs font-bold rounded-xl bg-indigo-600 text-white border border-indigo-500 shadow">
+              10 Days
+            </button>
+            <button type="button" id="onboard-dur-7d" class="onboard-dur-btn py-2 px-2 text-xs font-medium rounded-xl bg-slate-950 border border-slate-800 text-slate-400">
+              7 Days
+            </button>
+            <button type="button" id="onboard-dur-always" class="onboard-dur-btn py-2 px-2 text-xs font-medium rounded-xl bg-slate-950 border border-slate-800 text-slate-400">
+              Until Off
+            </button>
+          </div>
+          <p id="onboard-cycle-hint" class="text-[10px] text-slate-400 leading-tight">
+            Standard 10-day block: Auto-expires on <span id="onboard-cycle-end-date" class="text-slate-300 font-semibold"></span> to prompt for your next rotation phase.
+          </p>
+        </div>
+
+        <!-- Timing Window (07:00 to 23:00 Default) -->
+        <div class="grid grid-cols-2 gap-3 p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Daily Start</label>
+            <input type="time" id="onboard-alarm-start" value="07:00" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Daily Cutoff (11 PM)</label>
+            <input type="time" id="onboard-alarm-end" value="23:00" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500" />
+          </div>
+        </div>
+
+        <!-- Alert Mode -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Alert Mode</label>
+          <div class="grid grid-cols-3 gap-1.5">
+            <button type="button" id="onboard-mode-sv" class="py-2 text-xs font-bold rounded-xl bg-indigo-600 text-white border border-indigo-500 shadow">
+              🔊 Sound & Vibe
+            </button>
+            <button type="button" id="onboard-mode-so" class="py-2 text-xs font-medium rounded-xl bg-slate-900 border border-slate-800 text-slate-400">
+              🔉 Sound Only
+            </button>
+            <button type="button" id="onboard-mode-vo" class="py-2 text-xs font-medium rounded-xl bg-slate-900 border border-slate-800 text-slate-400">
+              📳 Vibrate Only
+            </button>
+          </div>
+        </div>
+
+        <!-- Ringtone Picker with Preview Audio -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Notification Ringtone</label>
+          <div id="onboard-ringtone-list" class="space-y-1.5">
+            <!-- Dynamic 5 ringtones -->
+          </div>
+        </div>
+
+        <!-- Live Ring Times Preview -->
+        <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1.5">
+          <div class="flex items-center justify-between text-xs font-bold">
+            <span class="text-slate-300 flex items-center gap-1">
+              <span>🔔</span> Ring Schedule
+            </span>
+            <span id="onboard-preview-count" class="text-indigo-300 text-[11px]">0 Rings</span>
+          </div>
+          <div id="onboard-preview-chips" class="flex flex-wrap gap-1 max-h-24 overflow-y-auto no-scrollbar"></div>
+        </div>
+
+        <div class="pt-2 grid grid-cols-3 gap-2">
+          <button id="onboard-step3-back" class="py-3 px-3 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs active-press">
+            Back
+          </button>
+          <button id="onboard-step3-skip" class="py-3 px-3 rounded-xl bg-slate-800/80 text-slate-400 font-semibold text-xs active-press">
+            Skip
+          </button>
+          <button id="onboard-step3-next" class="py-3 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow active-press">
+            Next →
+          </button>
+        </div>
+      </div>
+
+      <!-- SCREEN 4: DAILY HABITS & EXTRA REMINDERS -->
+      <div id="onboard-screen-4" class="hidden flex-col space-y-4">
+        <div>
+          <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-400">Step 4 of 5</span>
+          <h3 class="text-lg font-black text-white">Daily Habits & Goals</h3>
+          <p class="text-xs text-slate-400 leading-tight mt-0.5">Select healthy routines to track alongside your acupressure pacing.</p>
+        </div>
+
+        <div class="space-y-2.5">
+          <!-- Water -->
+          <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span class="text-2xl">💧</span>
+              <div>
+                <h4 class="text-xs font-bold text-white">Drink Water (8 Glasses)</h4>
+                <p class="text-[11px] text-slate-400">Hydration reminders every 2 hours</p>
+              </div>
+            </div>
+            <label class="switch-toggle">
+              <input type="checkbox" id="onboard-habit-water" checked />
+              <span class="switch-slider cyan"></span>
+            </label>
+          </div>
+
+          <!-- Walk -->
+          <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span class="text-2xl">🚶</span>
+              <div>
+                <h4 class="text-xs font-bold text-white">Daily Walk & Steps</h4>
+                <p class="text-[11px] text-slate-400">Target 8,000 steps (reminder at 6:00 PM)</p>
+              </div>
+            </div>
+            <label class="switch-toggle">
+              <input type="checkbox" id="onboard-habit-walk" checked />
+              <span class="switch-slider emerald"></span>
+            </label>
+          </div>
+
+          <!-- Morning Weigh-In -->
+          <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span class="text-2xl">⚖️</span>
+              <div>
+                <h4 class="text-xs font-bold text-white">Morning Weigh-In</h4>
+                <p class="text-[11px] text-slate-400">Consistent daily checkpoint at 7:15 AM</p>
+              </div>
+            </div>
+            <label class="switch-toggle">
+              <input type="checkbox" id="onboard-habit-weighin" checked />
+              <span class="switch-slider"></span>
+            </label>
+          </div>
+
+          <!-- Custom Goal -->
+          <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <span class="text-2xl">🎯</span>
+                <div>
+                  <h4 class="text-xs font-bold text-white">Custom Habit Goal</h4>
+                  <p class="text-[11px] text-slate-400">Create your own daily routine</p>
+                </div>
+              </div>
+              <label class="switch-toggle">
+                <input type="checkbox" id="onboard-habit-custom" />
+                <span class="switch-slider emerald"></span>
+              </label>
+            </div>
+            <div id="onboard-habit-custom-fields" class="hidden pt-2 border-t border-slate-800 grid grid-cols-2 gap-2">
+              <input type="text" id="onboard-custom-title" placeholder="e.g. Green Tea, Stretching" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500" />
+              <input type="number" id="onboard-custom-target" placeholder="Target # (e.g. 2)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500" />
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-4 grid grid-cols-2 gap-2.5">
+          <button id="onboard-step4-back" class="py-3 px-4 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs active-press">
+            Back
+          </button>
+          <button id="onboard-step4-next" class="py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow active-press">
+            Next: Permissions & Lock →
+          </button>
+        </div>
+      </div>
+
+      <!-- SCREEN 5: PERMISSIONS & APP LOCK -->
+      <div id="onboard-screen-5" class="hidden flex-col space-y-4">
+        <div>
+          <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-400">Step 5 of 5</span>
+          <h3 class="text-lg font-black text-white">Permissions & Security</h3>
+          <p class="text-xs text-slate-400 leading-tight mt-0.5">Enable locked-screen audio alerts and protect your data locally.</p>
+        </div>
+
+        <!-- Notification Permission Card -->
+        <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2.5">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-300 flex items-center justify-center text-lg shrink-0">
+              🔔
+            </div>
+            <div>
+              <h4 class="text-xs font-bold text-white">Alarm & Notification Stream</h4>
+              <p id="onboard-perm-status" class="text-[11px] text-slate-400 leading-tight mt-0.5">Required for locked-screen audio rings and pacer prompts.</p>
+            </div>
+          </div>
+          <button type="button" id="onboard-grant-perms-btn" class="w-full py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow active-press transition flex items-center justify-center gap-1.5">
+            <span>🔔 Allow Notifications & Alarms</span>
+          </button>
+        </div>
+
+        <!-- Optional App Lock Setup -->
+        <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-lg shrink-0">
+                🔒
+              </div>
+              <div>
+                <h4 class="text-xs font-bold text-white">Optional App Lock</h4>
+                <p class="text-[11px] text-slate-400 leading-tight mt-0.5">4-digit PIN and Biometrics</p>
+              </div>
+            </div>
+            <label class="switch-toggle">
+              <input type="checkbox" id="onboard-applock-toggle" />
+              <span class="switch-slider"></span>
+            </label>
+          </div>
+
+          <div id="onboard-applock-fields" class="hidden pt-2 border-t border-slate-800 space-y-3">
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] font-semibold text-slate-400 mb-1">Create PIN (4 Digits)</label>
+                <input type="password" id="onboard-pin-input" maxlength="4" placeholder="••••" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-center text-sm text-white font-mono tracking-widest focus:outline-none focus:border-indigo-500" />
+              </div>
+              <div>
+                <label class="block text-[10px] font-semibold text-slate-400 mb-1">Confirm PIN</label>
+                <input type="password" id="onboard-pin-confirm" maxlength="4" placeholder="••••" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-center text-sm text-white font-mono tracking-widest focus:outline-none focus:border-indigo-500" />
+              </div>
+            </div>
+
+            <div id="onboard-applock-bio-row" class="hidden flex items-center justify-between p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs">
+              <span class="text-slate-300">Enable Biometric (Fingerprint/Face)</span>
+              <label class="switch-toggle">
+                <input type="checkbox" id="onboard-applock-bio-toggle" />
+                <span class="switch-slider emerald"></span>
+              </label>
+            </div>
+
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-slate-400">Auto-Lock Timing</span>
+              <select id="onboard-lock-timing" class="bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-indigo-500">
+                <option value="immediate">Immediately</option>
+                <option value="1min">After 1 Minute</option>
+                <option value="restart">On App Restart</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-4 grid grid-cols-3 gap-2">
+          <button id="onboard-step5-back" class="py-3 px-3 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs active-press">
+            Back
+          </button>
+          <button id="onboard-finish-btn" class="col-span-2 py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-indigo-600 hover:from-emerald-400 hover:to-indigo-500 text-white font-black text-xs shadow-xl shadow-emerald-950/50 flex items-center justify-center gap-2 active-press transition">
+            <span>🚀 Finish & Launch My App</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- IN-APP PRIVACY POLICY MODAL -->
+  <div id="privacy-policy-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex-col justify-end sm:justify-center items-center p-0 sm:p-4 transition-all">
+    <div class="w-full max-w-md bg-gradient-to-b from-[#111827] to-[#090d16] rounded-t-3xl sm:rounded-3xl border border-slate-700/80 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      
+      <div class="px-5 pt-4 pb-3 flex items-center justify-between border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-sm font-bold">
+            🛡️
+          </div>
+          <h3 class="text-sm font-bold text-white">Privacy Policy</h3>
+        </div>
+        <button id="privacy-policy-close" class="p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white active-press">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4 overflow-y-auto no-scrollbar text-xs text-slate-300 leading-relaxed">
+        <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+          <h4 class="text-white font-bold mb-1">🔒 100% Offline & Local Storage</h4>
+          <p class="text-[11px] text-slate-400">All data (height, weight logs, alarm schedules, habit completions, and security PIN) is saved exclusively on your device. Zero cloud servers or analytics tracking.</p>
+        </div>
+
+        <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+          <h4 class="text-white font-bold mb-1">⚙️ Device Permissions</h4>
+          <p class="text-[11px] text-slate-400">Notifications & Exact Alarms are used strictly to sound your 40x acupressure rotation reminders. Biometrics are processed only by your device's operating system.</p>
+        </div>
+
+        <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+          <h4 class="text-white font-bold mb-1">📦 Data Ownership</h4>
+          <p class="text-[11px] text-slate-400">You can export your complete data as JSON or permanently wipe all data anytime from My Profile.</p>
+        </div>
+
+        <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 text-center space-y-1">
+          <h4 class="text-white font-bold text-xs flex items-center justify-center gap-1.5">
+            <span>📬</span>
+            <span>Developer Support & Contact</span>
+          </h4>
+          <p class="text-[11px] text-slate-400">Questions, bug reports, or feature requests:</p>
+          <a href="mailto:rotationreminder@gmail.com" class="text-indigo-400 text-xs font-bold hover:underline inline-block pt-0.5">
+            rotationreminder@gmail.com
+          </a>
+        </div>
+
+        <div class="text-center pt-2">
+          <a href="privacy-policy.html" target="_blank" class="text-indigo-400 text-xs font-bold hover:underline">
+            Open Full Privacy Policy Document ↗
+          </a>
+        </div>
+      </div>
+
+      <div class="p-4 border-t border-slate-800 pb-safe">
+        <button type="button" id="privacy-policy-close-btn" class="w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold active-press">
+          Close
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>

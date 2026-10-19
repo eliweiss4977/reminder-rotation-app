@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Privacy Policy - Rotation Reminder</title>
+  <meta name="description" content="Privacy Policy and Data Transparency for Rotation Reminder - 100% local, offline, and zero-tracking." />
+  <meta name="theme-color" content="#090d16" />
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #0f172a;
+      --card-border: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --indigo: #6366f1;
+      --indigo-glow: rgba(99, 102, 241, 0.15);
+      --emerald: #10b981;
+      --rose: #f43f5e;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      padding: 24px 16px;
+      -webkit-font-smoothing: antialiased;
+    }
+    .container {
+      max-width: 680px;
+      margin: 0 auto;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 20px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #4f46e5 0%, #064e3b 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+    }
+    .logo svg {
+      width: 26px;
+      height: 26px;
+      fill: none;
+      stroke: #34d399;
+      stroke-width: 2.2;
+    }
+    .title-group h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -0.01em;
+    }
+    .title-group p {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #818cf8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .badge-pill {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #34d399;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.28);
+      padding: 4px 10px;
+      border-radius: 9999px;
+    }
+    .hero-banner {
+      background: linear-gradient(180deg, var(--indigo-glow) 0%, transparent 100%), var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+    .hero-banner h2 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .hero-statement {
+      font-size: 0.88rem;
+      color: #e2e8f0;
+      font-weight: 500;
+      line-height: 1.55;
+      background: rgba(15, 23, 42, 0.7);
+      padding: 14px 16px;
+      border-radius: 12px;
+      border-left: 4px solid var(--emerald);
+      margin-top: 8px;
+    }
+    section {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    section h2 {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    p {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+    p:last-child {
+      margin-bottom: 0;
+    }
+    ul {
+      list-style: none;
+      padding-left: 0;
+      margin: 10px 0;
+    }
+    li {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    li:last-child {
+      margin-bottom: 0;
+    }
+    .bullet {
+      color: var(--indigo);
+      font-weight: bold;
+    }
+    .check {
+      color: var(--emerald);
+      font-weight: bold;
+    }
+    strong {
+      color: #f1f5f9;
+    }
+    .code-box {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.78rem;
+      background: #020617;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid #1e293b;
+      color: #93c5fd;
+      word-break: break-all;
+    }
+    footer {
+      text-align: center;
+      padding-top: 24px;
+      padding-bottom: 16px;
+      font-size: 0.72rem;
+      color: #64748b;
+      border-top: 1px solid var(--card-border);
+      margin-top: 24px;
+    }
+    footer a {
+      color: #818cf8;
+      text-decoration: none;
+    }
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo">
+          <svg viewBox="0 0 24 24">
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+          </svg>
+        </div>
+        <div class="title-group">
+          <h1>Rotation Reminder</h1>
+          <p>Privacy Policy & Data Transparency</p>
+        </div>
+      </div>
+      <span class="badge-pill">100% Offline</span>
+    </header>
+
+    <div class="hero-banner">
+      <h2><span>🛡️</span> Foundational Privacy Commitment</h2>
+      <div class="hero-statement">
+        <strong>Rotation Reminder stores all alarms, weight logs, BMI profiles, and custom goals 100% locally on your device using encrypted local storage. Zero personal, health, or tracking data is collected, transmitted, or shared with external servers.</strong>
+      </div>
+    </div>
+
+    <section>
+      <h2><span>🔒</span> Local-First Data Storage</h2>
+      <p>
+        All information you enter into Rotation Reminder—including your name, height, body weight logs, alarm schedules, habit completions, and security PIN—remains strictly inside your phone’s local sandboxed storage (using <code>@capacitor/preferences</code> with encrypted local storage fallback).
+      </p>
+      <p>
+        The app operates <strong>without any remote backend, user authentication server, or cloud database</strong>. We do not maintain any user accounts or access keys. If you uninstall the app or wipe its data via Android system settings, all local data is permanently cleared from your device.
+      </p>
+    </section>
+
+    <section>
+      <h2><span>🚫</span> Zero Analytics, Trackers, or Ads</h2>
+      <p>
+        Rotation Reminder is completely ad-free and tracking-free:
+      </p>
+      <ul>
+        <li><span class="check">✓</span> <div><strong>No Advertising Networks:</strong> Zero ad SDKs, banner ads, or tracking identifiers (no Google AdMob, Unity, or third-party ad networks).</div></li>
+        <li><span class="check">✓</span> <div><strong>No Analytics or Telemetry:</strong> Zero analytics SDKs (no Firebase Analytics, Mixpanel, or telemetry daemons).</div></li>
+        <li><span class="check">✓</span> <div><strong>No Third-Party Data Brokers:</strong> Your health, schedule, and weight progress are never sold, rented, or monetized in any form.</div></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2><span>⚙️</span> Android Device Permissions & Usage Rationale</h2>
+      <p>
+        The app requests only the minimal Android permissions necessary to perform its alarm and pacer functions:
+      </p>
+      <ul>
+        <li>
+          <span class="bullet">•</span>
+          <div>
+            <strong>POST_NOTIFICATIONS & SCHEDULE_EXACT_ALARM:</strong> Required to trigger timely audio chimes and notifications for scheduled rotations and habits even when the device is asleep or locked.
+          </div>
+        </li>
+        <li>
+          <span class="bullet">•</span>
+          <div>
+            <strong>VIBRATE:</strong> Used to provide tactile feedback and alert patterns during interval alarms and pacing intervals.
+          </div>
+        </li>
+        <li>
+          <span class="bullet">•</span>
+          <div>
+            <strong>WAKE_LOCK:</strong> Used strictly during the active 40x Pacer countdown to prevent your phone screen from timing out while you perform physical seated rotations.
+          </div>
+        </li>
+        <li>
+          <span class="bullet">•</span>
+          <div>
+            <strong>USE_BIOMETRIC (Optional):</strong> Used only if you enable the optional App Lock. Biometric authentication (fingerprint / face) is handled directly by Android OS system APIs. Biometric data is never accessible to, handled by, or stored by the app.
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <section>
+      <h2><span>📦</span> User Data Ownership, Backup & Deletion</h2>
+      <p>
+        You maintain unconditional ownership and control over your data:
+      </p>
+      <ul>
+        <li><span class="check">✓</span> <div><strong>Export Backup:</strong> Export your entire database (alarms, weight history, body profile) to an offline JSON file anytime via <em>Profile &rarr; Backup & Restore</em>.</div></li>
+        <li><span class="check">✓</span> <div><strong>Import Backup:</strong> Migrate your data seamlessly to a new phone without relying on cloud services.</div></li>
+        <li><span class="check">✓</span> <div><strong>Instant Factory Reset:</strong> Tap <em>"Reset All App Data"</em> in the settings menu to completely purge all records from local device memory.</div></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2><span>👶</span> Children's Privacy (COPPA & GDPR Compliance)</h2>
+      <p>
+        Rotation Reminder is a personal health and wellness interval timer. It does not collect any personal information from any user, including children under the age of 13.
+      </p>
+    </section>
+
+    <section>
+      <h2><span>📬</span> Developer Contact & Support</h2>
+      <p>
+        If you have any questions, feedback, or inquiries regarding your data privacy, bug reports, or feature requests, you can contact the developer directly:
+      </p>
+      <div class="code-box">
+        <strong>Support Email:</strong> <a href="mailto:rotationreminder@gmail.com" style="color: #818cf8; text-decoration: underline;">rotationreminder@gmail.com</a>
+      </div>
+      <p style="margin-top: 10px;">
+        Rotation Reminder is also an open-source project. Its full implementation, build pipeline, and security mechanisms are publicly auditable on GitHub:
+      </p>
+      <div class="code-box">
+        <a href="https://github.com/eliweiss4977/reminder-rotation-app" style="color: #818cf8; text-decoration: underline;">https://github.com/eliweiss4977/reminder-rotation-app</a>
+      </div>
+    </section>
+
+    <footer>
+      <p>Effective Date: October 2026 • Compliant with Google Play Developer Program Policies & GDPR/CCPA offline standards.</p>
+      <p style="margin-top: 6px;">Rotation Reminder • Contact: <a href="mailto:rotationreminder@gmail.com">rotationreminder@gmail.com</a> • <a href="https://github.com/eliweiss4977/reminder-rotation-app">GitHub Repository</a></p>
+    </footer>
+  </div>
+
+</body>
+</html>
