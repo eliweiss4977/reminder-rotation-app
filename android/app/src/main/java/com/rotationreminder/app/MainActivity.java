@@ -1,4 +1,4 @@
-package com.satkin.pacer;
+package com.rotationreminder.app;
 
 import android.app.Notification;
 import android.app.NotificationChannel;

@@ -1,6 +1,6 @@
 # 🚀 Google Play Console Submission & Launch Checklist
 **App Name:** Rotation Reminder  
-**Package Name:** `com.satkin.pacer`  
+**Package Name:** `com.rotationreminder.app`  
 **Bundle File:** `rotation-reminder-release.aab`
 
 Follow this step-by-step checklist to set up your app in the Google Play Console, pass policy checks, and launch an Internal Testing release with private tester links.

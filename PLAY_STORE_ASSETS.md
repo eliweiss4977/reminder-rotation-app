@@ -1,6 +1,6 @@
 # 🎨 Google Play Store Graphics & Assets Checklist
 **App Name:** Rotation Reminder  
-**Package:** `com.satkin.pacer`
+**Package:** `com.rotationreminder.app`
 
 This document details the exact visual assets required by Google Play Console, their precise technical specifications, and where each ready-to-upload asset is located in this repository.
 

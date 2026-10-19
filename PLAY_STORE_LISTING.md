@@ -1,6 +1,6 @@
 # 📱 Google Play Store Listing & Metadata Guide
 **App Name:** Rotation Reminder  
-**Package ID:** `com.satkin.pacer`  
+**Package ID:** `com.rotationreminder.app`  
 **Default Language:** English (United States) – `en-US`
 
 ---

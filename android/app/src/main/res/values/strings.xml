@@ -2,6 +2,6 @@
 <resources>
     <string name="app_name">Rotation Reminder</string>
     <string name="title_activity_main">Rotation Reminder</string>
-    <string name="package_name">com.satkin.pacer</string>
-    <string name="custom_url_scheme">com.satkin.pacer</string>
+    <string name="package_name">com.rotationreminder.app</string>
+    <string name="custom_url_scheme">com.rotationreminder.app</string>
 </resources>
