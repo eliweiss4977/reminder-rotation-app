@@ -79,9 +79,9 @@ Download Rotation Reminder today to establish effortless daily consistency and k
 | **Primary Category** | Health & Fitness |
 | **Secondary Category** | Productivity |
 | **Tags** | Habit Tracker, Interval Timer, Health, Alarm Clock, Weight Loss, Fitness |
-| **Developer Email** | *(Your personal or support email, e.g. support@yourdomain.com)* |
+| **Developer Email** | `rotationreminder@gmail.com` |
 | **Website URL** | `https://github.com/eliweiss4977/reminder-rotation-app` |
-| **Privacy Policy URL** | Hosted URL pointing to `privacy-policy.html` (e.g. `https://eliweiss4977.github.io/reminder-rotation-app/privacy-policy.html`) |
+| **Privacy Policy URL** | `https://eliweiss4977.github.io/reminder-rotation-app/privacy-policy.html` |
 
 ---
 

@@ -10,6 +10,8 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 jobs:
   build:
@@ -130,3 +132,39 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 📷 Scan with Phone Camera to Install APK:" >> $GITHUB_STEP_SUMMARY
           echo "![Scan to Install](https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=https://github.com/${{ github.repository }}/releases/latest/download/rotation-reminder.apk)" >> $GITHUB_STEP_SUMMARY
+
+  deploy-pages:
+    name: Deploy Privacy Policy & Web App to GitHub Pages
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install & Build Web Assets
+        run: |
+          npm install
+          node scripts/generate-chime.js
+          npm run build
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

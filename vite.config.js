@@ -22,6 +22,7 @@ const appVersion = process.env.GITHUB_RUN_NUMBER
 const repoSlug = getGitRepoSlug();
 
 export default defineConfig({
+  base: './',
   define: {
     'import.meta.env.VITE_APP_VERSION': JSON.stringify(appVersion),
     'import.meta.env.VITE_GITHUB_REPO': JSON.stringify(repoSlug),
