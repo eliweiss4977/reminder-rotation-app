@@ -4,9 +4,9 @@ This file tracks the exact, policy-compliant release notes (under 500 characters
 
 ---
 
-## 🚀 Build #26 (v1.0.26) — Current Play Store Release
+## 🚀 Build #27 (v1.0.27) — Current Play Store Release
 **Target SDK:** Android API Level 36  
-**Version Code:** 26  
+**Version Code:** 27  
 **Status:** Play Store Production, Home Screen Widget & Wear OS Ready
 
 ### Copy & Paste for Google Play Console:
@@ -22,6 +22,10 @@ What's new in Rotation Reminder:
 ---
 
 ## 📜 Previous Builds & Changelog
+
+### Build #26 (v1.0.26)
+- Native Android Home Screen Widget (`AppWidgetProvider`) with live countdown and deep link.
+- Google Wear OS Companion module (`wear/`) with Tile service and wrist haptic pacer.
 
 ### Build #25 (v1.0.25)
 - Redesigned Screenshot 4 with authentic vector graphics for Biometric Lock and Profile.
