@@ -14,6 +14,13 @@ import com.getcapacitor.BridgeActivity;
 public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        if (isDismissIntent(getIntent())) {
+            handleDismiss(getIntent());
+            super.onCreate(savedInstanceState);
+            finish();
+            overridePendingTransition(0, 0);
+            return;
+        }
         registerPlugin(RotationWidgetPlugin.class);
         super.onCreate(savedInstanceState);
         createNativeNotificationChannels();
@@ -22,9 +29,35 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     protected void onNewIntent(Intent intent) {
+        if (isDismissIntent(intent)) {
+            handleDismiss(intent);
+            super.onNewIntent(intent);
+            moveTaskToBack(true);
+            overridePendingTransition(0, 0);
+            return;
+        }
         super.onNewIntent(intent);
         setIntent(intent);
         handleIntent(intent);
+    }
+
+    private boolean isDismissIntent(Intent intent) {
+        if (intent == null) return false;
+        String action = intent.getStringExtra("LocalNotificationUserAction");
+        if ("DISMISS".equalsIgnoreCase(action)) return true;
+        if ("dismiss".equalsIgnoreCase(intent.getStringExtra("action"))) return true;
+        return false;
+    }
+
+    private void handleDismiss(Intent intent) {
+        if (intent == null) return;
+        int notifId = intent.getIntExtra("LocalNotificationId", -1);
+        if (notifId != -1) {
+            NotificationManager nm = getSystemService(NotificationManager.class);
+            if (nm != null) {
+                nm.cancel(notifId);
+            }
+        }
     }
 
     private void handleIntent(Intent intent) {
@@ -49,18 +82,28 @@ public class MainActivity extends BridgeActivity {
             String[] tones = new String[]{"classic", "crystal", "double", "woodblock", "marimba"};
             String pkg = getPackageName();
 
+            // Clean up legacy v3 channels so v4 channels take full precedence with fresh settings
+            for (String tone : tones) {
+                try {
+                    manager.deleteNotificationChannel("alarm_" + tone + "_sv_v3");
+                    manager.deleteNotificationChannel("alarm_" + tone + "_so_v3");
+                } catch (Exception ignored) {}
+            }
+            try {
+                manager.deleteNotificationChannel("alarm_vibrate_only_v3");
+            } catch (Exception ignored) {}
+
             AudioAttributes alarmAudioAttributes = new AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_ALARM)
+                .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
                 .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                .setFlags(AudioAttributes.FLAG_AUDIBILITY_ENFORCED)
                 .build();
 
             for (String tone : tones) {
                 Uri soundUri = Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + pkg + "/raw/ring_" + tone);
                 String toneLabel = Character.toUpperCase(tone.charAt(0)) + tone.substring(1);
 
-                // 1. Sound + Vibrate Channel (alarm_${tone}_sv_v3)
-                String idSV = "alarm_" + tone + "_sv_v3";
+                // 1. Sound + Vibrate Channel (alarm_${tone}_sv_v4)
+                String idSV = "alarm_" + tone + "_sv_v4";
                 NotificationChannel chanSV = new NotificationChannel(
                     idSV,
                     "Rotation: " + toneLabel + " (Sound & Vibrate)",
@@ -70,14 +113,13 @@ public class MainActivity extends BridgeActivity {
                 chanSV.setSound(soundUri, alarmAudioAttributes);
                 chanSV.enableVibration(true);
                 chanSV.setVibrationPattern(new long[]{0, 400, 200, 400});
-                chanSV.setBypassDnd(true);
                 chanSV.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
                 chanSV.enableLights(true);
                 chanSV.setLightColor(0xFF4F46E5);
                 manager.createNotificationChannel(chanSV);
 
-                // 2. Sound Only Channel (alarm_${tone}_so_v3)
-                String idSO = "alarm_" + tone + "_so_v3";
+                // 2. Sound Only Channel (alarm_${tone}_so_v4)
+                String idSO = "alarm_" + tone + "_so_v4";
                 NotificationChannel chanSO = new NotificationChannel(
                     idSO,
                     "Rotation: " + toneLabel + " (Sound Only)",
@@ -87,15 +129,14 @@ public class MainActivity extends BridgeActivity {
                 chanSO.setSound(soundUri, alarmAudioAttributes);
                 chanSO.enableVibration(false);
                 chanSO.setVibrationPattern(new long[]{0L});
-                chanSO.setBypassDnd(true);
                 chanSO.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
                 chanSO.enableLights(true);
                 chanSO.setLightColor(0xFF4F46E5);
                 manager.createNotificationChannel(chanSO);
             }
 
-            // 3. Vibrate Only Channel (alarm_vibrate_only_v3)
-            String idVO = "alarm_vibrate_only_v3";
+            // 3. Vibrate Only Channel (alarm_vibrate_only_v4)
+            String idVO = "alarm_vibrate_only_v4";
             NotificationChannel chanVO = new NotificationChannel(
                 idVO,
                 "Rotation: Vibrate Only (Silent)",
@@ -105,7 +146,6 @@ public class MainActivity extends BridgeActivity {
             chanVO.setSound(null, null);
             chanVO.enableVibration(true);
             chanVO.setVibrationPattern(new long[]{0, 500, 200, 500, 200, 600});
-            chanVO.setBypassDnd(true);
             chanVO.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
             chanVO.enableLights(true);
             chanVO.setLightColor(0xFF4F46E5);

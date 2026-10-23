@@ -14,6 +14,42 @@ class AudioEngine {
     this.isMuted = false;
     this.activeSynthTimeouts = [];
     this.lastPlayTimestamp = 0;
+    this._unlockBound = false;
+    this.initAudioUnlock();
+  }
+
+  initAudioUnlock() {
+    if (this._unlockBound || typeof window === 'undefined') return;
+    this._unlockBound = true;
+
+    const unlock = () => {
+      try {
+        const ctx = this.getAudioContext();
+        if (ctx && ctx.state === 'suspended') {
+          ctx.resume();
+        }
+      } catch (e) {}
+      ['click', 'touchstart', 'touchend', 'pointerdown', 'keydown'].forEach(evt => {
+        window.removeEventListener(evt, unlock, true);
+      });
+    };
+
+    ['click', 'touchstart', 'touchend', 'pointerdown', 'keydown'].forEach(evt => {
+      window.addEventListener(evt, unlock, { capture: true, once: false, passive: true });
+    });
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          try {
+            const ctx = this.getAudioContext();
+            if (ctx && ctx.state === 'suspended') {
+              ctx.resume();
+            }
+          } catch (e) {}
+        }
+      });
+    }
   }
 
   getAudioContext() {
@@ -24,7 +60,7 @@ class AudioEngine {
       }
     }
     if (this.audioCtx && this.audioCtx.state === 'suspended') {
-      this.audioCtx.resume();
+      this.audioCtx.resume().catch(() => {});
     }
     return this.audioCtx;
   }

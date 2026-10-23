@@ -64,6 +64,7 @@ class RotationReminderApp {
     // Custom Goal modal state
     this.newGoalIcon = '💧';
     this.newGoalType = 'counter';
+    this.lastAlertedSlotId = null;
 
     this.init();
   }
@@ -537,6 +538,19 @@ class RotationReminderApp {
         countdownEl.className = 'text-2xl font-mono font-bold text-rose-400 tabular-nums animate-pulse';
       }
       if (topCountdownEl) topCountdownEl.textContent = text;
+
+      // In-app audible chime when countdown hits 0 (alert once per slot transition)
+      if (overdueSecs <= 4 && this.lastAlertedSlotId !== this.nextSlot.id) {
+        this.lastAlertedSlotId = this.nextSlot.id;
+        const ring = this.nextSlot.ringtone || 'ring_classic';
+        const alertMode = this.nextSlot.alertMode || 'sound_vibrate';
+        if (alertMode !== 'vibrate_only') {
+          audio.playRingtone(ring);
+        }
+        if (alertMode !== 'sound_only') {
+          haptics.milestone();
+        }
+      }
       return;
     }
 

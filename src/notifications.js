@@ -1,6 +1,8 @@
 // Native Notifications Manager for iOS & Android via @capacitor/local-notifications
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { calculateMultiProfile5DaysNotificationSlots } from './scheduleEngine.js';
+import { audio } from './audio.js';
+import { haptics } from './haptics.js';
 
 export const NOTIFICATION_CHANNELS = {
   ring_classic: { id: 'channel_ring_classic', name: 'Classic Single Ring', sound: 'ring_classic.wav' },
@@ -10,14 +12,14 @@ export const NOTIFICATION_CHANNELS = {
   ring_marimba: { id: 'channel_ring_marimba', name: 'Warm Marimba', sound: 'ring_marimba.wav' }
 };
 
-export const DEFAULT_CHANNEL_ID = 'alarm_classic_sv_v3';
+export const DEFAULT_CHANNEL_ID = 'alarm_classic_sv_v4';
 
 /**
  * Resolves the precise native channel and sound configuration based on ringtone and alert mode.
  * Matches MainActivity.java channels:
- * - alarm_${tone}_sv_v3 (Sound & Vibrate)
- * - alarm_${tone}_so_v3 (Sound Only)
- * - alarm_vibrate_only_v3 (Vibrate Only / Silent)
+ * - alarm_${tone}_sv_v4 (Sound & Vibrate)
+ * - alarm_${tone}_so_v4 (Sound Only)
+ * - alarm_vibrate_only_v4 (Vibrate Only / Silent)
  */
 export function resolveNotificationChannel(ringtone = 'ring_classic', alertMode = 'sound_vibrate') {
   const toneKey = (ringtone || 'ring_classic').replace('ring_', '');
@@ -25,21 +27,21 @@ export function resolveNotificationChannel(ringtone = 'ring_classic', alertMode 
 
   if (alertMode === 'vibrate_only') {
     return {
-      channelId: 'alarm_vibrate_only_v3',
+      channelId: 'alarm_vibrate_only_v4',
       sound: undefined
     };
   }
 
   if (alertMode === 'sound_only') {
     return {
-      channelId: `alarm_${toneKey}_so_v3`,
+      channelId: `alarm_${toneKey}_so_v4`,
       sound: soundFile
     };
   }
 
   // Default: sound_vibrate
   return {
-    channelId: `alarm_${toneKey}_sv_v3`,
+    channelId: `alarm_${toneKey}_sv_v4`,
     sound: soundFile
   };
 }
@@ -78,11 +80,31 @@ class NotificationManager {
         }
 
         if (actionId === 'DISMISS') {
+          // Explicitly clear notification from shade on dismiss action
+          if (action.notification?.id) {
+            try {
+              await LocalNotifications.removeDeliveredNotifications({
+                notifications: [{ id: action.notification.id }]
+              });
+            } catch (e) {}
+          }
           return;
         }
 
         if (this.onNotificationTapCallback) {
           this.onNotificationTapCallback(extra, actionId);
+        }
+      });
+
+      // 4. Foreground notification chime listener: ensures sound always triggers even if app is actively in foreground
+      await LocalNotifications.addListener('localNotificationReceived', (notification) => {
+        const extra = notification?.extra || {};
+        const alertMode = extra.alertMode || 'sound_vibrate';
+        if (alertMode !== 'vibrate_only') {
+          audio.playRingtone(extra.ringtone || 'ring_classic');
+        }
+        if (alertMode !== 'sound_only') {
+          haptics.milestone();
         }
       });
 
@@ -97,14 +119,14 @@ class NotificationManager {
     try {
       const tones = ['classic', 'crystal', 'double', 'woodblock', 'marimba'];
 
-      // Register the alarm stream channels with Capacitor
+      // Register the alarm stream channels with Capacitor (v4)
       for (const tone of tones) {
         const soundFile = `ring_${tone}.wav`;
         const toneLabel = tone.charAt(0).toUpperCase() + tone.slice(1);
 
         // Sound + Vibrate
         await LocalNotifications.createChannel({
-          id: `alarm_${tone}_sv_v3`,
+          id: `alarm_${tone}_sv_v4`,
           name: `Rotation: ${toneLabel} (Sound & Vibrate)`,
           description: 'Alarm audio stream with double-pulse vibration',
           importance: 5,
@@ -117,7 +139,7 @@ class NotificationManager {
 
         // Sound Only
         await LocalNotifications.createChannel({
-          id: `alarm_${tone}_so_v3`,
+          id: `alarm_${tone}_so_v4`,
           name: `Rotation: ${toneLabel} (Sound Only)`,
           description: 'Alarm audio stream without vibration',
           importance: 5,
@@ -131,7 +153,7 @@ class NotificationManager {
 
       // Vibrate Only (Silent)
       await LocalNotifications.createChannel({
-        id: 'alarm_vibrate_only_v3',
+        id: 'alarm_vibrate_only_v4',
         name: 'Rotation: Vibrate Only (Silent)',
         description: 'High-priority silent alert with triple-pulse vibration',
         importance: 5,
@@ -319,12 +341,26 @@ class NotificationManager {
   async scheduleTestNotification(profileName = 'Rotation Protocol', ringtoneId = 'ring_classic', alertMode = 'sound_vibrate') {
     try {
       await this.requestPermission();
+
+      // Clear any prior test notifications to prevent Android from silently suppressing repeat alerts via setOnlyAlertOnce
+      try {
+        const delivered = await LocalNotifications.getDeliveredNotifications();
+        if (delivered?.notifications?.length) {
+          const testDelivered = delivered.notifications.filter(n => n.id >= 90000 && n.id <= 99999);
+          if (testDelivered.length > 0) {
+            await LocalNotifications.removeDeliveredNotifications({ notifications: testDelivered });
+          }
+        }
+      } catch (e) {}
+
+      // Unique ID for each test trigger to ensure fresh notification arrival
+      const testId = 90000 + Math.floor(Math.random() * 9990);
       const testTime = new Date(Date.now() + 5000);
       const ringKey = ringtoneId || 'ring_classic';
       const { channelId, sound } = resolveNotificationChannel(ringKey, alertMode);
 
       const testNotif = {
-        id: 99999,
+        id: testId,
         title: `🔄 ${profileName} [TEST]`,
         body: 'Sit down comfortably and rotate ear balls 40 times. Tap to open the 40x Pacer.',
         channelId,

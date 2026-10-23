@@ -4,24 +4,29 @@ This file tracks the exact, policy-compliant release notes (under 500 characters
 
 ---
 
-## 🚀 Build #27 (v1.0.27) — Current Play Store Release
+## 🚀 Build #28 (v1.0.28) — Current Play Store Release
 **Target SDK:** Android API Level 36  
-**Version Code:** 27  
-**Status:** Play Store Production, Home Screen Widget & Wear OS Ready
+**Version Code:** 28  
+**Status:** Play Store Production, Sound & Dismissal Reliability Fix
 
 ### Copy & Paste for Google Play Console:
 ```text
 What's new in Rotation Reminder:
-• Android Home Screen Widget: Check your next rotation countdown and tap "Start 40x Pacer" directly from your home screen.
-• Google Wear OS Companion Tile: Track intervals on your Google Watch with wrist haptics and a quick 40x pacer.
-• Seamless Sync: Schedules synchronize automatically between phone and watch.
-• 100% Private: Stored securely on-device with zero tracking or ads.
+• Notification Dismissal: Tapping dismiss now quietly clears the reminder without opening the app.
+• Audio Reliability: Upgraded high-priority alarm channels, proactive audio priming, and foreground chimes.
+• Test Alert Fix: Double-testing alerts now reliably triggers sound and vibration every time.
+• Android Home Screen Widget & Wear OS Watch Tile: Live countdowns and wrist haptics.
+• 100% Offline & Private: Zero telemetry.
 ```
-*(377 characters / 500 max)*
+*(402 characters / 500 max)*
 
 ---
 
 ## 📜 Previous Builds & Changelog
+
+### Build #27 (v1.0.27)
+- Android Home Screen Widget and Wear OS companion applet.
+- Redesigned 5-pack store screenshots with crisp typography and bottom navigation.
 
 ### Build #26 (v1.0.26)
 - Native Android Home Screen Widget (`AppWidgetProvider`) with live countdown and deep link.
